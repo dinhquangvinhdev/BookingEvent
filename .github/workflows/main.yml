@@ -1,0 +1,44 @@
+name: Android Build and Deployment Pipeline
+
+on:
+  push:
+    branches:
+      - 'master'
+      - 'hotfix'
+      - 'develope'
+      - 'feature'
+  pull_request:
+    branches:
+      - 'master'
+      - 'hotfix'
+      - 'develope'
+      - 'feature'
+      
+jobs:
+  build:
+    name: Setup Environment and build
+    runs-on: self-hosted
+    steps:
+      - name: Checkout the code to specific branch
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
+            
+      - name: Set up JDK
+        uses: actions/setup-java@v3.11.0
+        with:
+            # The Java version to set up. Takes a whole or semver Java version. See examples of supported syntax in README file
+            java-version: '19'
+            # The path to the `.java-version` file. See examples of supported syntax in README file
+            java-version-file: '19'
+            distribution: 'zulu'
+                
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2.0.2
+              
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+    
+      - name: Execute Gradle build
+        run: ./gradlew build
+  
