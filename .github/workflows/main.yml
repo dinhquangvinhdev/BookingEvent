@@ -4,25 +4,19 @@ on:
   push:
     branches:
       - 'master'
-      - 'hotfix'
       - 'develope'
-      - 'feature'
   pull_request:
     branches:
       - 'master'
-      - 'hotfix'
       - 'develope'
-      - 'feature'
       
 jobs:
   build:
     name: Setup Environment and build
-    runs-on: self-hosted
+    runs-on: windows-latest
     steps:
       - name: Checkout the code to specific branch
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.inputs.branch }}
+        uses: actions/checkout@v2.7.0
             
       - name: Set up JDK
         uses: actions/setup-java@v3.11.0
