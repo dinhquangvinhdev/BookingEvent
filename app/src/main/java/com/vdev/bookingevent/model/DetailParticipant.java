@@ -1,4 +1,4 @@
-package com.example.bookingevent.model;
+package com.vdev.bookingevent.model;
 
 public class DetailParticipant {
     int booking_id;
