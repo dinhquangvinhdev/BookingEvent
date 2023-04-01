@@ -1,4 +1,4 @@
-package com.example.bookingevent.model;
+package com.vdev.bookingevent.model;
 
 import java.util.Date;
 

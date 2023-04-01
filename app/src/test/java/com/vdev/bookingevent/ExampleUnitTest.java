@@ -1,4 +1,4 @@
-package com.example.bookingevent;
+package com.vdev.bookingevent;
 
 import org.junit.Test;
 
