@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
 import com.vdev.bookingevent.databinding.ActivityLoginBinding;
@@ -33,6 +34,9 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         binding.btnSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //show progress bar and fade window
+                turnOnProgressBar();
+                //start intent to user choice account google
                 Intent intent = presenter.login();
                 startActivityForResult(intent,RC_SIGN_IN);
             }
@@ -59,5 +63,24 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         Intent intent = new Intent(this, activityClass);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    public void turnOffProgressBar() {
+        binding.pb.setVisibility(View.INVISIBLE);
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+    }
+
+    @Override
+    public void turnOnProgressBar() {
+        binding.pb.setVisibility(View.VISIBLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
     }
 }

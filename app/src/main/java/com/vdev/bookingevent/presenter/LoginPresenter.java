@@ -14,8 +14,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
@@ -81,9 +79,11 @@ public class LoginPresenter implements LoginContract.Presenter {
             }catch (Exception e){
                 //failed google sign in
                 Log.d(TAG, "executeIntentLoginGG: " + e.getMessage());
+                view.turnOffProgressBar();
             }
         } else {
             Log.d(TAG, "executeIntentLoginGG: " + exception.getMessage());
+            view.turnOffProgressBar();
         }
     }
 
@@ -110,6 +110,7 @@ public class LoginPresenter implements LoginContract.Presenter {
                         }
                         else{
                             Log.d(TAG, "onFailure: Loggin failed " + task.getException().getMessage());
+                            view.turnOffProgressBar();
                         }
                     }
                 });

@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.squareup.picasso.Picasso;
+import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.databinding.ActivityMainBinding;
 import com.vdev.bookingevent.presenter.MainContract;
 import com.vdev.bookingevent.presenter.MainPresenter;
@@ -75,7 +76,14 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         //show avatar
         Picasso.get()
                 .load(avatar)
+                .placeholder(R.drawable.animation_loading)
                 .fit()
                 .into(binding.imgAvatar);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        presenter.logout();
     }
 }
