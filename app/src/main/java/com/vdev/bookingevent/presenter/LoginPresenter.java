@@ -13,6 +13,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -39,9 +40,21 @@ public class LoginPresenter implements LoginContract.Presenter {
                 .build();
         gsic =  GoogleSignIn.getClient(contextActivity, gsio);
 
+
         //init firebase auth
         firebaseAuth = FirebaseAuth.getInstance();
 
+        //check user was logged in
+        checkUser();
+
+    }
+
+    private void checkUser() {
+        //if user is already sign in then go to main activity
+        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+        if(firebaseUser != null){
+            view.startActivity(MainActivity.class);
+        }
     }
 
     /**
@@ -59,13 +72,18 @@ public class LoginPresenter implements LoginContract.Presenter {
     public void executeIntentLoginGG(Intent data) {
         Log.d(TAG, "executeIntentLoginGG: Google Signin intent result");
         Task<GoogleSignInAccount> accountTask = GoogleSignIn.getSignedInAccountFromIntent(data);
-        try{
-            //google sign in success, now auth with firebase
-            GoogleSignInAccount account = accountTask.getResult(ApiException.class);
-            firebaseAuthWithGoogleAccount(account);
-        }catch (Exception e){
-            //failed google sign in
-            Log.d(TAG, "executeIntentLoginGG: " + e.getMessage());
+        Exception exception = accountTask.getException();
+        if(accountTask.isSuccessful()){
+            try{
+                //google sign in success, now auth with firebase
+                GoogleSignInAccount account = accountTask.getResult(ApiException.class);
+                firebaseAuthWithGoogleAccount(account);
+            }catch (Exception e){
+                //failed google sign in
+                Log.d(TAG, "executeIntentLoginGG: " + e.getMessage());
+            }
+        } else {
+            Log.d(TAG, "executeIntentLoginGG: " + exception.getMessage());
         }
     }
 
@@ -73,34 +91,26 @@ public class LoginPresenter implements LoginContract.Presenter {
         Log.d(TAG, "firebaseAuthWithGoogleAccount: begin auth with google account");
         AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
         firebaseAuth.signInWithCredential(credential)
-                .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
-                    public void onSuccess(AuthResult authResult) {
-                        //login success
-                        Log.d(TAG, "onSuccess: Logged In");
-                        //get logged in user
-                        FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-                        //get user info
-                        String uid = firebaseUser.getUid();
-                        String email = firebaseUser.getEmail();
-                        Log.d(TAG, "onSuccess: Email: " + email);
-                        Log.d(TAG, "onSuccess: UID" + uid);
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if(task.isSuccessful()){
+                            //login success
+                            Log.d(TAG, "onSuccess: Logged In");
+                            //get logged in user
+                            FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+                            //get user info
+                            String uid = firebaseUser.getUid();
+                            String email = firebaseUser.getEmail();
+                            Log.d(TAG, "onSuccess: Email: " + email);
+                            Log.d(TAG, "onSuccess: UID" + uid);
 
-                        if(authResult.getAdditionalUserInfo().isNewUser()){
-                            //user is new - Account Created
-                            Log.d(TAG, "onSuccess: Account Created...\n" + email);
-                        } else {
-                            Log.d(TAG, "onSuccess: Existing user...\n" + email);
+                            //start main activity
+                            view.startActivity(MainActivity.class);
                         }
-
-                        //start main activity
-                        view.startActivity(MainActivity.class);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d(TAG, "onFailure: Loggin failed " + e.getMessage());
+                        else{
+                            Log.d(TAG, "onFailure: Loggin failed " + task.getException().getMessage());
+                        }
                     }
                 });
     }

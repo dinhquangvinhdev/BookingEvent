@@ -17,6 +17,15 @@
         android:gravity="center"
         android:text="main Activity"/>
 
+    <ImageView
+        android:id="@+id/img_avatar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_temp"
+        app:layout_constraintBottom_toTopOf="@id/btn_logout"/>
+
     <Button
         android:id="@+id/btn_logout"
         android:layout_width="match_parent"
