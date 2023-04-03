@@ -12,6 +12,7 @@ import android.view.View;
 
 import com.squareup.picasso.Picasso;
 import com.vdev.bookingevent.R;
+import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.databinding.ActivityMainBinding;
 import com.vdev.bookingevent.presenter.MainContract;
 import com.vdev.bookingevent.presenter.MainPresenter;
@@ -19,6 +20,7 @@ import com.vdev.bookingevent.presenter.MainPresenter;
 public class MainActivity extends AppCompatActivity implements MainContract.View {
     private ActivityMainBinding binding;
     private MainPresenter presenter;
+    private MDialog mDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,8 +28,15 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        initDialog();
         initPresenter();
         initView();
+    }
+
+    private void initDialog() {
+        if(mDialog == null){
+            mDialog = new MDialog();
+        }
     }
 
     /**
@@ -40,7 +49,9 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         binding.btnLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                presenter.logout();
+                if(mDialog.checkConnection(getApplicationContext())){
+                    presenter.logout();
+                }
             }
         });
     }

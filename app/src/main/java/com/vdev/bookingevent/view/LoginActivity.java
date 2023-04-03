@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.WindowManager;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes;
+import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.databinding.ActivityLoginBinding;
 import com.vdev.bookingevent.presenter.LoginContract;
 import com.vdev.bookingevent.presenter.LoginPresenter;
@@ -17,7 +18,7 @@ import com.vdev.bookingevent.presenter.LoginPresenter;
 public class LoginActivity extends AppCompatActivity implements LoginContract.View {
     private ActivityLoginBinding binding;
     private LoginPresenter presenter;
-
+    private MDialog mDialog;
     private static final int RC_SIGN_IN = 100;
 
     @Override
@@ -26,19 +27,28 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        initDialog();
         initPresenter();
         initView();
+    }
+
+    private void initDialog() {
+        if(mDialog == null){
+            mDialog = new MDialog();
+        }
     }
 
     private void initView() {
         binding.btnSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //show progress bar and fade window
-                turnOnProgressBar();
-                //start intent to user choice account google
-                Intent intent = presenter.login();
-                startActivityForResult(intent,RC_SIGN_IN);
+                if(mDialog.checkConnection(getApplicationContext())){
+                    //show progress bar and fade window
+                    turnOnProgressBar();
+                    //start intent to user choice account google
+                    Intent intent = presenter.login();
+                    startActivityForResult(intent,RC_SIGN_IN);
+                }
             }
         });
     }
@@ -81,6 +91,6 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
+        //TODO maybe need careful about dialog and task in background
     }
 }
