@@ -4,4 +4,8 @@
     <string name="title_dialog_error">ERROR!</string>
     <string name="body_dialog_error_connection">Your network is disconnect!\nPlease try again.</string>
     <string name="btn_dialog_error_connection">Try Again</string>
+    <string name="bnv_dashboard">home</string>
+    <string name="bnv_account">account</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
