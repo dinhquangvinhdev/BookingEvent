@@ -5,6 +5,7 @@ import static android.content.ContentValues.TAG;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 import com.squareup.picasso.Picasso;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.common.MConst;
@@ -104,21 +106,18 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             case MConst.FRAGMENT_DASHBOARD:{
                 fragment = new DashboardFragment();
                 transaction.replace(R.id.fcv_container , fragment);
-                transaction.addToBackStack(null);
                 transaction.commit();
                 break;
             }
             case MConst.FRAGMENT_SEARCH_EVENT:{
                 fragment = new SearchEventFragment();
                 transaction.replace(R.id.fcv_container , fragment);
-                transaction.addToBackStack(null);
                 transaction.commit();
                 break;
             }
             case MConst.FRAGMENT_ACCOUNT:{
                 fragment = new AccountFragment();
                 transaction.replace(R.id.fcv_container , fragment);
-                transaction.addToBackStack(null);
                 transaction.commit();
                 break;
             }
