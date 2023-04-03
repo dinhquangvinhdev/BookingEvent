@@ -8,16 +8,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MenuItem;
-import android.view.View;
-
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.navigation.NavigationBarView;
-import com.squareup.picasso.Picasso;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MDialog;
@@ -54,20 +46,8 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
      * The function is called when the view is created. It sets up the button and text
      */
     private void initView() {
-        presenter.checkUser();
-
         //bottom navigation
         initBottomNavigation();
-
-        //button
-        binding.btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(mDialog.checkConnection(getApplicationContext())){
-                    presenter.logout();
-                }
-            }
-        });
     }
 
     private void initBottomNavigation() {
@@ -139,35 +119,8 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         }
     }
 
-    /**
-     * It starts a new activity and finishes the current activity.
-     *
-     * @param classActivity The class of the activity you want to start.
-     */
-    @Override
-    public void startActivity(Class classActivity) {
-        Intent intent = new Intent(this, classActivity);
-        startActivity(intent);
-        finish();
-    }
-
-    @Override
-    public void showUserInfor(String email, String name, Uri avatar) {
-        //show email and name
-        String result = email + "\n" + name;
-        binding.tvTemp.setText(result);
-        Log.d(TAG, "showUserInfor: " + avatar);
-        //show avatar
-        Picasso.get()
-                .load(avatar)
-                .placeholder(R.drawable.animation_loading)
-                .fit()
-                .into(binding.imgAvatar);
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        presenter.logout();
     }
 }

@@ -71,8 +71,8 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     public void startActivity(Class activityClass) {
         Intent intent = new Intent(this, activityClass);
+        turnOffProgressBar();
         startActivity(intent);
-        finish();
     }
 
     @Override
@@ -91,6 +91,5 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        //TODO maybe need careful about dialog and task in background
     }
 }
