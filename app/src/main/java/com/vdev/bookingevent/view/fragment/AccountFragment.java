@@ -1,5 +1,6 @@
 package com.vdev.bookingevent.view.fragment;
 
+import android.app.Dialog;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -17,6 +18,7 @@ import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.OnItemOpAccClickListener;
 import com.vdev.bookingevent.adapter.OptionAccountAdapter;
 import com.vdev.bookingevent.common.MConst;
+import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.databinding.FragmentAccountBinding;
 import com.vdev.bookingevent.presenter.AccountContract;
 import com.vdev.bookingevent.presenter.AccountPresenter;
@@ -25,6 +27,8 @@ public class AccountFragment extends Fragment implements AccountContract.View , 
 
     private FragmentAccountBinding binding;
     private AccountPresenter presenter;
+    private Dialog dialogLogout;
+    private MDialog mDialog;
 
     public AccountFragment() {
         super(R.layout.fragment_account);
@@ -43,7 +47,25 @@ public class AccountFragment extends Fragment implements AccountContract.View , 
         super.onViewCreated(view, savedInstanceState);
 
         initPresenter();
+        initDialog();
         initView();
+    }
+
+    private void initDialog() {
+        mDialog = new MDialog();
+        dialogLogout = mDialog.confirmLogout(getContext());
+
+        dialogLogout.findViewById(R.id.btn_ok).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(mDialog.checkConnection(getContext())){
+                    presenter.logout(getContext());
+                    getActivity().finish();
+                } else {
+                    dialogLogout.dismiss();
+                }
+            }
+        });
     }
 
     private void initView() {
@@ -62,8 +84,13 @@ public class AccountFragment extends Fragment implements AccountContract.View , 
     @Override
     public void OnItemCLickListener(String title) {
         if(title.compareTo("Logout") == 0){
-            presenter.logout(getContext());
-            getActivity().finish();
+            dialogLogout.show();
         }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        dialogLogout.dismiss();
     }
 }

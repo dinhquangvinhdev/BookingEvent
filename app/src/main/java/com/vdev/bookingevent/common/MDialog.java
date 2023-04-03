@@ -10,6 +10,12 @@ import android.view.Window;
 import com.vdev.bookingevent.R;
 
 public class MDialog {
+    /**
+     * It checks if the device is connected to the internet return true
+     * else show dialog error and return false
+     * @param context The context of the activity.
+     * @return A boolean value.
+     */
     public boolean checkConnection(Context context){
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -21,6 +27,37 @@ public class MDialog {
             showErrorConnection(context);
             return false;
         }
+    }
+
+
+    /**
+     * It return a dialog confirm.
+     * This method will return Dialog for custom function with button ok
+     * Default button ok do not thing for this Dialog
+     * @param context The context of the activity that is calling the dialog.
+     * @return A Dialog object.
+     */
+    public Dialog confirmLogout(Context context){
+        Dialog dialogConfirm = new Dialog(context);
+        dialogConfirm.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogConfirm.setCancelable(true);
+        dialogConfirm.setContentView(R.layout.dialog_confirm_logout);
+
+        dialogConfirm.findViewById(R.id.btn_cancel).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogConfirm.dismiss();
+            }
+        });
+
+        dialogConfirm.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogConfirm.dismiss();
+            }
+        });
+
+        return dialogConfirm;
     }
 
     public void showErrorConnection(Context context){
