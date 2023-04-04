@@ -3,6 +3,7 @@ package com.vdev.bookingevent.view;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.view.View;
 
 import com.squareup.picasso.Picasso;
 import com.vdev.bookingevent.R;
@@ -29,6 +30,7 @@ public class DetailAccountActivity extends AppCompatActivity implements DetailAc
     }
 
     private void initView() {
+        //show information user
         if(mDialog.checkConnection(this)){
             //load avatar
             Picasso.get()
@@ -37,10 +39,17 @@ public class DetailAccountActivity extends AppCompatActivity implements DetailAc
                     .fit()
                     .into(binding.imgAvatar);
             //load display name
-            binding.tvTitleAccountName.setText(presenter.getAccountName());
+            binding.edtUsername.setText(presenter.getAccountName());
             //load display email
-            binding.tvTitleAccountEmail.setText(presenter.getAccountEmail());
+            binding.edtEmail.setText(presenter.getAccountEmail());
         }
+        // for back arrow
+        binding.imgIconBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
     }
 
     private void initDialog() {

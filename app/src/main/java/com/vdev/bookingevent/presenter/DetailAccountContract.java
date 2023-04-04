@@ -7,7 +7,6 @@ public interface DetailAccountContract {
     interface Presenter{
         Uri getAccountAvatar();
         String getAccountName();
-
         String getAccountEmail();
     }
 }
