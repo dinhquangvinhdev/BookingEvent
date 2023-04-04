@@ -10,4 +10,6 @@
     <string name="btn_dialog_confirm_ok">OK</string>
     <string name="bnv_dashboard">home</string>
     <string name="bnv_account">account</string>
+    <string name="title_account_name">Display Name</string>
+    <string name="title_account_email">Email</string>
 </resources>

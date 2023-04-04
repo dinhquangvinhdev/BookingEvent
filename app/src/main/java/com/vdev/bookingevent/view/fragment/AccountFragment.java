@@ -1,6 +1,7 @@
 package com.vdev.bookingevent.view.fragment;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -22,6 +23,7 @@ import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.databinding.FragmentAccountBinding;
 import com.vdev.bookingevent.presenter.AccountContract;
 import com.vdev.bookingevent.presenter.AccountPresenter;
+import com.vdev.bookingevent.view.DetailAccountActivity;
 
 public class AccountFragment extends Fragment implements AccountContract.View , OnItemOpAccClickListener {
 
@@ -85,6 +87,9 @@ public class AccountFragment extends Fragment implements AccountContract.View , 
     public void OnItemCLickListener(String title) {
         if(title.compareTo("Logout") == 0){
             dialogLogout.show();
+        } else if(title.compareTo("Detail Account") == 0){
+            mDialog.checkConnection(getContext());
+            startActivity(new Intent(getContext() , DetailAccountActivity.class));
         }
     }
 
