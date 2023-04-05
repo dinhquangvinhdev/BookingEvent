@@ -8,6 +8,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,17 +20,28 @@ import com.kizitonwose.calendar.core.CalendarMonth;
 import com.kizitonwose.calendar.view.MonthDayBinder;
 import com.kizitonwose.calendar.view.MonthHeaderFooterBinder;
 import com.vdev.bookingevent.adapter.DayViewContainer;
+import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
 import com.vdev.bookingevent.adapter.MonthViewContainer;
+import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
 import com.vdev.bookingevent.databinding.FragmentDashboardMonthBinding;
+import com.vdev.bookingevent.model.Event;
+import com.vdev.bookingevent.presenter.DashboardMonthContract;
+import com.vdev.bookingevent.presenter.DashboardMonthPresenter;
 
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
-public class DashboardMonthFragment extends Fragment {
+public class DashboardMonthFragment extends Fragment implements DashboardMonthContract.View , CallbackItemCalDashMonth {
 
     private FragmentDashboardMonthBinding binding;
+    private DashboardMonthPresenter presenter;
+    private EventsDashMonthAdapter adapter;
 
     public DashboardMonthFragment() {
         // Required empty public constructor
@@ -51,15 +63,39 @@ public class DashboardMonthFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        YearMonth currentMonth = YearMonth.now();
-        YearMonth startMonth = currentMonth.minusMonths(100);
-        YearMonth endMonth = currentMonth.plusMonths(100);
 
-        setupMonthCalendar(startMonth , endMonth , currentMonth);
+        initPresenter();
+        setupMonthCalendar();
+        initRVEvents();
+    }
+
+    private void initRVEvents() {
+        adapter = new EventsDashMonthAdapter(this);
+        binding.rvEventData.setAdapter(adapter);
+        //TODO it is just a sample event in here
+        Event event = new Event();
+        event.setSummery("Test summery");
+        event.setId(0);
+        event.setDate_start(new Date());
+        event.setDate_end(new Date(System.currentTimeMillis() + (86400 * 7 * 1000)));
+        List<Event> events = new ArrayList<>();
+        events.add(event);
+        adapter.setEvents(events);
+        // TODO == END sample
+        binding.rvEventData.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
 
     }
 
-    private void setupMonthCalendar(YearMonth startMonth, YearMonth endMonth, YearMonth currentMonth) {
+    private void initPresenter() {
+        if(presenter == null){
+            presenter = new DashboardMonthPresenter(this);
+        }
+    }
+
+    private void setupMonthCalendar() {
+        YearMonth currentMonth = YearMonth.now();
+        YearMonth startMonth = currentMonth.minusMonths(100);
+        YearMonth endMonth = currentMonth.plusMonths(100);
         //set up calendar
         binding.exOneCalendar.setup(startMonth, endMonth, firstDayOfWeekFromLocale());
         //set day binder
@@ -106,5 +142,10 @@ public class DashboardMonthFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    @Override
+    public void openSlidingPanel(String idEvent, String roomColor) {
+        //TODO
     }
 }
