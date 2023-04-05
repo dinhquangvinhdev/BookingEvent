@@ -26,4 +26,10 @@ public class SearchEventFragment extends Fragment {
         binding = FragmentSearchEventBinding.inflate(inflater , container , false);
         return binding.getRoot();
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
 }

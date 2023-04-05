@@ -42,4 +42,10 @@ public class DashboardFragment extends Fragment {
         }
         )).attach();
     }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
 }
