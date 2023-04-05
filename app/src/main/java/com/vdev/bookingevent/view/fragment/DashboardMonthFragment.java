@@ -8,7 +8,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.MutableLiveData;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,20 +15,17 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.kizitonwose.calendar.core.CalendarDay;
-import com.kizitonwose.calendar.core.DayPosition;
+import com.kizitonwose.calendar.core.CalendarMonth;
 import com.kizitonwose.calendar.view.MonthDayBinder;
-import com.kizitonwose.calendar.view.ViewContainer;
-import com.vdev.bookingevent.R;
+import com.kizitonwose.calendar.view.MonthHeaderFooterBinder;
 import com.vdev.bookingevent.adapter.DayViewContainer;
-import com.vdev.bookingevent.databinding.CalendarDayLayoutBinding;
+import com.vdev.bookingevent.adapter.MonthViewContainer;
 import com.vdev.bookingevent.databinding.FragmentDashboardMonthBinding;
 
 import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.format.TextStyle;
+import java.util.Locale;
 
 public class DashboardMonthFragment extends Fragment {
 
@@ -64,7 +60,9 @@ public class DashboardMonthFragment extends Fragment {
     }
 
     private void setupMonthCalendar(YearMonth startMonth, YearMonth endMonth, YearMonth currentMonth) {
+        //set up calendar
         binding.exOneCalendar.setup(startMonth, endMonth, firstDayOfWeekFromLocale());
+        //set day binder
         binding.exOneCalendar.setDayBinder(new MonthDayBinder<DayViewContainer>() {
             @NonNull
             @Override
@@ -77,6 +75,29 @@ public class DashboardMonthFragment extends Fragment {
                 container.getTv().setText(String.valueOf(calendarDay.getDate().getDayOfMonth()));
             }
         });
+        //set header
+        binding.exOneCalendar.setMonthHeaderBinder(new MonthHeaderFooterBinder<MonthViewContainer>() {
+
+            @NonNull
+            @Override
+            public MonthViewContainer create(@NonNull View view) {
+                return new MonthViewContainer(view);
+            }
+
+            @Override
+            public void bind(@NonNull MonthViewContainer container, CalendarMonth calendarMonth) {
+                if(container.getViewGroup().getTag() == null){
+                    container.getViewGroup().setTag(calendarMonth.getYearMonth());
+                    for(int i=0 ; i<container.getViewGroup().getChildCount(); i++){
+                        DayOfWeek dayOfWeek = daysOfWeek().get(i);
+                        String title = dayOfWeek.getDisplayName(TextStyle.SHORT , Locale.getDefault());
+                        TextView tv = (TextView) container.getViewGroup().getChildAt(i);
+                        tv.setText(title);
+                    }
+                }
+            }
+        });
+        //scroll to month now
         binding.exOneCalendar.scrollToMonth(currentMonth);
     }
 
