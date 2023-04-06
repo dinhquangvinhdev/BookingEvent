@@ -24,9 +24,11 @@ import com.kizitonwose.calendar.view.MonthDayBinder;
 import com.kizitonwose.calendar.view.MonthHeaderFooterBinder;
 import com.kizitonwose.calendar.view.ViewContainer;
 import com.vdev.bookingevent.R;
+import com.vdev.bookingevent.adapter.DayViewContainer;
 import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
 import com.vdev.bookingevent.adapter.MonthViewContainer;
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
+import com.vdev.bookingevent.callback.CallbackItemDayCalMonth;
 import com.vdev.bookingevent.databinding.CalendarDayLayoutBinding;
 import com.vdev.bookingevent.databinding.FragmentDashboardMonthBinding;
 import com.vdev.bookingevent.model.Event;
@@ -46,7 +48,7 @@ import java.util.Locale;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 
-public class DashboardMonthFragment extends Fragment implements DashboardMonthContract.View , CallbackItemCalDashMonth {
+public class DashboardMonthFragment extends Fragment implements DashboardMonthContract.View , CallbackItemCalDashMonth , CallbackItemDayCalMonth {
 
     private FragmentDashboardMonthBinding binding;
     private DashboardMonthPresenter presenter;
@@ -140,43 +142,6 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
         YearMonth currentMonth = YearMonth.now();
         YearMonth startMonth = currentMonth.minusMonths(100);
         YearMonth endMonth = currentMonth.plusMonths(100);
-        //create class for dayViewContainer
-        class DayViewContainer extends ViewContainer {
-            private TextView tv;
-            private CalendarDay day;
-
-            public DayViewContainer(@NonNull View view) {
-                super(view);
-                //set textview
-                tv = CalendarDayLayoutBinding.bind(view).tvDay;
-                //set onclick textview
-                view.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if(day.getPosition() == DayPosition.MonthDate){
-                            if (selectedDay != day.getDate()) {
-                                LocalDate oldDate = selectedDay;
-                                selectedDay = day.getDate();
-                                binding.exOneCalendar.notifyDateChanged(day.getDate());
-                                if(oldDate != null){
-                                    binding.exOneCalendar.notifyDateChanged(oldDate);
-                                }
-                                //update title month
-                                updateTitleTime(selectedDay);
-                            }
-                        }
-                    }
-                });
-            }
-
-            public void setDay(CalendarDay day) {
-                this.day = day;
-            }
-
-            public TextView getTv() {
-                return tv;
-            }
-        }
 
         //set up calendar
         binding.exOneCalendar.setup(startMonth, endMonth, firstDayOfWeekFromLocale());
@@ -185,7 +150,7 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
             @NonNull
             @Override
             public DayViewContainer create(@NonNull View view) {
-                return new DayViewContainer(view);
+                return new DayViewContainer(view , DashboardMonthFragment.this::onClickDayCalMonth);
             }
 
             @Override
@@ -195,18 +160,21 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
                 tv.setText(String.valueOf(calendarDay.getDate().getDayOfMonth()));
                 
                 if(calendarDay.getPosition() == DayPosition.MonthDate){
-                    if (calendarDay.getDate() == selectedDay){          // set color for selected day
-                        tv.setTextColor(Color.WHITE);
-                        tv.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_tab));
-                    } else if(calendarDay.getDate().compareTo(today) == 0){         //set color for today
-                        tv.setTextColor(getResources().getColor(R.color.selectColor));
-                        tv.setBackground(ContextCompat.getDrawable(getContext(),R.drawable.rounded_outline_blue));
-                    } else {                                            //set color for day not selected and not today
-                        tv.setTextColor(Color.BLACK);
-                        tv.setBackground(null);
-                    }
-                }else {
+                    updateUIDayCalendar(calendarDay , tv);
+                }else if(calendarDay.getPosition() == DayPosition.InDate){
                     container.getTv().setTextColor(Color.GRAY);
+                    if(calendarDay.getDate() == selectedDay){
+                        // backward month and choice the day
+                        binding.exOneCalendar.smoothScrollToMonth(binding.exOneCalendar.findFirstVisibleMonth().getYearMonth().minusMonths(1));
+                        binding.exOneCalendar.notifyDateChanged(selectedDay);
+                    }
+                } else {
+                    container.getTv().setTextColor(Color.GRAY);
+                    if(calendarDay.getDate() == selectedDay){
+                        // forward month and choice the day
+                        binding.exOneCalendar.smoothScrollToMonth(binding.exOneCalendar.findFirstVisibleMonth().getYearMonth().plusMonths(1));
+                        binding.exOneCalendar.notifyDateChanged(selectedDay);
+                    }
                 }
             }
         });
@@ -237,11 +205,28 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
             @Override
             public Unit invoke(CalendarMonth calendarMonth) {
                 binding.tvTitleTime.setText(calendarMonth.getYearMonth().getMonth() + " " + calendarMonth.getYearMonth().getYear());
+                //update UI day if click outDate and inDate
+                if(selectedDay != null) {
+                    binding.exOneCalendar.notifyDateChanged(selectedDay);
+                }
                 return null;
             }
         });
         //scroll to month now
         binding.exOneCalendar.scrollToMonth(currentMonth);
+    }
+
+    private void updateUIDayCalendar(CalendarDay calendarDay, TextView tv) {
+        if (calendarDay.getDate() == selectedDay){          // set color for selected day
+            tv.setTextColor(Color.WHITE);
+            tv.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_tab));
+        } else if(calendarDay.getDate().compareTo(today) == 0){         //set color for today
+            tv.setTextColor(getResources().getColor(R.color.selectColor));
+            tv.setBackground(ContextCompat.getDrawable(getContext(),R.drawable.rounded_outline_blue));
+        } else {                                            //set color for day not selected and not today
+            tv.setTextColor(Color.BLACK);
+            tv.setBackground(null);
+        }
     }
 
 
@@ -254,5 +239,23 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
     @Override
     public void openSlidingPanel(String idEvent, String roomColor) {
         //TODO
+    }
+
+    @Override
+    public void onClickDayCalMonth(View view , CalendarDay day) {
+        LocalDate oldDate = selectedDay;
+        selectedDay = day.getDate();
+        //update title month
+        updateTitleTime(selectedDay);
+        if(day.getPosition() == DayPosition.OutDate){
+            binding.exOneCalendar.smoothScrollToMonth(binding.exOneCalendar.findFirstVisibleMonth().getYearMonth().plusMonths(1));
+        } else if(day.getPosition() == DayPosition.InDate){
+            binding.exOneCalendar.smoothScrollToMonth(binding.exOneCalendar.findFirstVisibleMonth().getYearMonth().minusMonths(1));
+        }
+        //update UI
+        binding.exOneCalendar.notifyDateChanged(day.getDate());
+        if(oldDate != null){
+            binding.exOneCalendar.notifyDateChanged(oldDate);
+        }
     }
 }
