@@ -3,7 +3,6 @@ package com.vdev.bookingevent.view.fragment;
 import static com.kizitonwose.calendar.core.ExtensionsKt.daysOfWeek;
 import static com.kizitonwose.calendar.core.ExtensionsKt.firstDayOfWeekFromLocale;
 
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -44,6 +43,9 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
+
 public class DashboardMonthFragment extends Fragment implements DashboardMonthContract.View , CallbackItemCalDashMonth {
 
     private FragmentDashboardMonthBinding binding;
@@ -75,7 +77,36 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
 
         initPresenter();
         setupMonthCalendar();
+        initHeaderCalendar();
         initRVEvents();
+
+        updateTitleTime(today);
+    }
+
+    private void updateTitleTime(LocalDate dateSelected) {
+        //set text for title time selected (auto choice today in the first using)
+        binding.tvTitleTimeSelected.setText(dateSelected.getDayOfMonth() + " " + dateSelected.getMonth() + " " + dateSelected.getYear());
+    }
+
+    private void initHeaderCalendar() {
+        //forward month
+        binding.imgForward.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(binding.exOneCalendar.findFirstVisibleMonth() != null){
+                    binding.exOneCalendar.smoothScrollToMonth(binding.exOneCalendar.findFirstVisibleMonth().getYearMonth().plusMonths(1));
+                }
+            }
+        });
+        //backward month
+        binding.imgBackward.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(binding.exOneCalendar.findFirstVisibleMonth() != null){
+                    binding.exOneCalendar.smoothScrollToMonth(binding.exOneCalendar.findFirstVisibleMonth().getYearMonth().minusMonths(1));
+                }
+            }
+        });
     }
 
     private void initRVEvents() {
@@ -109,7 +140,7 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
         YearMonth currentMonth = YearMonth.now();
         YearMonth startMonth = currentMonth.minusMonths(100);
         YearMonth endMonth = currentMonth.plusMonths(100);
-
+        //create class for dayViewContainer
         class DayViewContainer extends ViewContainer {
             private TextView tv;
             private CalendarDay day;
@@ -130,6 +161,8 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
                                 if(oldDate != null){
                                     binding.exOneCalendar.notifyDateChanged(oldDate);
                                 }
+                                //update title month
+                                updateTitleTime(selectedDay);
                             }
                         }
                     }
@@ -162,22 +195,20 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
                 tv.setText(String.valueOf(calendarDay.getDate().getDayOfMonth()));
                 
                 if(calendarDay.getPosition() == DayPosition.MonthDate){
-                    //set color for today
-                    if(calendarDay.getDate() == today){
-                        tv.setTextColor(getResources().getColor(R.color.selectColor));
-                        tv.setBackground(ContextCompat.getDrawable(getContext(),R.drawable.rounded_outline_blue));
-                    }
-                    //set color for day selected and not selected
-                    if (calendarDay.getDate() == selectedDay){
+                    if (calendarDay.getDate() == selectedDay){          // set color for selected day
                         tv.setTextColor(Color.WHITE);
                         tv.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_tab));
-                    } else {
+                    } else if(calendarDay.getDate().compareTo(today) == 0){         //set color for today
+                        tv.setTextColor(getResources().getColor(R.color.selectColor));
+                        tv.setBackground(ContextCompat.getDrawable(getContext(),R.drawable.rounded_outline_blue));
+                    } else {                                            //set color for day not selected and not today
                         tv.setTextColor(Color.BLACK);
                         tv.setBackground(null);
                     }
                 }else {
                     container.getTv().setTextColor(Color.GRAY);
                 }
+
             }
         });
         //set header
@@ -200,6 +231,14 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
                         tv.setText(title);
                     }
                 }
+            }
+        });
+        //set Scroll listener
+        binding.exOneCalendar.setMonthScrollListener(new Function1<CalendarMonth, Unit>() {
+            @Override
+            public Unit invoke(CalendarMonth calendarMonth) {
+                binding.tvTitleTime.setText(calendarMonth.getYearMonth().getMonth() + " " + calendarMonth.getYearMonth().getYear());
+                return null;
             }
         });
         //scroll to month now

@@ -7,6 +7,48 @@
     tools:context=".view.fragment.DashboardMonthFragment"
     android:orientation="vertical">
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/img_backward"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginEnd="22dp"
+            android:padding="10dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/black"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_arrow_back" />
+
+        <TextView
+            android:id="@+id/tv_title_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/black"
+            android:textSize="22sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/img_forward"
+            app:layout_constraintStart_toEndOf="@id/img_backward"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="April 2023" />
+
+        <ImageView
+            android:id="@+id/img_forward"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:padding="10dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/black"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_arrow_forward" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <com.kizitonwose.calendar.view.CalendarView
         android:id="@+id/exOneCalendar"
         android:layout_width="match_parent"
@@ -14,6 +56,13 @@
         app:cv_dayViewResource="@layout/calendar_day_layout"
         app:cv_monthHeaderResource="@layout/calendar_day_titles_container"/>
 
+    <TextView
+        android:id="@+id/tv_title_time_selected"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:textSize="22sp"
+        android:layout_margin="2dp"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_event_data"
