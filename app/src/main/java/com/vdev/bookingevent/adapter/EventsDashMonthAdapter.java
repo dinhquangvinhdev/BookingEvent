@@ -59,11 +59,9 @@ public class EventsDashMonthAdapter extends RecyclerView.Adapter<EventsDashMonth
 
         public void bind(Event item) {
             binding.tvTitle.setText(item.getSummery());
-            String timeStart = item.getDate_start().toString();
-            String timeEnd = item.getDate_end().toString();
-            String resultTimeStart = timeStart.substring(timeStart.length() - 5);
-            String resultTimeEnd = timeEnd.substring(timeEnd.length() - 5);
-            binding.tvTime.setText(resultTimeStart + " - " + resultTimeEnd);
+            String timeStart = item.getDate_start().getHours() + ":" + item.getDate_start().getMinutes();
+            String timeEnd = item.getDate_end().getHours() + ":" + item.getDate_end().getMinutes();
+            binding.tvTime.setText(timeStart + " - " + timeEnd);
             //change color background
             binding.llItemDashMonth.getBackground().clearColorFilter();
             binding.llItemDashMonth
