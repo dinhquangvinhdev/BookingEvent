@@ -150,7 +150,7 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
                 //set textview
                 tv = CalendarDayLayoutBinding.bind(view).tvDay;
                 //set onclick textview
-                tv.setOnClickListener(new View.OnClickListener() {
+                view.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         if(day.getPosition() == DayPosition.MonthDate){
@@ -208,7 +208,6 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
                 }else {
                     container.getTv().setTextColor(Color.GRAY);
                 }
-
             }
         });
         //set header
