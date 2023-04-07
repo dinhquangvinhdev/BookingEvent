@@ -97,5 +97,6 @@ public class AccountFragment extends Fragment implements AccountContract.View , 
     public void onDestroyView() {
         super.onDestroyView();
         dialogLogout.dismiss();
+        binding = null;
     }
 }
