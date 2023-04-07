@@ -93,4 +93,9 @@ public class Event {
     public void setStatus(boolean status) {
         this.status = status;
     }
+
+    public String getRoomColor(){
+        //TODO must delete it when you can call xml from firebase
+        return "#123456";
+    }
 }
