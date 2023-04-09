@@ -40,6 +40,8 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.8.0'
+    //bottom bar
+    implementation 'com.github.ibrahimsn98:SmoothBottomBar:1.7.9'
     // Import the BoM for the Firebase platform
     implementation platform('com.google.firebase:firebase-bom:31.4.0')
     implementation 'com.google.firebase:firebase-auth:21.0.3'
