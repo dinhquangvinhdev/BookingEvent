@@ -7,15 +7,28 @@
     android:orientation="vertical"
     tools:context=".view.fragment.DashboardFragment">
 
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tab_layout"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:tabBackground="@drawable/tabs_selector"
-        app:tabIndicatorHeight="0dp"
-        app:tabSelectedTextColor="@color/white"
-        app:tabTextColor="@color/selectColor"
-        app:tabRippleColor="@null"/>
+        android:orientation="horizontal">
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="8"
+            app:tabBackground="@drawable/tabs_selector"
+            app:tabIndicatorHeight="0dp"
+            app:tabSelectedTextColor="@color/white"
+            app:tabTextColor="@color/selectColor"
+            app:tabRippleColor="@null"/>
+        <ImageView
+            android:id="@+id/img_filter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_filter_off"/>
+    </LinearLayout>
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
