@@ -36,6 +36,7 @@ public class DashboardFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         //init view pager
         binding.viewPager.setAdapter(new DashboardTypeAdapter(this));
+        binding.viewPager.setUserInputEnabled(false);
         //init tab layout
         new TabLayoutMediator(binding.tabLayout , binding.viewPager , ((tab, position) ->{
             tab.setText(MConst.titleTabDashboard.get(position));
