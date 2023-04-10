@@ -256,6 +256,15 @@
                 android:src="@drawable/ic_calendar"
                 android:layout_marginEnd="5dp"/>
 
+            <Button
+                android:id="@+id/btn_add_event"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/edt_date"
+                android:layout_margin="10dp"/>
+
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/guideline_mid"
                 android:layout_width="wrap_content"
@@ -264,5 +273,4 @@
                 app:layout_constraintGuide_begin="205dp"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
-
 </LinearLayout>
