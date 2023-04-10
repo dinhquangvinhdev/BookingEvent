@@ -1,10 +1,14 @@
 package com.vdev.bookingevent.view.fragment;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,11 +17,22 @@ import android.view.ViewGroup;
 import com.google.android.material.tabs.TabLayoutMediator;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.DashboardTypeAdapter;
+import com.vdev.bookingevent.adapter.RoomFilterAdapter;
 import com.vdev.bookingevent.common.MConst;
+import com.vdev.bookingevent.databinding.DialogFilterBinding;
 import com.vdev.bookingevent.databinding.FragmentDashboardBinding;
+import com.vdev.bookingevent.model.Room;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
 
 public class DashboardFragment extends Fragment {
     private FragmentDashboardBinding binding;
+    private AlertDialog.Builder dialogBuilder;
+    private AlertDialog dialog;
+    private RoomFilterAdapter adapterFilter;
+    private List<Boolean> filterChoiced;
 
     public DashboardFragment() {
         super(R.layout.fragment_dashboard);
@@ -34,13 +49,54 @@ public class DashboardFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         //init view pager
         binding.viewPager.setAdapter(new DashboardTypeAdapter(this));
+        binding.viewPager.setUserInputEnabled(false);
         //init tab layout
         new TabLayoutMediator(binding.tabLayout , binding.viewPager , ((tab, position) ->{
             tab.setText(MConst.titleTabDashboard.get(position));
         }
         )).attach();
+        //init dialog
+        initDialog();
+        //init other view
+        initOtherView();
+    }
+
+    private void initOtherView() {
+        binding.imgFilter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(dialog != null){dialog.show();}
+            }
+        });
+    }
+
+    private void initDialog() {
+        dialogBuilder = new AlertDialog.Builder(getContext());
+        final DialogFilterBinding bindingPopupView = DialogFilterBinding.inflate(getLayoutInflater());
+        adapterFilter = new RoomFilterAdapter(filterChoiced);
+        bindingPopupView.rvRooms.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL , false));
+        bindingPopupView.rvRooms.setAdapter(adapterFilter);
+        bindingPopupView.btnSave.setOnClickListener(view -> {
+            //TODO save information in the filter
+            filterChoiced = new ArrayList<>(adapterFilter.getChoiced());
+            if(filterChoiced.contains(true)){
+                binding.imgFilter.setImageResource(R.drawable.ic_filter_on);
+            } else {
+                binding.imgFilter.setImageResource(R.drawable.ic_filter_off);
+            }
+            dialog.dismiss();
+        });
+        bindingPopupView.btnCancel.setOnClickListener(view -> {dialog.dismiss();});
+        bindingPopupView.btnClearAllFilter.setOnClickListener(view -> {adapterFilter.clearAllChoiced();});
+
+        dialogBuilder.setView(bindingPopupView.getRoot());
+        dialogBuilder.setTitle("Filter with room");
+        dialogBuilder.setOnDismissListener(dialogInterface -> {
+            adapterFilter.setChoiced(filterChoiced);});
+        dialog = dialogBuilder.create();
     }
 
     @Override

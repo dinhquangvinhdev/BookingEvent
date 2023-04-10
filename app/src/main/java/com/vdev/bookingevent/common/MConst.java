@@ -6,8 +6,9 @@ import java.util.List;
 
 public class MConst {
     public static final int FRAGMENT_DASHBOARD = 0;
-    public static final int FRAGMENT_SEARCH_EVENT = 1;
-    public static final int FRAGMENT_ACCOUNT = 2;
+    public static final int FRAGMENT_ADD_EVENT = 1;
+    public static final int FRAGMENT_SEARCH_EVENT = 2;
+    public static final int FRAGMENT_ACCOUNT = 3;
 
     public static final int FRAGMENT_DASHBOARD_MONTH = 0;
     public static final int FRAGMENT_DASHBOARD_WEEK = 1;

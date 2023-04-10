@@ -9,7 +9,10 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.ViewGroup;
+
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MDialog;
@@ -18,7 +21,10 @@ import com.vdev.bookingevent.presenter.MainContract;
 import com.vdev.bookingevent.presenter.MainPresenter;
 import com.vdev.bookingevent.view.fragment.AccountFragment;
 import com.vdev.bookingevent.view.fragment.DashboardFragment;
+import com.vdev.bookingevent.view.fragment.FragmentAddEvent;
 import com.vdev.bookingevent.view.fragment.SearchEventFragment;
+
+import me.ibrahimsn.lib.OnItemSelectedListener;
 
 public class MainActivity extends AppCompatActivity implements MainContract.View {
     private ActivityMainBinding binding;
@@ -37,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     }
 
     private void initDialog() {
-        if(mDialog == null){
+        if (mDialog == null) {
             mDialog = new MDialog();
         }
     }
@@ -46,33 +52,40 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
      * The function is called when the view is created. It sets up the button and text
      */
     private void initView() {
+
         //bottom navigation
         initBottomNavigation();
     }
 
     private void initBottomNavigation() {
 
-        binding.bnvMainView.setOnItemSelectedListener(item ->
-        {
-            switch (item.getItemId()){
-                case R.id.bnv_dashboard:{
-                    replaceFlag(MConst.FRAGMENT_DASHBOARD);
-                    break;
+        binding.bottomBar.setOnItemSelectedListener(new OnItemSelectedListener() {
+            @Override
+            public boolean onItemSelect(int i) {
+                switch (i) {
+                    case MConst.FRAGMENT_DASHBOARD: {
+                        replaceFlag(MConst.FRAGMENT_DASHBOARD);
+                        break;
+                    }
+                    case MConst.FRAGMENT_ADD_EVENT: {
+                        replaceFlag(MConst.FRAGMENT_ADD_EVENT);
+                        break;
+                    }
+                    case MConst.FRAGMENT_SEARCH_EVENT: {
+                        replaceFlag(MConst.FRAGMENT_SEARCH_EVENT);
+                        break;
+                    }
+                    case MConst.FRAGMENT_ACCOUNT: {
+                        replaceFlag(MConst.FRAGMENT_ACCOUNT);
+                        break;
+                    }
+                    default: {
+                        replaceFlag(MConst.FRAGMENT_DASHBOARD);
+                        break;
+                    }
                 }
-                case R.id.bnv_search:{
-                    replaceFlag(MConst.FRAGMENT_SEARCH_EVENT);
-                    break;
-                }
-                case R.id.bnv_account: {
-                    replaceFlag(MConst.FRAGMENT_ACCOUNT);
-                    break;
-                }
-                default: {
-                    replaceFlag(MConst.FRAGMENT_DASHBOARD);
-                    break;
-                }
+                return true;
             }
-            return true;
         });
 
         //load fragment in the first time create main activity
@@ -82,26 +95,32 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     private void replaceFlag(int i) {
         Fragment fragment;
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        switch (i){
-            case MConst.FRAGMENT_DASHBOARD:{
+        switch (i) {
+            case MConst.FRAGMENT_DASHBOARD: {
                 fragment = new DashboardFragment();
-                transaction.replace(R.id.fcv_container , fragment);
+                transaction.replace(R.id.fcv_container, fragment);
                 transaction.commit();
                 break;
             }
-            case MConst.FRAGMENT_SEARCH_EVENT:{
+            case MConst.FRAGMENT_ADD_EVENT:{
+                fragment = new FragmentAddEvent();
+                transaction.replace(R.id.fcv_container, fragment);
+                transaction.commit();
+                break;
+            }
+            case MConst.FRAGMENT_SEARCH_EVENT: {
                 fragment = new SearchEventFragment();
-                transaction.replace(R.id.fcv_container , fragment);
+                transaction.replace(R.id.fcv_container, fragment);
                 transaction.commit();
                 break;
             }
-            case MConst.FRAGMENT_ACCOUNT:{
+            case MConst.FRAGMENT_ACCOUNT: {
                 fragment = new AccountFragment();
-                transaction.replace(R.id.fcv_container , fragment);
+                transaction.replace(R.id.fcv_container, fragment);
                 transaction.commit();
                 break;
             }
-            default:{
+            default: {
                 Log.d(TAG, "replaceFlag: wrong index fragment");
                 break;
             }
@@ -114,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
      * else do not need to create other
      */
     private void initPresenter() {
-        if (presenter == null){
+        if (presenter == null) {
             presenter = new MainPresenter(this, this);
         }
     }

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="20dp"
+    android:orientation="horizontal"
+    android:gravity="center">
+
+    <CheckBox
+        android:id="@+id/cb_room_filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:id="@+id/tv_room_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="sample room"/>
+
+    <ImageView
+        android:layout_marginStart="5dp"
+        android:id="@+id/img_room_color"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:src="@color/black"/>
+</LinearLayout>
