@@ -6,14 +6,14 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".view.fragment.AddEventFragment">
-    
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:text="Add Event"
-        android:textStyle="bold"
         android:textSize="20sp"
-        android:gravity="center"/>
+        android:textStyle="bold" />
 
     <ScrollView
         android:layout_width="match_parent"
@@ -25,7 +25,7 @@
 
             <!--Title-->
             <TextView
-                android:id="@+id/tv_title"
+                android:id="@+id/tv_title_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Title"
@@ -44,11 +44,11 @@
                 android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_title" />
+                app:layout_constraintTop_toBottomOf="@id/tv_title_title" />
 
             <!--Summary-->
             <TextView
-                android:id="@+id/tv_summary"
+                android:id="@+id/tv_title_summary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Summary"
@@ -67,11 +67,11 @@
                 android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_summary" />
+                app:layout_constraintTop_toBottomOf="@id/tv_title_summary" />
 
             <!--Guest-->
             <TextView
-                android:id="@+id/tv_guest"
+                android:id="@+id/tv_title_guest"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Guests"
@@ -90,11 +90,11 @@
                 android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_guest" />
+                app:layout_constraintTop_toBottomOf="@id/tv_title_guest" />
 
             <!--Department-->
             <TextView
-                android:id="@+id/tv_department"
+                android:id="@+id/tv_title_department"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Department"
@@ -105,23 +105,25 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_department"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_department"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_title_department"
+                app:boxStrokeErrorColor="@color/red">
+
                 <AutoCompleteTextView
                     android:id="@+id/actv_department"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:dropDownHeight="150dp"
-                    android:inputType="none"/>
+                    android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!--Meeting room-->
             <TextView
-                android:id="@+id/tv_room"
+                android:id="@+id/tv_title_room"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Meeting room"
@@ -132,64 +134,65 @@
             <ImageView
                 android:layout_width="10dp"
                 android:layout_height="10dp"
-                android:src="@drawable/ic_star"
                 android:layout_marginStart="2dp"
                 android:layout_marginTop="2dp"
-                app:layout_constraintStart_toEndOf="@id/tv_room"
-                app:layout_constraintTop_toTopOf="@id/tv_room"/>
+                android:src="@drawable/ic_star"
+                app:layout_constraintStart_toEndOf="@id/tv_title_room"
+                app:layout_constraintTop_toTopOf="@id/tv_title_room" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_room"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_room"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_title_room"
+                app:boxStrokeErrorColor="@color/red">
+
                 <AutoCompleteTextView
                     android:id="@+id/actv_room"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:dropDownHeight="150dp"
-                    android:inputType="none"/>
+                    android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!--time start-->
             <TextView
-                android:id="@+id/tv_start_time"
+                android:id="@+id/tv_title_start_time"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Start time"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/til_room" />
-            
+
             <ImageView
                 android:layout_width="10dp"
                 android:layout_height="10dp"
-                android:src="@drawable/ic_star"
                 android:layout_marginStart="2dp"
                 android:layout_marginTop="2dp"
-                app:layout_constraintStart_toEndOf="@id/tv_start_time"
-                app:layout_constraintTop_toTopOf="@id/tv_start_time"/>
+                android:src="@drawable/ic_star"
+                app:layout_constraintStart_toEndOf="@id/tv_title_start_time"
+                app:layout_constraintTop_toTopOf="@id/tv_title_start_time" />
 
-            <EditText
-                android:id="@+id/edt_start_time"
+            <TextView
+                android:id="@+id/tv_start_time"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
                 android:layout_marginTop="5dp"
+                android:layout_marginEnd="5dp"
                 android:background="@drawable/rounded_outline_black"
                 android:padding="10dp"
                 android:textSize="12sp"
-                android:layout_marginEnd="5dp"
-                android:inputType="none"
-                app:layout_constraintStart_toStartOf="@id/tv_start_time"
-                app:layout_constraintTop_toBottomOf="@id/tv_start_time"
-                app:layout_constraintEnd_toEndOf="@id/guideline_mid"/>
+                app:layout_constraintEnd_toEndOf="@id/guideline_mid"
+                app:layout_constraintStart_toStartOf="@id/tv_title_start_time"
+                app:layout_constraintTop_toBottomOf="@id/tv_title_start_time" />
 
             <!--time end-->
             <TextView
-                android:id="@+id/tv_end_time"
+                android:id="@+id/tv_title_end_time"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="End time"
@@ -200,82 +203,81 @@
             <ImageView
                 android:layout_width="10dp"
                 android:layout_height="10dp"
-                android:src="@drawable/ic_star"
                 android:layout_marginStart="2dp"
                 android:layout_marginTop="2dp"
-                app:layout_constraintStart_toEndOf="@id/tv_end_time"
-                app:layout_constraintTop_toTopOf="@id/tv_end_time"/>
+                android:src="@drawable/ic_star"
+                app:layout_constraintStart_toEndOf="@id/tv_title_end_time"
+                app:layout_constraintTop_toTopOf="@id/tv_title_end_time" />
 
-            <EditText
-                android:id="@+id/edt_end_time"
+            <TextView
+                android:id="@+id/tv_end_time"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
+                android:layout_marginStart="5dp"
                 android:layout_marginTop="5dp"
                 android:background="@drawable/rounded_outline_black"
                 android:padding="10dp"
                 android:textSize="12sp"
-                android:layout_marginStart="5dp"
-                android:inputType="none"
-                app:layout_constraintStart_toStartOf="@id/tv_end_time"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_end_time"/>
+                app:layout_constraintStart_toStartOf="@id/tv_title_end_time"
+                app:layout_constraintTop_toBottomOf="@id/tv_title_end_time" />
 
             <!--Date-->
             <TextView
-                android:id="@+id/tv_date"
+                android:id="@+id/tv_title_date"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:text="Date"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/edt_start_time" />
+                app:layout_constraintTop_toBottomOf="@id/tv_start_time" />
 
             <ImageView
                 android:layout_width="10dp"
                 android:layout_height="10dp"
-                android:src="@drawable/ic_star"
                 android:layout_marginStart="2dp"
                 android:layout_marginTop="2dp"
-                app:layout_constraintStart_toEndOf="@id/tv_date"
-                app:layout_constraintTop_toTopOf="@id/tv_date"/>
+                android:src="@drawable/ic_star"
+                app:layout_constraintStart_toEndOf="@id/tv_title_date"
+                app:layout_constraintTop_toTopOf="@id/tv_title_date" />
 
-            <EditText
-                android:id="@+id/edt_date"
+            <TextView
+                android:id="@+id/tv_date"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="5dp"
                 android:background="@drawable/rounded_outline_black"
+                android:inputType="none"
                 android:padding="10dp"
                 android:textSize="12sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_date"
-                android:inputType="none"/>
+                app:layout_constraintTop_toBottomOf="@id/tv_title_date" />
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:layout_constraintEnd_toEndOf="@id/edt_date"
-                app:layout_constraintTop_toTopOf="@id/edt_date"
-                app:layout_constraintBottom_toBottomOf="@id/edt_date"
+                android:layout_marginEnd="5dp"
                 android:src="@drawable/ic_calendar"
-                android:layout_marginEnd="5dp"/>
+                app:layout_constraintBottom_toBottomOf="@id/tv_date"
+                app:layout_constraintEnd_toEndOf="@id/tv_date"
+                app:layout_constraintTop_toTopOf="@id/tv_date" />
 
             <Button
                 android:id="@+id/btn_add_event"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_margin="10dp"
                 android:text="Add"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/edt_date"
-                android:layout_margin="10dp"/>
+                app:layout_constraintTop_toBottomOf="@id/tv_date" />
 
             <androidx.constraintlayout.widget.Guideline
                 android:id="@+id/guideline_mid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                app:layout_constraintGuide_begin="205dp"/>
+                app:layout_constraintGuide_begin="205dp" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 </LinearLayout>

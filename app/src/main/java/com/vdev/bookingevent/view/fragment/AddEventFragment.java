@@ -4,10 +4,13 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import android.text.InputType;
@@ -20,6 +23,7 @@ import android.widget.DatePicker;
 import android.widget.TimePicker;
 
 import com.vdev.bookingevent.R;
+import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.databinding.FragmentAddEventBinding;
 
 import java.text.SimpleDateFormat;
@@ -39,9 +43,12 @@ public class AddEventFragment extends Fragment {
     private TimePickerDialog tpd_start;
     private TimePickerDialog tpd_end;
     private DatePickerDialog dpd;
+    private MDialog mDialog;
 
     public AddEventFragment() {
-        // Required empty public constructor
+        // Required public constructor
+        //create dialog
+        mDialog = new MDialog();
     }
 
     @Override
@@ -74,7 +81,7 @@ public class AddEventFragment extends Fragment {
             @Override
             public void onTimeSet(TimePicker timePicker, int hour, int minute) {
                 String start_time = String.format(format_time, hour , minute);
-                binding.edtStartTime.setText(start_time);
+                binding.tvStartTime.setText(start_time);
             }
         },0,0,true);
         //TimePickerDialog end Time
@@ -83,7 +90,7 @@ public class AddEventFragment extends Fragment {
             @Override
             public void onTimeSet(TimePicker timePicker, int hour, int minute) {
                 String end_time = String.format(format_time, hour , minute);
-                binding.edtEndTime.setText(end_time);
+                binding.tvEndTime.setText(end_time);
             }
         },0,0,true);
         //DatePickerDialog datePickerDialog
@@ -93,7 +100,7 @@ public class AddEventFragment extends Fragment {
                 Calendar mCalendar = Calendar.getInstance();
                 mCalendar.set(year, month, day);
                 String date = format_date.format(mCalendar.getTime());
-                binding.edtDate.setText(date);
+                binding.tvDate.setText(date);
             }
         }, year_now, month_now, day_now);
     }
@@ -122,14 +129,54 @@ public class AddEventFragment extends Fragment {
         binding.actvRoom.setAdapter(aaRoom);
         binding.actvRoom.setText(aaRoom.getItem(0), false);
         //start time
-        binding.edtStartTime.setOnClickListener(it -> {initTimeChoiceStart();});
-        binding.edtStartTime.setInputType(InputType.TYPE_NULL);
+        binding.tvStartTime.setOnClickListener(it -> {initTimeChoiceStart();});
+        binding.tvStartTime.setInputType(InputType.TYPE_NULL);
         //end time
-        binding.edtEndTime.setOnClickListener(it -> {initTimeChoiceEnd();});
-        binding.edtEndTime.setInputType(InputType.TYPE_NULL);
+        binding.tvEndTime.setOnClickListener(it -> {initTimeChoiceEnd();});
+        binding.tvEndTime.setInputType(InputType.TYPE_NULL);
         //date
-        binding.edtDate.setOnClickListener(it -> {initDateChoice();});
-        binding.edtDate.setInputType(InputType.TYPE_NULL);
+        binding.tvDate.setOnClickListener(it -> {initDateChoice();});
+        binding.tvDate.setInputType(InputType.TYPE_NULL);
+        //button add event
+        binding.btnAddEvent.setOnClickListener(it -> {
+            if (mDialog.checkConnection(getContext())){
+                boolean check = false;
+                if (binding.actvRoom.getText().toString().equals("None")){
+                    check = true;
+                    if(!binding.tilRoom.isErrorEnabled()) {
+                        binding.tilRoom.setErrorEnabled(true);
+                    }
+                    binding.tilRoom.setError("This field is required not None");
+                } else {
+                    if(binding.tilRoom.isErrorEnabled()) {
+                        binding.tilRoom.setErrorEnabled(false);
+                    }
+                }
+                if (binding.tvStartTime.getText().toString().isEmpty()){
+                    check = true;
+                    binding.tvStartTime.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_red));
+                } else {
+                    binding.tvStartTime.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_black));
+                }
+                if (binding.tvEndTime.getText().toString().isEmpty()){
+                    check = true;
+                    binding.tvEndTime.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_red));
+                }
+                else {
+                    binding.tvEndTime.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_black));
+                }
+                if (binding.tvDate.getText().toString().isEmpty()){
+                    check = true;
+                    binding.tvDate.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_red));
+                }
+                else {
+                    binding.tvDate.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_black));
+                }
+                if(check){
+                    mDialog.showFillData(getContext());
+                }
+            }
+        });
     }
 
     private void initTimeChoiceEnd() {

@@ -58,7 +58,7 @@ public class EventsDashMonthAdapter extends RecyclerView.Adapter<EventsDashMonth
         }
 
         public void bind(Event item) {
-            binding.tvTitle.setText(item.getSummery());
+            binding.tvTitleItemDashMonth.setText(item.getSummery());
             String timeStart = item.getDate_start().getHours() + ":" + item.getDate_start().getMinutes();
             String timeEnd = item.getDate_end().getHours() + ":" + item.getDate_end().getMinutes();
             binding.tvTime.setText(timeStart + " - " + timeEnd);

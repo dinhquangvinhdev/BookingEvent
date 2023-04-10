@@ -10,6 +10,7 @@ import android.view.Window;
 import com.vdev.bookingevent.R;
 
 public class MDialog {
+
     /**
      * It checks if the device is connected to the internet return true
      * else show dialog error and return false
@@ -81,5 +82,28 @@ public class MDialog {
         });
 
         dialogError.show();
+    }
+
+    public void showFillData(Context context){
+        Dialog dialogNeedFillData = new Dialog(context);
+        dialogNeedFillData.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogNeedFillData.setCancelable(false);
+        dialogNeedFillData.setContentView(R.layout.dialog_need_fill_data);
+
+        dialogNeedFillData.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogNeedFillData.dismiss();
+            }
+        });
+
+        dialogNeedFillData.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogNeedFillData.dismiss();
+            }
+        });
+
+        dialogNeedFillData.show();
     }
 }

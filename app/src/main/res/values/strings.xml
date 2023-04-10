@@ -20,4 +20,6 @@
     <string name="btn_save_filter">SAVE</string>
     <string name="bnv_add">add</string>
     <string name="hint_department">Department</string>
+    <string name="body_need_fill_data">Please fill in all the information \n marked with red star</string>
+    <string name="btn_dialog_need_fill_data">Confirm</string>
 </resources>
