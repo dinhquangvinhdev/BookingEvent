@@ -15,13 +15,18 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
 
+import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.databinding.FragmentAddEventBinding;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
 
 public class AddEventFragment extends Fragment {
 
@@ -95,7 +100,27 @@ public class AddEventFragment extends Fragment {
 
     private void initView() {
         //department
+        //TODO temp data
+        List<String> tempDepartments = new ArrayList<>();
+        tempDepartments.add("None");
+        for(int i=0 ; i<10 ; i++){
+            tempDepartments.add("department " + (i+1));
+        }
+        //TODO end temp
+        ArrayAdapter<String> aaDepartment = new ArrayAdapter<>(getContext() , androidx.appcompat.R.layout.support_simple_spinner_dropdown_item , tempDepartments);
+        binding.actvDepartment.setAdapter(aaDepartment);
+        binding.actvDepartment.setText(aaDepartment.getItem(0), false);
         //room
+        //TODO temp data
+        List<String> tempRooms = new ArrayList<>();
+        tempRooms.add("None");
+        for(int i=0 ; i<10 ; i++){
+            tempRooms.add("room " + (i+1));
+        }
+        //TODO end temp
+        ArrayAdapter<String> aaRoom = new ArrayAdapter<>(getContext() , androidx.appcompat.R.layout.support_simple_spinner_dropdown_item , tempRooms);
+        binding.actvRoom.setAdapter(aaRoom);
+        binding.actvRoom.setText(aaRoom.getItem(0), false);
         //start time
         binding.edtStartTime.setOnClickListener(it -> {initTimeChoiceStart();});
         binding.edtStartTime.setInputType(InputType.TYPE_NULL);
