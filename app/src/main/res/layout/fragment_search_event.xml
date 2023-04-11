@@ -6,6 +6,19 @@
     android:layout_height="match_parent"
     tools:context=".view.fragment.SearchEventFragment">
 
+    <TextView
+        android:id="@+id/tv_title_fragment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Search Events"
+        android:background="@drawable/background_solid_blue"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
     <!--Title-->
     <TextView
         android:id="@+id/tv_title_title"
@@ -15,7 +28,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/tv_title_fragment" />
 
     <EditText
         android:id="@+id/edt_title"
@@ -190,13 +203,6 @@
         android:orientation="vertical"
         app:layout_constraintGuide_begin="205dp" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline_horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_begin="343dp" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_result_events"
         android:layout_width="match_parent"
@@ -204,7 +210,7 @@
         android:layout_marginTop="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guideline_horizontal"
+        app:layout_constraintTop_toBottomOf="@id/btn_find"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
