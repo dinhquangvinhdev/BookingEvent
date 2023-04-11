@@ -1,14 +1,210 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".view.fragment.SearchEventFragment">
 
-    <!-- TODO: Update blank fragment layout -->
+    <!--Title-->
     <TextView
+        android:id="@+id/tv_title_title"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="search fragment" />
+        android:layout_height="wrap_content"
+        android:text="Title"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-</FrameLayout>
+    <EditText
+        android:id="@+id/edt_title"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/rounded_outline_black"
+        android:padding="10dp"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_title_title" />
+
+    <!--Meeting room-->
+    <TextView
+        android:id="@+id/tv_title_room"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Meeting room"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/edt_title" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/til_room"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:boxStrokeErrorColor="@color/red"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_title_room">
+
+        <AutoCompleteTextView
+            android:id="@+id/actv_room"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:dropDownHeight="150dp"
+            android:inputType="none" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!--time start-->
+    <TextView
+        android:id="@+id/tv_title_start_time"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Start time"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/til_room" />
+
+    <TextView
+        android:id="@+id/tv_start_time"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:background="@drawable/rounded_outline_black"
+        android:padding="10dp"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="@id/guideline_mid"
+        app:layout_constraintStart_toStartOf="@id/tv_title_start_time"
+        app:layout_constraintTop_toBottomOf="@id/tv_title_start_time" />
+
+    <!--time end-->
+    <TextView
+        android:id="@+id/tv_title_end_time"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="End time"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="@id/guideline_mid"
+        app:layout_constraintTop_toBottomOf="@id/til_room" />
+
+    <TextView
+        android:id="@+id/tv_end_time"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:background="@drawable/rounded_outline_black"
+        android:padding="10dp"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/tv_title_end_time"
+        app:layout_constraintTop_toBottomOf="@id/tv_title_end_time" />
+
+    <!--Date start-->
+    <TextView
+        android:id="@+id/tv_title_date_start"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Date Start"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_start_time" />
+
+    <TextView
+        android:id="@+id/tv_date_start"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:background="@drawable/rounded_outline_black"
+        android:inputType="none"
+        android:padding="10dp"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="@id/guideline_mid"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_title_date_start" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:src="@drawable/ic_calendar"
+        app:layout_constraintBottom_toBottomOf="@id/tv_date_start"
+        app:layout_constraintEnd_toEndOf="@id/tv_date_start"
+        app:layout_constraintTop_toTopOf="@id/tv_date_start" />
+
+    <!--Date end-->
+    <TextView
+        android:id="@+id/tv_title_date_end"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Date End"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="@id/guideline_mid"
+        app:layout_constraintTop_toBottomOf="@id/tv_start_time" />
+
+    <TextView
+        android:id="@+id/tv_date_end"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:background="@drawable/rounded_outline_black"
+        android:inputType="none"
+        android:padding="10dp"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/tv_title_date_end"
+        app:layout_constraintTop_toBottomOf="@id/tv_title_date_end" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:src="@drawable/ic_calendar"
+        app:layout_constraintBottom_toBottomOf="@id/tv_date_end"
+        app:layout_constraintEnd_toEndOf="@id/tv_date_end"
+        app:layout_constraintTop_toTopOf="@id/tv_date_end" />
+
+    <Button
+        android:id="@+id/btn_find"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="find"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/guideline_horizontal"
+        app:layout_constraintTop_toBottomOf="@id/tv_date_start"/>
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_mid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="205dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_begin="343dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_result_events"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="10dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/guideline_horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

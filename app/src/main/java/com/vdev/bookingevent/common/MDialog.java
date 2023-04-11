@@ -6,6 +6,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.view.View;
 import android.view.Window;
+import android.widget.TextView;
 
 import com.vdev.bookingevent.R;
 
@@ -84,11 +85,16 @@ public class MDialog {
         dialogError.show();
     }
 
-    public void showFillData(Context context){
+    public void showFillData(Context context, String text){
         Dialog dialogNeedFillData = new Dialog(context);
         dialogNeedFillData.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogNeedFillData.setCancelable(false);
         dialogNeedFillData.setContentView(R.layout.dialog_need_fill_data);
+
+        if(text != null){
+            TextView tv = dialogNeedFillData.findViewById(R.id.tv_body);
+            tv.setText(text);
+        }
 
         dialogNeedFillData.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
             @Override

@@ -23,6 +23,7 @@ import android.widget.DatePicker;
 import android.widget.TimePicker;
 
 import com.vdev.bookingevent.R;
+import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.databinding.FragmentAddEventBinding;
 
@@ -38,8 +39,6 @@ public class AddEventFragment extends Fragment {
     final int year_now = Calendar.getInstance().get(Calendar.YEAR);
     final int month_now = Calendar.getInstance().get(Calendar.MONTH);
     final int day_now = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
-    final SimpleDateFormat format_date = new SimpleDateFormat("dd-MM-yyyy");
-    final String format_time = "%02d:%02d";
     private TimePickerDialog tpd_start;
     private TimePickerDialog tpd_end;
     private DatePickerDialog dpd;
@@ -80,7 +79,7 @@ public class AddEventFragment extends Fragment {
                 ,new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker timePicker, int hour, int minute) {
-                String start_time = String.format(format_time, hour , minute);
+                String start_time = String.format(MConst.FORMAT_TIME, hour , minute);
                 binding.tvStartTime.setText(start_time);
             }
         },0,0,true);
@@ -89,7 +88,7 @@ public class AddEventFragment extends Fragment {
                 ,new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(TimePicker timePicker, int hour, int minute) {
-                String end_time = String.format(format_time, hour , minute);
+                String end_time = String.format(MConst.FORMAT_TIME, hour , minute);
                 binding.tvEndTime.setText(end_time);
             }
         },0,0,true);
@@ -99,7 +98,7 @@ public class AddEventFragment extends Fragment {
             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
                 Calendar mCalendar = Calendar.getInstance();
                 mCalendar.set(year, month, day);
-                String date = format_date.format(mCalendar.getTime());
+                String date = MConst.FORMAT_DATE.format(mCalendar.getTime());
                 binding.tvDate.setText(date);
             }
         }, year_now, month_now, day_now);
@@ -173,7 +172,7 @@ public class AddEventFragment extends Fragment {
                     binding.tvDate.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_black));
                 }
                 if(check){
-                    mDialog.showFillData(getContext());
+                    mDialog.showFillData(getContext(), null);
                 }
             }
         });
