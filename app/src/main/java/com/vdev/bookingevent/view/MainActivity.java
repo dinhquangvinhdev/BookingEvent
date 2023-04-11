@@ -2,16 +2,12 @@ package com.vdev.bookingevent.view;
 
 import static android.content.ContentValues.TAG;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.ViewGroup;
 
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.common.MConst;
@@ -21,7 +17,7 @@ import com.vdev.bookingevent.presenter.MainContract;
 import com.vdev.bookingevent.presenter.MainPresenter;
 import com.vdev.bookingevent.view.fragment.AccountFragment;
 import com.vdev.bookingevent.view.fragment.DashboardFragment;
-import com.vdev.bookingevent.view.fragment.FragmentAddEvent;
+import com.vdev.bookingevent.view.fragment.AddEventFragment;
 import com.vdev.bookingevent.view.fragment.SearchEventFragment;
 
 import me.ibrahimsn.lib.OnItemSelectedListener;
@@ -103,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                 break;
             }
             case MConst.FRAGMENT_ADD_EVENT:{
-                fragment = new FragmentAddEvent();
+                fragment = new AddEventFragment();
                 transaction.replace(R.id.fcv_container, fragment);
                 transaction.commit();
                 break;
