@@ -2,7 +2,7 @@ package com.vdev.bookingevent.model;
 
 public class Room {
     int id;
-    String fullName;
+    String name;
     String nickName;
     int maxNum;
     String locate;
@@ -20,12 +20,12 @@ public class Room {
         this.id = id;
     }
 
-    public String getFullName() {
-        return fullName;
+    public String getName() {
+        return name;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getNickName() {
@@ -60,13 +60,19 @@ public class Room {
         this.locate = locate;
     }
 
-
-
     public String getColor() {
         return color;
     }
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Room room = (Room) o;
+        return id == room.getId();
     }
 }

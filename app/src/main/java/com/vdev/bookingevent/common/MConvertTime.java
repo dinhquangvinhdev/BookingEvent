@@ -1,6 +1,7 @@
 package com.vdev.bookingevent.common;
 
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.Date;
 
 public class MConvertTime {
@@ -12,6 +13,10 @@ public class MConvertTime {
 
     public Date convertMiliToDate(long miliseconds){
         return new Date(miliseconds);
+    }
+
+    public long convertDateToMili(Date date){
+        return date.toInstant().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
     /**

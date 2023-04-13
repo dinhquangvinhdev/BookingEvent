@@ -28,6 +28,7 @@ import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
 import com.vdev.bookingevent.callback.CallbackItemDayCalMonth;
 import com.vdev.bookingevent.common.MConst;
+import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.databinding.FragmentSearchEventBinding;
 import com.vdev.bookingevent.model.Event;
@@ -50,8 +51,11 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
     private DatePickerDialog dpd_start;
     private DatePickerDialog dpd_end;
 
+    private MConvertTime mConvertTime;
+
     public SearchEventFragment() {
         super(R.layout.fragment_search_event);
+        mConvertTime = new MConvertTime();
     }
 
     @Override
@@ -175,10 +179,10 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
             Event event = new Event();
             event.setSummery("Test summery");
             event.setId(0);
-            event.setDate_start(GregorianCalendar.getInstance().getTime());
+            event.setDateStart(mConvertTime.convertDateToMili(GregorianCalendar.getInstance().getTime()));
             Calendar calEndTime = GregorianCalendar.getInstance();
             calEndTime.add(Calendar.HOUR_OF_DAY, 5);
-            event.setDate_end(calEndTime.getTime());
+            event.setDateEnd(mConvertTime.convertDateToMili(calEndTime.getTime()));
             events.add(event);
         }
         adapter.setEvents(events);
