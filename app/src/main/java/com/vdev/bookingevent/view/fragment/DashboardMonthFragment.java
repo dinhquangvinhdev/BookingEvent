@@ -120,10 +120,10 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
             Event event = new Event();
             event.setSummery("Test summery");
             event.setId(0);
-            event.setDate_start(GregorianCalendar.getInstance().getTime());
+            event.setDateStart(1681391279110L);
             Calendar calEndTime = GregorianCalendar.getInstance();
             calEndTime.add(Calendar.HOUR_OF_DAY, 5);
-            event.setDate_end(calEndTime.getTime());
+            event.setDateEnd(1681391279110L);
             events.add(event);
         }
         adapter.setEvents(events);

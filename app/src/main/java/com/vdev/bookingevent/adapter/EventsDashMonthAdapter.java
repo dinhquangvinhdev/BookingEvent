@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
+import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.databinding.ItemDashMonthBinding;
 import com.vdev.bookingevent.model.Event;
 
@@ -20,10 +21,12 @@ public class EventsDashMonthAdapter extends RecyclerView.Adapter<EventsDashMonth
 
     private List<Event> events;
     private CallbackItemCalDashMonth callback;
+    private MConvertTime mConvertTime;
 
     public EventsDashMonthAdapter(CallbackItemCalDashMonth callback) {
         this.events = new ArrayList<>();
         this.callback = callback;
+        mConvertTime = new MConvertTime();
     }
 
     @NonNull
@@ -59,8 +62,8 @@ public class EventsDashMonthAdapter extends RecyclerView.Adapter<EventsDashMonth
 
         public void bind(Event item) {
             binding.tvTitleItemDashMonth.setText(item.getSummery());
-            String timeStart = item.getDate_start().getHours() + ":" + item.getDate_start().getMinutes();
-            String timeEnd = item.getDate_end().getHours() + ":" + item.getDate_end().getMinutes();
+            String timeStart = mConvertTime.convertDateToString(mConvertTime.convertMiliToDate(item.getDateStart()));
+            String timeEnd = mConvertTime.convertDateToString(mConvertTime.convertMiliToDate(item.getDateEnd()));
             binding.tvTime.setText(timeStart + " - " + timeEnd);
             //change color background
             binding.llItemDashMonth.getBackground().clearColorFilter();

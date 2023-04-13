@@ -2,12 +2,15 @@ package com.vdev.bookingevent.model;
 
 public class Room {
     int id;
-    String full_name;
-    String nick_name;
-    int max_num;
+    String fullName;
+    String nickName;
+    int maxNum;
     String locate;
-    boolean status;
+    int status;
     String color;
+
+    public Room() {
+    }
 
     public int getId() {
         return id;
@@ -17,28 +20,36 @@ public class Room {
         this.id = id;
     }
 
-    public String getFull_name() {
-        return full_name;
+    public String getFullName() {
+        return fullName;
     }
 
-    public void setFull_name(String full_name) {
-        this.full_name = full_name;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
     }
 
-    public String getNick_name() {
-        return nick_name;
+    public String getNickName() {
+        return nickName;
     }
 
-    public void setNick_name(String nick_name) {
-        this.nick_name = nick_name;
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
     }
 
-    public int getMax_num() {
-        return max_num;
+    public int getMaxNum() {
+        return maxNum;
     }
 
-    public void setMax_num(int max_num) {
-        this.max_num = max_num;
+    public void setMaxNum(int maxNum) {
+        this.maxNum = maxNum;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
     }
 
     public String getLocate() {
@@ -49,13 +60,7 @@ public class Room {
         this.locate = locate;
     }
 
-    public boolean isStatus() {
-        return status;
-    }
 
-    public void setStatus(boolean status) {
-        this.status = status;
-    }
 
     public String getColor() {
         return color;

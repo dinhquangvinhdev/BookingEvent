@@ -12,6 +12,7 @@ import android.util.Log;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MDialog;
+import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.databinding.ActivityMainBinding;
 import com.vdev.bookingevent.presenter.MainContract;
 import com.vdev.bookingevent.presenter.MainPresenter;
@@ -19,6 +20,8 @@ import com.vdev.bookingevent.view.fragment.AccountFragment;
 import com.vdev.bookingevent.view.fragment.DashboardFragment;
 import com.vdev.bookingevent.view.fragment.AddEventFragment;
 import com.vdev.bookingevent.view.fragment.SearchEventFragment;
+
+import java.util.Date;
 
 import me.ibrahimsn.lib.OnItemSelectedListener;
 
@@ -36,6 +39,15 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         initDialog();
         initPresenter();
         initView();
+
+        FirebaseController controller = new FirebaseController();
+        Date dateStart = new Date();
+        dateStart.setHours(7);
+        dateStart.setMinutes(0);
+        Date dateEnd = new Date();
+        dateEnd.setHours(15);
+        dateEnd.setMinutes(0);
+        controller.addEvent("Test", "summary", new Date(), new Date(), dateStart,  dateEnd , 0,1,0);
     }
 
     private void initDialog() {

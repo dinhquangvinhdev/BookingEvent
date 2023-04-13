@@ -1,18 +1,36 @@
 package com.vdev.bookingevent.model;
 
+import android.util.Log;
+
 import java.util.Date;
 
 public class Event {
     int id;
     String title;
     String summery;
-    Date date_created;
-    Date date_updated;
-    Date date_start;
-    Date date_end;
+    long dateCreated;
+    long dateUpdated;
+    long dateStart;
+    long dateEnd;
     int room_id;
-    int number_participant;
-    boolean status;
+    int numberParticipant;
+    int status;
+
+    public Event() {
+    }
+
+    public Event(int id, String title, String summery, long dateCreated, long dateUpdated, long dateStart, long dateEnd, int room_id, int numberParticipant, int status) {
+        this.id = id;
+        this.title = title;
+        this.summery = summery;
+        this.dateCreated = dateCreated;
+        this.dateUpdated = dateUpdated;
+        this.dateStart = dateStart;
+        this.dateEnd = dateEnd;
+        this.room_id = room_id;
+        this.numberParticipant = numberParticipant;
+        this.status = status;
+    }
 
     public int getId() {
         return id;
@@ -38,36 +56,36 @@ public class Event {
         this.summery = summery;
     }
 
-    public Date getDate_created() {
-        return date_created;
+    public long getDateCreated() {
+        return dateCreated;
     }
 
-    public void setDate_created(Date date_created) {
-        this.date_created = date_created;
+    public void setDateCreated(long dateCreated) {
+        this.dateCreated = dateCreated;
     }
 
-    public Date getDate_updated() {
-        return date_updated;
+    public long getDateUpdated() {
+        return dateUpdated;
     }
 
-    public void setDate_updated(Date date_updated) {
-        this.date_updated = date_updated;
+    public void setDateUpdated(long dateUpdated) {
+        this.dateUpdated = dateUpdated;
     }
 
-    public Date getDate_start() {
-        return date_start;
+    public long getDateStart() {
+        return dateStart;
     }
 
-    public void setDate_start(Date date_start) {
-        this.date_start = date_start;
+    public void setDateStart(long dateStart) {
+        this.dateStart = dateStart;
     }
 
-    public Date getDate_end() {
-        return date_end;
+    public long getDateEnd() {
+        return dateEnd;
     }
 
-    public void setDate_end(Date date_end) {
-        this.date_end = date_end;
+    public void setDateEnd(long dateEnd) {
+        this.dateEnd = dateEnd;
     }
 
     public int getRoom_id() {
@@ -78,20 +96,36 @@ public class Event {
         this.room_id = room_id;
     }
 
-    public int getNumber_participant() {
-        return number_participant;
+    public int getNumberParticipant() {
+        return numberParticipant;
     }
 
-    public void setNumber_participant(int number_participant) {
-        this.number_participant = number_participant;
+    public void setNumberParticipant(int numberParticipant) {
+        this.numberParticipant = numberParticipant;
     }
 
-    public boolean isStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(boolean status) {
+    public void setStatus(int status) {
         this.status = status;
+    }
+
+    @Override
+    public String toString() {
+        return "Event{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", summery='" + summery + '\'' +
+                ", dateCreated=" + dateCreated +
+                ", dateUpdated=" + dateUpdated +
+                ", dateStart=" + dateStart +
+                ", dateEnd=" + dateEnd +
+                ", room_id=" + room_id +
+                ", numberParticipant=" + numberParticipant +
+                ", status=" + status +
+                '}';
     }
 
     public String getRoomColor(){
