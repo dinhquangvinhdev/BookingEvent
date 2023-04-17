@@ -1,13 +1,13 @@
 package com.vdev.bookingevent.model;
 
 public class Room {
-    int id;
-    String name;
-    String nickName;
-    int maxNum;
-    String locate;
-    int status;
-    String color;
+    private int id;
+    private String name;
+    private String nickName;
+    private int maxNum;
+    private String locate;
+    private int status;
+    private String color;
 
     public Room() {
     }

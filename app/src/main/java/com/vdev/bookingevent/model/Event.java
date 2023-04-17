@@ -5,6 +5,7 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import com.google.firebase.database.Exclude;
+import com.vdev.bookingevent.common.MData;
 
 import java.util.Date;
 
@@ -19,6 +20,8 @@ public class Event {
     int room_id;
     int numberParticipant;
     int status;
+    @Exclude
+    String roomColor;
 
     public Event() {
     }
@@ -134,8 +137,17 @@ public class Event {
 
     @Exclude
     public String getRoomColor(){
-        //TODO must delete it when you can call xml from firebase
-        return "#123456";
+        if(roomColor == null){
+            for(int i=0 ; i<MData.arrRoom.size() ; i++){
+                Room room = MData.arrRoom.get(i);
+                if(room.getId() == room_id){
+                    return room.getColor();
+                }
+            }
+            // this is for the room was deleted but the event not yet
+            return "#123456";
+        }
+        return roomColor;
     }
 
     @Override
