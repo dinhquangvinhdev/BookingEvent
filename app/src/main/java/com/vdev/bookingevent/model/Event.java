@@ -2,6 +2,8 @@ package com.vdev.bookingevent.model;
 
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import com.google.firebase.database.Exclude;
 
 import java.util.Date;
@@ -134,5 +136,16 @@ public class Event {
     public String getRoomColor(){
         //TODO must delete it when you can call xml from firebase
         return "#123456";
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        Event tempEvent = (Event) obj;
+        return this.getId() == tempEvent.getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

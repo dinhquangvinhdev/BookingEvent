@@ -1,5 +1,6 @@
 package com.vdev.bookingevent.adapter;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -7,7 +8,9 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.databinding.ItemDialogFilterBinding;
+import com.vdev.bookingevent.model.Room;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,7 +22,6 @@ public class RoomFilterAdapter extends RecyclerView.Adapter<RoomFilterAdapter.Vi
     private List<Boolean> choiced;
 
     public RoomFilterAdapter(List<Boolean> choiced) {
-        //TODO transmission data in here
         //sample data choice
         setChoiced(choiced);
     }
@@ -37,7 +39,7 @@ public class RoomFilterAdapter extends RecyclerView.Adapter<RoomFilterAdapter.Vi
 
     @Override
     public int getItemCount() {
-        return 20;
+        return MData.arrRoom.size();
     }
 
     @Override
@@ -59,6 +61,11 @@ public class RoomFilterAdapter extends RecyclerView.Adapter<RoomFilterAdapter.Vi
         }
 
         public void bind(int position){
+            Room room = MData.arrRoom.get(position);
+            binding.tvRoomName.setText(room.getName());
+            binding.imgRoomColor.clearColorFilter();
+            binding.imgRoomColor.setBackgroundColor(Color.parseColor(room.getColor()));
+
             binding.cbRoomFilter.setChecked(choiced.get(position));
 
             binding.cbRoomFilter.setOnClickListener(new View.OnClickListener() {

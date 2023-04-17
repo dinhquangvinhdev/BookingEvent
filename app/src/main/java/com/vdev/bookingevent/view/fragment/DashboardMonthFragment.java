@@ -27,8 +27,11 @@ import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.DayViewContainer;
 import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
 import com.vdev.bookingevent.adapter.MonthViewContainer;
+import com.vdev.bookingevent.callback.CallbackFromFirebase;
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
 import com.vdev.bookingevent.callback.CallbackItemDayCalMonth;
+import com.vdev.bookingevent.common.MData;
+import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.databinding.CalendarDayLayoutBinding;
 import com.vdev.bookingevent.databinding.FragmentDashboardMonthBinding;
 import com.vdev.bookingevent.model.Event;
@@ -41,6 +44,7 @@ import java.time.YearMonth;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
@@ -48,13 +52,15 @@ import java.util.Locale;
 import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 
-public class DashboardMonthFragment extends Fragment implements DashboardMonthContract.View , CallbackItemCalDashMonth , CallbackItemDayCalMonth {
+public class DashboardMonthFragment extends Fragment
+        implements DashboardMonthContract.View , CallbackItemCalDashMonth , CallbackItemDayCalMonth, CallbackFromFirebase {
 
     private FragmentDashboardMonthBinding binding;
     private DashboardMonthPresenter presenter;
     private EventsDashMonthAdapter adapter;
     private LocalDate selectedDay;
     private LocalDate today = LocalDate.now();
+    private FirebaseController fc;
 
     public DashboardMonthFragment() {
         // Required empty public constructor
@@ -78,6 +84,7 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
         super.onViewCreated(view, savedInstanceState);
 
         initPresenter();
+        initFirebaseController();
         setupMonthCalendar();
         initHeaderCalendar();
         initRVEvents();
@@ -85,9 +92,24 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
         updateTitleTime(today);
     }
 
+    private void initFirebaseController() {
+        if(fc == null){
+            fc = new FirebaseController(this);
+            //get event in the first time
+            int monthNow = Calendar.getInstance().get(Calendar.MONTH);
+            fc.getEventInRange2(MData.getStartMonth(monthNow), MData.getEndMonth(monthNow));
+            //get room
+            fc.getRoom();
+        }
+    }
+
     private void updateTitleTime(LocalDate dateSelected) {
         //set text for title time selected (auto choice today in the first using)
         binding.tvTitleTimeSelected.setText(dateSelected.getDayOfMonth() + " " + dateSelected.getMonth() + " " + dateSelected.getYear());
+        //TODO delete it, it is just a temp
+        Date dateEnd = new Date();
+        dateEnd.setHours(20);
+        fc.addEvent("Test", "test summary", new Date(), new Date(), new Date() ,  dateEnd , 4,1,0);
     }
 
     private void initHeaderCalendar() {
@@ -114,20 +136,7 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
     private void initRVEvents() {
         adapter = new EventsDashMonthAdapter(this);
         binding.rvEventData.setAdapter(adapter);
-        //TODO it is just a sample event in here
-        List<Event> events = new ArrayList<>();
-        for (int i=0 ; i<10 ; i++){
-            Event event = new Event();
-            event.setSummery("Test summery");
-            event.setId(0);
-            event.setDateStart(1681391279110L);
-            Calendar calEndTime = GregorianCalendar.getInstance();
-            calEndTime.add(Calendar.HOUR_OF_DAY, 5);
-            event.setDateEnd(1681391279110L);
-            events.add(event);
-        }
-        adapter.setEvents(events);
-        // TODO == END sample
+        adapter.setEvents(MData.arrEvent);
         binding.rvEventData.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
 
     }
@@ -257,5 +266,11 @@ public class DashboardMonthFragment extends Fragment implements DashboardMonthCo
         if(oldDate != null){
             binding.exOneCalendar.notifyDateChanged(oldDate);
         }
+    }
+
+    @Override
+    public void updateEvent(List<Event> events) {
+        adapter.setEvents(events);
+        adapter.notifyDataSetChanged();
     }
 }
