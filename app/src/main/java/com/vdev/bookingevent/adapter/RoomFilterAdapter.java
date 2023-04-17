@@ -1,6 +1,7 @@
 package com.vdev.bookingevent.adapter;
 
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,9 +63,10 @@ public class RoomFilterAdapter extends RecyclerView.Adapter<RoomFilterAdapter.Vi
 
         public void bind(int position){
             Room room = MData.arrRoom.get(position);
-            binding.tvRoomName.setText(room.getName());
-            binding.imgRoomColor.clearColorFilter();
-            binding.imgRoomColor.setBackgroundColor(Color.parseColor(room.getColor()));
+            binding.tvRoomName.setText(room.getNickName());
+            binding.imgRoomColor.getBackground().clearColorFilter();
+            binding.imgRoomColor
+                    .getBackground().setColorFilter(Color.parseColor(room.getColor()), PorterDuff.Mode.SRC);
 
             binding.cbRoomFilter.setChecked(choiced.get(position));
 
