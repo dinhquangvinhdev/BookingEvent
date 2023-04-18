@@ -16,23 +16,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.kizitonwose.calendar.core.CalendarDay;
 import com.kizitonwose.calendar.core.CalendarMonth;
 import com.kizitonwose.calendar.core.DayPosition;
 import com.kizitonwose.calendar.view.MonthDayBinder;
 import com.kizitonwose.calendar.view.MonthHeaderFooterBinder;
-import com.kizitonwose.calendar.view.ViewContainer;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.DayViewContainer;
 import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
 import com.vdev.bookingevent.adapter.MonthViewContainer;
-import com.vdev.bookingevent.callback.CallbackFromFirebase;
+import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
 import com.vdev.bookingevent.callback.CallbackItemDayCalMonth;
 import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.database.FirebaseController;
-import com.vdev.bookingevent.databinding.CalendarDayLayoutBinding;
 import com.vdev.bookingevent.databinding.FragmentDashboardMonthBinding;
 import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.presenter.DashboardMonthContract;
@@ -42,10 +41,8 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.TextStyle;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -53,7 +50,7 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 
 public class DashboardMonthFragment extends Fragment
-        implements DashboardMonthContract.View , CallbackItemCalDashMonth , CallbackItemDayCalMonth, CallbackFromFirebase {
+        implements DashboardMonthContract.View , CallbackItemCalDashMonth , CallbackItemDayCalMonth, CallbackUpdateEventDisplay {
 
     private FragmentDashboardMonthBinding binding;
     private DashboardMonthPresenter presenter;
@@ -64,6 +61,11 @@ public class DashboardMonthFragment extends Fragment
 
     public DashboardMonthFragment() {
         // Required empty public constructor
+    }
+
+    public void updateDisplayData(){
+        adapter.setEvents(MData.arrFilterEvent);
+        adapter.notifyDataSetChanged();
     }
 
     @Override

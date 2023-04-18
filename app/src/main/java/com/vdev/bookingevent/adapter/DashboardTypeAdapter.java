@@ -7,12 +7,17 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
+import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.view.fragment.DashboardDayFragment;
 import com.vdev.bookingevent.view.fragment.DashboardMonthFragment;
 import com.vdev.bookingevent.view.fragment.DashboardWeekFragment;
 
 public class DashboardTypeAdapter extends FragmentStateAdapter {
+
+    private DashboardMonthFragment fragmentMonth = new DashboardMonthFragment();
+    private DashboardWeekFragment fragmentWeek = new DashboardWeekFragment();
+    private DashboardDayFragment fragmentDay = new DashboardDayFragment();
 
     public DashboardTypeAdapter(@NonNull Fragment fragment) {
         super(fragment);
@@ -24,30 +29,31 @@ public class DashboardTypeAdapter extends FragmentStateAdapter {
         // Return a NEW fragment instance in createFragment(int)
         switch (position) {
             case MConst.FRAGMENT_DASHBOARD_MONTH: {
-                Fragment fragment = new DashboardMonthFragment();
                 Bundle args = new Bundle();
                 //add something to bundle
-                fragment.setArguments(args);
-                return fragment;
+                fragmentMonth.setArguments(args);
+                return fragmentMonth;
             }
             case MConst.FRAGMENT_DASHBOARD_WEEK: {
-                Fragment fragment = new DashboardWeekFragment();
                 Bundle args = new Bundle();
                 //add something to bundle
-                fragment.setArguments(args);
-                return fragment;
+                fragmentWeek.setArguments(args);
+                return fragmentWeek;
             }
             case MConst.FRAGMENT_DASHBOARD_DAY: {
-                Fragment fragment = new DashboardDayFragment();
                 Bundle args = new Bundle();
                 //add something to bundle
-                fragment.setArguments(args);
-                return fragment;
+                fragmentDay.setArguments(args);
+                return fragmentDay;
             }
             default: {
                 return null;
             }
         }
+    }
+
+    public void updateDataDisplayInMonth(){
+        fragmentMonth.updateDisplayData();
     }
 
     @Override

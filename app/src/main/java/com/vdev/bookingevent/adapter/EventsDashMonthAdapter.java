@@ -67,7 +67,6 @@ public class EventsDashMonthAdapter extends RecyclerView.Adapter<EventsDashMonth
             binding.tvTime.setText(timeStart + " - " + timeEnd);
             //change color background
             binding.llItemDashMonth.getBackground().clearColorFilter();
-            //TODO must get color from room
             binding.llItemDashMonth
                     .getBackground().setColorFilter(Color.parseColor(item.getRoomColor()), PorterDuff.Mode.SRC);
             itemView.setOnClickListener(new View.OnClickListener() {

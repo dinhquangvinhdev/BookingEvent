@@ -4,6 +4,6 @@ import com.vdev.bookingevent.model.Event;
 
 import java.util.List;
 
-public interface CallbackFromFirebase {
+public interface CallbackUpdateEventDisplay {
     void updateEvent(List<Event> events);
 }

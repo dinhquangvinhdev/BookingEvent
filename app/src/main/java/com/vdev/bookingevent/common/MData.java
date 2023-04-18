@@ -13,6 +13,7 @@ import java.util.List;
 public class MData {
     public static List<Event> arrEvent = new ArrayList<>();
     public static List<Room> arrRoom = new ArrayList<>();
+    public static List<Event> arrFilterEvent = new ArrayList<>();
     public static long getStartMonth(int month) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());

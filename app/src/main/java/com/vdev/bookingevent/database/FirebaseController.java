@@ -9,25 +9,20 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.vdev.bookingevent.R;
-import com.vdev.bookingevent.callback.CallbackFromFirebase;
+import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public final class FirebaseController {
     private DatabaseReference mDatabase;
     private MConvertTime mConvertTime;
-    private CallbackFromFirebase callback;
+    private CallbackUpdateEventDisplay callback;
 
-    public FirebaseController(CallbackFromFirebase callback) {
+    public FirebaseController(CallbackUpdateEventDisplay callback) {
         this.mDatabase = FirebaseDatabase.getInstance().getReference();
         mConvertTime = new MConvertTime();
         this.callback = callback;
