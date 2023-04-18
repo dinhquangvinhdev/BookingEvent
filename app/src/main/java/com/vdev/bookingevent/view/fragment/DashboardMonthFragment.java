@@ -12,11 +12,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.kizitonwose.calendar.core.CalendarDay;
 import com.kizitonwose.calendar.core.CalendarMonth;
@@ -30,16 +31,21 @@ import com.vdev.bookingevent.adapter.MonthViewContainer;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
 import com.vdev.bookingevent.callback.CallbackItemDayCalMonth;
+import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.database.FirebaseController;
+import com.vdev.bookingevent.databinding.CalendarDayLayoutBinding;
 import com.vdev.bookingevent.databinding.FragmentDashboardMonthBinding;
 import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.presenter.DashboardMonthContract;
 import com.vdev.bookingevent.presenter.DashboardMonthPresenter;
 
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.Calendar;
 import java.util.Date;
@@ -58,6 +64,7 @@ public class DashboardMonthFragment extends Fragment
     private LocalDate selectedDay;
     private LocalDate today = LocalDate.now();
     private FirebaseController fc;
+    private MConvertTime mConvertTime;
 
     public DashboardMonthFragment() {
         // Required empty public constructor
@@ -85,6 +92,7 @@ public class DashboardMonthFragment extends Fragment
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        initMConvertTime();
         initPresenter();
         initFirebaseController();
         setupMonthCalendar();
@@ -92,6 +100,12 @@ public class DashboardMonthFragment extends Fragment
         initRVEvents();
 
         updateTitleTime(today);
+    }
+
+    private void initMConvertTime() {
+        if(mConvertTime == null){
+            mConvertTime = new MConvertTime();
+        }
     }
 
     private void initFirebaseController() {
@@ -167,20 +181,20 @@ public class DashboardMonthFragment extends Fragment
             @Override
             public void bind(@NonNull DayViewContainer container, CalendarDay calendarDay) {
                 container.setDay(calendarDay);
-                TextView tv = container.getTv();
-                tv.setText(String.valueOf(calendarDay.getDate().getDayOfMonth()));
+                CalendarDayLayoutBinding dayLayoutBinding = container.getBinding();
+                dayLayoutBinding.tvDay.setText(String.valueOf(calendarDay.getDate().getDayOfMonth()));
                 
                 if(calendarDay.getPosition() == DayPosition.MonthDate){
-                    updateUIDayCalendar(calendarDay , tv);
+                    updateUIDayCalendar(calendarDay , dayLayoutBinding.tvDay, dayLayoutBinding.imgRoundBlue);
                 }else if(calendarDay.getPosition() == DayPosition.InDate){
-                    container.getTv().setTextColor(Color.GRAY);
+                    dayLayoutBinding.tvDay.setTextColor(Color.GRAY);
                     if(calendarDay.getDate() == selectedDay){
                         // backward month and choice the day
                         binding.exOneCalendar.smoothScrollToMonth(binding.exOneCalendar.findFirstVisibleMonth().getYearMonth().minusMonths(1));
                         binding.exOneCalendar.notifyDateChanged(selectedDay);
                     }
                 } else {
-                    container.getTv().setTextColor(Color.GRAY);
+                    dayLayoutBinding.tvDay.setTextColor(Color.GRAY);
                     if(calendarDay.getDate() == selectedDay){
                         // forward month and choice the day
                         binding.exOneCalendar.smoothScrollToMonth(binding.exOneCalendar.findFirstVisibleMonth().getYearMonth().plusMonths(1));
@@ -188,6 +202,8 @@ public class DashboardMonthFragment extends Fragment
                     }
                 }
             }
+
+
         });
         //set header
         binding.exOneCalendar.setMonthHeaderBinder(new MonthHeaderFooterBinder<MonthViewContainer>() {
@@ -227,7 +243,8 @@ public class DashboardMonthFragment extends Fragment
         binding.exOneCalendar.scrollToMonth(currentMonth);
     }
 
-    private void updateUIDayCalendar(CalendarDay calendarDay, TextView tv) {
+    private void updateUIDayCalendar(CalendarDay calendarDay, TextView tv, ImageView imgRoundBlue) {
+        //set color for day
         if (calendarDay.getDate() == selectedDay){          // set color for selected day
             tv.setTextColor(Color.WHITE);
             tv.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_tab));
@@ -237,6 +254,23 @@ public class DashboardMonthFragment extends Fragment
         } else {                                            //set color for day not selected and not today
             tv.setTextColor(Color.BLACK);
             tv.setBackground(null);
+        }
+
+        //set round blue for day have event
+        for(int i=0 ; i<MData.arrEvent.size(); i++){
+            Event tempEvent = MData.arrEvent.get(i);
+            Calendar calendar = mConvertTime.convertMiliToCalendar(tempEvent.getDateStart());
+            int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
+            int month = calendar.get(Calendar.MONTH) + 1;
+            int year = calendar.get(Calendar.YEAR);
+            if(calendarDay.getDate().getDayOfMonth() == dayOfMonth
+                    && calendarDay.getDate().getMonthValue() == month
+                    && calendarDay.getDate().getYear() == year){
+                imgRoundBlue.setVisibility(View.VISIBLE);
+                break;
+            } else {
+                imgRoundBlue.setVisibility(View.INVISIBLE);
+            }
         }
     }
 
@@ -272,7 +306,13 @@ public class DashboardMonthFragment extends Fragment
 
     @Override
     public void updateEvent(List<Event> events) {
+        //update adapter event
         adapter.setEvents(events);
         adapter.notifyDataSetChanged();
+        //update calendar
+        for(int i=0 ; i<events.size() ; i++){
+            LocalDate localDate = Instant.ofEpochMilli(events.get(i).getDateStart()).atZone(ZoneId.systemDefault()).toLocalDate();
+            binding.exOneCalendar.notifyCalendarChanged();
+        }
     }
 }

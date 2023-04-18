@@ -2,6 +2,7 @@ package com.vdev.bookingevent.common;
 
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
+import java.util.Calendar;
 import java.util.Date;
 
 public class MConvertTime {
@@ -13,6 +14,12 @@ public class MConvertTime {
 
     public Date convertMiliToDate(long miliseconds){
         return new Date(miliseconds);
+    }
+
+    public Calendar convertMiliToCalendar(long miliseconds){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date(miliseconds));
+        return calendar;
     }
 
     public long convertDateToMili(Date date){
