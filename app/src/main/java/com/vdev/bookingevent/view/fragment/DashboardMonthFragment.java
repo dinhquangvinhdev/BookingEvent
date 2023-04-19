@@ -12,13 +12,13 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.kizitonwose.calendar.core.CalendarDay;
 import com.kizitonwose.calendar.core.CalendarMonth;
 import com.kizitonwose.calendar.core.DayPosition;
@@ -45,10 +45,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -65,6 +63,7 @@ public class DashboardMonthFragment extends Fragment
     private LocalDate today = LocalDate.now();
     private FirebaseController fc;
     private MConvertTime mConvertTime;
+    private BottomSheetBehavior bsb;
 
     public DashboardMonthFragment() {
         // Required empty public constructor
@@ -94,12 +93,18 @@ public class DashboardMonthFragment extends Fragment
 
         initMConvertTime();
         initPresenter();
+        initSlidingPanel();
         initFirebaseController();
         setupMonthCalendar();
         initHeaderCalendar();
         initRVEvents();
 
         updateTitleTime(today);
+    }
+
+    private void initSlidingPanel() {
+        bsb = BottomSheetBehavior.from(binding.flBottomSheet);
+        bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
     }
 
     private void initMConvertTime() {
@@ -282,6 +287,7 @@ public class DashboardMonthFragment extends Fragment
     @Override
     public void openSlidingPanel(String idEvent, String roomColor) {
         //TODO
+        bsb.setState(BottomSheetBehavior.STATE_EXPANDED);
     }
 
     @Override
@@ -315,4 +321,5 @@ public class DashboardMonthFragment extends Fragment
             }
         }
     }
+
 }
