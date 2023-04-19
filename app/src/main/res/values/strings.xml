@@ -22,4 +22,7 @@
     <string name="hint_department">Department</string>
     <string name="body_need_fill_data">Please fill in all the information \n marked with red star</string>
     <string name="btn_dialog_need_fill_data">Confirm</string>
+    <string name="body_time_error">Please set the time end after the time start</string>
+    <string name="title_dialog_success">Success</string>
+    <string name="body_dialog_success">Add Event Success</string>
 </resources>

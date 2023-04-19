@@ -110,22 +110,20 @@ public class DashboardMonthFragment extends Fragment
 
     private void initFirebaseController() {
         if(fc == null){
-            fc = new FirebaseController(this);
+            fc = new FirebaseController(this, null);
             //get event in the first time
             int monthNow = Calendar.getInstance().get(Calendar.MONTH);
             fc.getEventInRange2(MData.getStartMonth(monthNow), MData.getEndMonth(monthNow));
             //get room
             fc.getRoom();
+            //get department
+            fc.getDepartment();
         }
     }
 
     private void updateTitleTime(LocalDate dateSelected) {
         //set text for title time selected (auto choice today in the first using)
         binding.tvTitleTimeSelected.setText(dateSelected.getDayOfMonth() + " " + dateSelected.getMonth() + " " + dateSelected.getYear());
-        //TODO delete it, it is just a temp
-        Date dateEnd = new Date();
-        dateEnd.setHours(20);
-        fc.addEvent("Test", "test summary", new Date(), new Date(), new Date() ,  dateEnd , 4,1,0);
     }
 
     private void initHeaderCalendar() {
@@ -310,9 +308,11 @@ public class DashboardMonthFragment extends Fragment
         adapter.setEvents(events);
         adapter.notifyDataSetChanged();
         //update calendar
-        for(int i=0 ; i<events.size() ; i++){
-            LocalDate localDate = Instant.ofEpochMilli(events.get(i).getDateStart()).atZone(ZoneId.systemDefault()).toLocalDate();
-            binding.exOneCalendar.notifyCalendarChanged();
+        if(binding != null){
+            for(int i=0 ; i<events.size() ; i++){
+                LocalDate localDate = Instant.ofEpochMilli(events.get(i).getDateStart()).atZone(ZoneId.systemDefault()).toLocalDate();
+                binding.exOneCalendar.notifyCalendarChanged();
+            }
         }
     }
 }

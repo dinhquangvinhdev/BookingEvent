@@ -2,9 +2,12 @@ package com.vdev.bookingevent.model;
 
 public class Department {
      private int id;
-     private String full_name;
-     private String nick_name;
-     int number_member;
+     private String fullName;
+     private String nickName;
+     int numberMember;
+
+     public Department() {
+     }
 
      public int getId() {
           return id;
@@ -14,27 +17,27 @@ public class Department {
           this.id = id;
      }
 
-     public String getFull_name() {
-          return full_name;
+     public String getFullName() {
+          return fullName;
      }
 
-     public void setFull_name(String full_name) {
-          this.full_name = full_name;
+     public void setFullName(String fullName) {
+          this.fullName = fullName;
      }
 
-     public String getNick_name() {
-          return nick_name;
+     public String getNickName() {
+          return nickName;
      }
 
-     public void setNick_name(String nick_name) {
-          this.nick_name = nick_name;
+     public void setNickName(String nickName) {
+          this.nickName = nickName;
      }
 
-     public int getNumber_member() {
-          return number_member;
+     public int getNumberMember() {
+          return numberMember;
      }
 
-     public void setNumber_member(int number_member) {
-          this.number_member = number_member;
+     public void setNumberMember(int numberMember) {
+          this.numberMember = numberMember;
      }
 }

@@ -2,6 +2,7 @@ package com.vdev.bookingevent.common;
 
 import android.util.Log;
 
+import com.vdev.bookingevent.model.Department;
 import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
 
@@ -14,6 +15,11 @@ public class MData {
     public static List<Event> arrEvent = new ArrayList<>();
     public static List<Room> arrRoom = new ArrayList<>();
     public static List<Event> arrFilterEvent = new ArrayList<>();
+    public static List<Department> arrDepartment = new ArrayList<>();
+
+    public static int id_detail_participant = -1;
+    public static int id_event = -1;
+    public static int id_user = 0;
     public static long getStartMonth(int month) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
