@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "569539432858",
+    "firebase_url": "https://bookingevent-fca90-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "bookingevent-fca90",
     "storage_bucket": "bookingevent-fca90.appspot.com"
   },
@@ -22,7 +23,7 @@
           }
         },
         {
-          "client_id": "569539432858-ad5pac7ri9nle237nejcu6st6k6t6m3i.apps.googleusercontent.com",
+          "client_id": "569539432858-7m1jadlef1c557tmkubhnsi0r9erk817.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -35,7 +36,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "569539432858-ad5pac7ri9nle237nejcu6st6k6t6m3i.apps.googleusercontent.com",
+              "client_id": "569539432858-7m1jadlef1c557tmkubhnsi0r9erk817.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

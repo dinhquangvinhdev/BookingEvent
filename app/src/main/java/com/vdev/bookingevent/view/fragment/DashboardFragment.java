@@ -19,16 +19,21 @@ import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.DashboardTypeAdapter;
 import com.vdev.bookingevent.adapter.RoomFilterAdapter;
 import com.vdev.bookingevent.common.MConst;
+import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.databinding.DialogFilterBinding;
 import com.vdev.bookingevent.databinding.FragmentDashboardBinding;
+import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 
 public class DashboardFragment extends Fragment {
     private FragmentDashboardBinding binding;
+
+    private DashboardTypeAdapter dashboardTypeAdapter;
     private AlertDialog.Builder dialogBuilder;
     private AlertDialog dialog;
     private RoomFilterAdapter adapterFilter;
@@ -51,7 +56,8 @@ public class DashboardFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         //init view pager
-        binding.viewPager.setAdapter(new DashboardTypeAdapter(this));
+        dashboardTypeAdapter = new DashboardTypeAdapter(this);
+        binding.viewPager.setAdapter(dashboardTypeAdapter);
         binding.viewPager.setUserInputEnabled(false);
         //init tab layout
         new TabLayoutMediator(binding.tabLayout , binding.viewPager , ((tab, position) ->{
@@ -83,8 +89,25 @@ public class DashboardFragment extends Fragment {
             //TODO save information in the filter
             filterChoiced = new ArrayList<>(adapterFilter.getChoiced());
             if(filterChoiced.contains(true)){
+                //filter data with room choice
+                MData.arrFilterEvent.clear();
+                for(int i=0 ; i<filterChoiced.size() ; i++){
+                    if(filterChoiced.get(i)){
+                        int idRoom = MData.arrRoom.get(i).getId();
+                        for(int j=0 ; j<MData.arrEvent.size(); j++){
+                            Event tempEvent = MData.arrEvent.get(j);
+                            if(tempEvent.getRoom_id() == idRoom){
+                                MData.arrFilterEvent.add(tempEvent);
+                            }
+                        }
+                    }
+                }
+                dashboardTypeAdapter.updateDataDisplayInMonth();
                 binding.imgFilter.setImageResource(R.drawable.ic_filter_on);
             } else {
+                MData.arrFilterEvent.clear();
+                MData.arrFilterEvent.addAll(MData.arrEvent);
+                dashboardTypeAdapter.updateDataDisplayInMonth();
                 binding.imgFilter.setImageResource(R.drawable.ic_filter_off);
             }
             dialog.dismiss();

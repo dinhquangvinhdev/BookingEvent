@@ -18,36 +18,49 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
 
 import com.vdev.bookingevent.R;
+import com.vdev.bookingevent.callback.CallbackAddDetailParticipant;
+import com.vdev.bookingevent.callback.CallbackFragmentManager;
 import com.vdev.bookingevent.common.MConst;
+import com.vdev.bookingevent.common.MConvertTime;
+import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.common.MDialog;
+import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.databinding.FragmentAddEventBinding;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
-public class AddEventFragment extends Fragment {
+public class AddEventFragment extends Fragment implements CallbackAddDetailParticipant {
 
     private FragmentAddEventBinding binding;
     final int year_now = Calendar.getInstance().get(Calendar.YEAR);
     final int month_now = Calendar.getInstance().get(Calendar.MONTH);
     final int day_now = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
+    int index_room_choice = 0;
+    int index_department_choice = 0;
     private TimePickerDialog tpd_start;
     private TimePickerDialog tpd_end;
     private DatePickerDialog dpd;
     private MDialog mDialog;
+    private FirebaseController fc;
+    private MConvertTime mConvertTime;
+    private CallbackFragmentManager callbackFragmentManager;
 
-    public AddEventFragment() {
+    public AddEventFragment(CallbackFragmentManager callbackFragmentManager) {
         // Required public constructor
-        //create dialog
-        mDialog = new MDialog();
+        this.callbackFragmentManager = callbackFragmentManager;
     }
 
     @Override
@@ -67,10 +80,27 @@ public class AddEventFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        mConvertTime = new MConvertTime();
+        //init dialog
+        initMDialog();
+        //init FirebaseController
+        initFC();
         //init TimePicker and DatePicker
         initTimeAndDatePicker();
         //init view
         initView();
+    }
+
+    private void initMDialog() {
+        if(mDialog == null){
+            mDialog = new MDialog();
+        }
+    }
+
+    private void initFC(){
+        if(fc == null){
+            fc = new FirebaseController(null, this);
+        }
     }
 
     private void initTimeAndDatePicker() {
@@ -109,8 +139,8 @@ public class AddEventFragment extends Fragment {
         //TODO temp data
         List<String> tempDepartments = new ArrayList<>();
         tempDepartments.add("None");
-        for(int i=0 ; i<10 ; i++){
-            tempDepartments.add("department " + (i+1));
+        for(int i = 0; i< MData.arrDepartment.size(); i++){
+            tempDepartments.add(MData.arrDepartment.get(i).getNickName());
         }
         //TODO end temp
         ArrayAdapter<String> aaDepartment = new ArrayAdapter<>(getContext() , androidx.appcompat.R.layout.support_simple_spinner_dropdown_item , tempDepartments);
@@ -120,12 +150,18 @@ public class AddEventFragment extends Fragment {
         //TODO temp data
         List<String> tempRooms = new ArrayList<>();
         tempRooms.add("None");
-        for(int i=0 ; i<10 ; i++){
-            tempRooms.add("room " + (i+1));
+        for(int i=0 ; i<MData.arrRoom.size() ; i++){
+            tempRooms.add(MData.arrRoom.get(i).getNickName());
         }
         //TODO end temp
         ArrayAdapter<String> aaRoom = new ArrayAdapter<>(getContext() , androidx.appcompat.R.layout.support_simple_spinner_dropdown_item , tempRooms);
         binding.actvRoom.setAdapter(aaRoom);
+        binding.actvRoom.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                index_room_choice = i;
+            }
+        });
         binding.actvRoom.setText(aaRoom.getItem(0), false);
         //start time
         binding.tvStartTime.setOnClickListener(it -> {initTimeChoiceStart();});
@@ -140,6 +176,7 @@ public class AddEventFragment extends Fragment {
         binding.btnAddEvent.setOnClickListener(it -> {
             if (mDialog.checkConnection(getContext())){
                 boolean check = false;
+                //check fill all data
                 if (binding.actvRoom.getText().toString().equals("None")){
                     check = true;
                     if(!binding.tilRoom.isErrorEnabled()) {
@@ -154,7 +191,8 @@ public class AddEventFragment extends Fragment {
                 if (binding.tvStartTime.getText().toString().isEmpty()){
                     check = true;
                     binding.tvStartTime.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_red));
-                } else {
+                }
+                else {
                     binding.tvStartTime.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_black));
                 }
                 if (binding.tvEndTime.getText().toString().isEmpty()){
@@ -173,9 +211,42 @@ public class AddEventFragment extends Fragment {
                 }
                 if(check){
                     mDialog.showFillData(getContext(), null);
+                } else {
+                    if(compareTimeDateStartAndDateEnd(binding.tvStartTime.getText().toString() , binding.tvEndTime.getText().toString())){
+                        // get data to add into firebase
+                        String title = binding.edtTitle.getText().toString();
+                        String summary = binding.edtSummary.getText().toString();
+                        String guest = binding.edtGuest.getText().toString();
+                        //TODO count number_participant
+                        String department = binding.actvDepartment.getText().toString();
+                        int room_id = MData.arrRoom.get(index_room_choice - 1).getId();
+                        Date dateStart = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvStartTime.getText().toString() + " " + binding.tvDate.getText()));
+                        Date dateEnd = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvEndTime.getText().toString() + " " + binding.tvDate.getText()));
+                        Date dateCreated = mConvertTime.convertMiliToDate(System.currentTimeMillis());
+                        Date dateUpdated = dateCreated;
+                        //TODO add event and detail event into firebase
+                        if(fc.addEvent(title , summary ,dateCreated , dateUpdated , dateStart , dateEnd , room_id , 1 , 0)){
+                            if(!fc.addEventDetailParticipant(MData.id_event ,MData.id_user , MConst.ROLE_HOST)){
+                                //notification can not add event
+                                mDialog.showFillData(getContext() , "Some error when add new Event");
+                            }
+                        }
+                    } else {
+                        mDialog.showTimeError(getContext());
+                    }
                 }
             }
         });
+    }
+
+    private boolean compareTimeDateStartAndDateEnd(String StartTime , String EndTime) {
+        LocalTime start = LocalTime.parse(StartTime);
+        LocalTime end = LocalTime.parse(EndTime);
+        Duration duration = Duration.between(start , end);
+        if(duration.isNegative() && duration.isZero()){
+            return false;
+        }
+        return true;
     }
 
     private void initTimeChoiceEnd() {
@@ -200,5 +271,12 @@ public class AddEventFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    @Override
+    public void callbackAddDetailParticipant() {
+        //show notification success add and update UI to the main home
+        mDialog.showAddEventSuccess(getContext());
+        callbackFragmentManager.goToFragmentDashboard();
     }
 }

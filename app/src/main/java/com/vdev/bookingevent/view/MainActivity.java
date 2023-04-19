@@ -10,8 +10,10 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.vdev.bookingevent.R;
+import com.vdev.bookingevent.callback.CallbackFragmentManager;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MDialog;
+import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.databinding.ActivityMainBinding;
 import com.vdev.bookingevent.presenter.MainContract;
 import com.vdev.bookingevent.presenter.MainPresenter;
@@ -20,9 +22,11 @@ import com.vdev.bookingevent.view.fragment.DashboardFragment;
 import com.vdev.bookingevent.view.fragment.AddEventFragment;
 import com.vdev.bookingevent.view.fragment.SearchEventFragment;
 
+import java.util.Date;
+
 import me.ibrahimsn.lib.OnItemSelectedListener;
 
-public class MainActivity extends AppCompatActivity implements MainContract.View {
+public class MainActivity extends AppCompatActivity implements MainContract.View , CallbackFragmentManager {
     private ActivityMainBinding binding;
     private MainPresenter presenter;
     private MDialog mDialog;
@@ -99,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                 break;
             }
             case MConst.FRAGMENT_ADD_EVENT:{
-                fragment = new AddEventFragment();
+                fragment = new AddEventFragment(this);
                 transaction.replace(R.id.fcv_container, fragment);
                 transaction.commit();
                 break;
@@ -137,5 +141,15 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    public void goToFragmentDashboard() {
+        //set choice bottom to home
+        binding.bottomBar.setItemActiveIndex(0);
+        //change fragment to home
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.fcv_container, new DashboardFragment());
+        transaction.commit();
     }
 }

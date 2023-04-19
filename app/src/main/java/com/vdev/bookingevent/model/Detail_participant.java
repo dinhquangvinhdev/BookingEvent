@@ -1,16 +1,19 @@
 package com.vdev.bookingevent.model;
 
-public class DetailParticipant {
-    int booking_id;
+public class Detail_participant {
+    int event_id;
     int user_id;
     String role;
 
-    public int getBooking_id() {
-        return booking_id;
+    public Detail_participant() {
     }
 
-    public void setBooking_id(int booking_id) {
-        this.booking_id = booking_id;
+    public int getEvent_id() {
+        return event_id;
+    }
+
+    public void setEvent_id(int event_id) {
+        this.event_id = event_id;
     }
 
     public int getUser_id() {

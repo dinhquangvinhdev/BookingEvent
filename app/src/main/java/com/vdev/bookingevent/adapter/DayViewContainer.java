@@ -11,7 +11,7 @@ import com.vdev.bookingevent.callback.CallbackItemDayCalMonth;
 import com.vdev.bookingevent.databinding.CalendarDayLayoutBinding;
 
 public class DayViewContainer extends ViewContainer {
-    private TextView tv;
+    private CalendarDayLayoutBinding binding;
     private CalendarDay day;
     private CallbackItemDayCalMonth callback;
 
@@ -19,7 +19,7 @@ public class DayViewContainer extends ViewContainer {
         super(view);
         this.callback = callback;
         //set textview
-        tv = CalendarDayLayoutBinding.bind(view).tvDay;
+        binding = CalendarDayLayoutBinding.bind(view);
         //set onclick textview
         view.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -33,7 +33,15 @@ public class DayViewContainer extends ViewContainer {
         this.day = day;
     }
 
-    public TextView getTv() {
-        return tv;
+    public CalendarDayLayoutBinding getBinding() {
+        return binding;
+    }
+
+    public void setHaveEventInDay(boolean check){
+        if(check){
+            binding.imgRoundBlue.setVisibility(View.INVISIBLE);
+        } else{
+            binding.imgRoundBlue.setVisibility(View.INVISIBLE);
+        }
     }
 }

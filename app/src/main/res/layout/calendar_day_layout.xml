@@ -15,9 +15,11 @@
         android:textSize="16sp"
         tools:text="22" />
     <ImageView
+        android:id="@+id/img_round_blue"
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_gravity="center"
-        android:background="@drawable/circle_blue" />
+        android:background="@drawable/circle_blue"
+        android:visibility="invisible"/>
 </LinearLayout>
