@@ -9,10 +9,12 @@ import java.util.Date;
 public class MConvertTime {
     SimpleDateFormat sdf1;
     SimpleDateFormat sdf2;
+    SimpleDateFormat sdf3;
 
     public MConvertTime() {
         sdf1 = new SimpleDateFormat("HH:mm");
         sdf2 = new SimpleDateFormat("HH:mm dd-MM-yyyy");
+        sdf3 = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     }
 
     public Date convertMiliToDate(long miliseconds){
@@ -39,12 +41,22 @@ public class MConvertTime {
     }
 
     /**
-     * return hh-mm
+     * return HH-mm
      * @param date
      * @return
      */
     public String convertDateToString(Date date){
         String result = sdf1.format(date);
+        return result;
+    }
+
+    /**
+     * return dd/MM/yyyy hh:mm
+     * @param date
+     * @return
+     */
+    public String convertDateToString1(Date date){
+        String result = sdf3.format(date);
         return result;
     }
 }

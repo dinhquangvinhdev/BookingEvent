@@ -4,11 +4,16 @@ import java.util.Date;
 
 public class User {
     int id;
-    Date birthday;
-    String phone_number;
+    String birthday;
+    String phoneNumber;
     String address;
     int email_id;
     int department_id;
+    String fullName;
+    String gender;
+
+    public User() {
+    }
 
     public int getId() {
         return id;
@@ -18,20 +23,20 @@ public class User {
         this.id = id;
     }
 
-    public Date getBirthday() {
+    public String getBirthday() {
         return birthday;
     }
 
-    public void setBirthday(Date birthday) {
+    public void setBirthday(String birthday) {
         this.birthday = birthday;
     }
 
-    public String getPhone_number() {
-        return phone_number;
+    public String getPhoneNumber() {
+        return phoneNumber;
     }
 
-    public void setPhone_number(String phone_number) {
-        this.phone_number = phone_number;
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public String getAddress() {
@@ -56,5 +61,21 @@ public class User {
 
     public void setDepartment_id(int department_id) {
         this.department_id = department_id;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
     }
 }

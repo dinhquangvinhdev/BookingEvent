@@ -19,6 +19,7 @@ public class MData {
 
     public static int id_detail_participant = -1;
     public static int id_event = -1;
+    //TODO get the id_user when login
     public static int id_user = 0;
     public static long getStartMonth(int month) {
         Calendar calendar = Calendar.getInstance();

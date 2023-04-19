@@ -224,7 +224,6 @@ public class AddEventFragment extends Fragment implements CallbackAddDetailParti
                         Date dateEnd = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvEndTime.getText().toString() + " " + binding.tvDate.getText()));
                         Date dateCreated = mConvertTime.convertMiliToDate(System.currentTimeMillis());
                         Date dateUpdated = dateCreated;
-                        //TODO add event and detail event into firebase
                         if(fc.addEvent(title , summary ,dateCreated , dateUpdated , dateStart , dateEnd , room_id , 1 , 0)){
                             if(!fc.addEventDetailParticipant(MData.id_event ,MData.id_user , MConst.ROLE_HOST)){
                                 //notification can not add event

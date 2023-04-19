@@ -97,6 +97,7 @@
             android:scaleType="centerCrop"
             android:layout_gravity="center|top" />
         <include
+            android:id="@+id/include_layout_detail_event"
             android:layout_marginStart="10dp"
             android:layout_marginEnd="10dp"
             android:layout_marginTop="50dp"

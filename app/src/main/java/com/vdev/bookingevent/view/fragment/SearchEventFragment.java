@@ -227,7 +227,7 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
     }
 
     @Override
-    public void openSlidingPanel(String idEvent, String roomColor) {
-
+    public void openSlidingPanel(int idEvent, String roomColor) {
+        //TODO open event detail
     }
 }
