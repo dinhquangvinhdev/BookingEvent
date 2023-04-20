@@ -46,8 +46,12 @@ import com.vdev.bookingevent.presenter.DashboardMonthPresenter;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.Calendar;
 import java.util.List;
@@ -74,6 +78,9 @@ public class DashboardMonthFragment extends Fragment
     }
 
     public void updateDisplayData(){
+        //update event filter
+        presenter.updateFilterEvent(selectedDay);
+        //update adapter
         adapter.setEvents(MData.arrFilterEvent);
         adapter.notifyDataSetChanged();
     }
@@ -96,6 +103,7 @@ public class DashboardMonthFragment extends Fragment
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        selectedDay = LocalDate.now();
         initMConvertTime();         //always create convert time before create presenter
         initFirebaseController();   //always create firebase before create presenter
         initPresenter();
@@ -329,12 +337,17 @@ public class DashboardMonthFragment extends Fragment
         if(oldDate != null){
             binding.exOneCalendar.notifyDateChanged(oldDate);
         }
+        //update event filter
+        updateDisplayData();
     }
 
     @Override
     public void updateEvent(List<Event> events) {
+        //update event filter
+        updateDisplayData();
+
         //update adapter event
-        adapter.setEvents(events);
+        adapter.setEvents(MData.arrFilterEvent);
         adapter.notifyDataSetChanged();
         //update calendar
         if(binding != null){

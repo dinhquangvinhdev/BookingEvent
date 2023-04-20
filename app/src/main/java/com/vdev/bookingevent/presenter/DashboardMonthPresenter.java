@@ -8,15 +8,19 @@ import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
 import com.vdev.bookingevent.model.User;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
-public class DashboardMonthPresenter implements DashboardMonthContract.Presenter{
+public class DashboardMonthPresenter implements DashboardMonthContract.Presenter {
     private DashboardMonthContract.View view;
     private MConvertTime mConvertTime;
 
     private FirebaseController fc;
 
-    public DashboardMonthPresenter(DashboardMonthContract.View view , MConvertTime mConvertTime, FirebaseController fc) {
+    public DashboardMonthPresenter(DashboardMonthContract.View view, MConvertTime mConvertTime, FirebaseController fc) {
         this.view = view;
         this.mConvertTime = mConvertTime;
         this.fc = fc;
@@ -25,9 +29,9 @@ public class DashboardMonthPresenter implements DashboardMonthContract.Presenter
 
     @Override
     public Event findEventInData(int idEvent) {
-        for(int i=0 ; i < MData.arrEvent.size() ; i++){
+        for (int i = 0; i < MData.arrEvent.size(); i++) {
             Event tempEvent = MData.arrEvent.get(i);
-            if(tempEvent.getId() == idEvent){
+            if (tempEvent.getId() == idEvent) {
                 return tempEvent;
             }
         }
@@ -43,12 +47,61 @@ public class DashboardMonthPresenter implements DashboardMonthContract.Presenter
 
     @Override
     public String getNameRoom(int room_id) {
-        for(int i=0 ; i<MData.arrRoom.size() ; i++){
+        for (int i = 0; i < MData.arrRoom.size(); i++) {
             Room room = MData.arrRoom.get(i);
-            if(room.getId() == room_id){
+            if (room.getId() == room_id) {
                 return room.getName();
             }
         }
         return null;
+    }
+
+    @Override
+    public long getMiliFirstDayChoiceCal(LocalDate selectedDay) {
+        LocalDateTime startLDT = selectedDay.atTime(0, 0, 0, 0);
+        ZonedDateTime startZDT = ZonedDateTime.of(startLDT, ZoneId.systemDefault());
+        long startTime = startZDT.toInstant().toEpochMilli();
+        return startTime;
+    }
+
+    @Override
+    public long getMiliLastDayChoiceCal(LocalDate selectedDay) {
+        LocalDateTime startLDT = selectedDay.atTime(23, 59, 59, 0);
+        ZonedDateTime startZDT = ZonedDateTime.of(startLDT, ZoneId.systemDefault());
+        long lastTime = startZDT.toInstant().toEpochMilli();
+        return lastTime;
+    }
+
+    @Override
+    public void filterEvents(long startTime, long endTime) {
+        MData.arrFilterEvent.clear();
+        for (int i = 0; i < MData.arrEvent.size(); i++) {
+            Event event = MData.arrEvent.get(i);
+            //filter time
+            if (event.getDateStart() >= startTime && event.getDateEnd() <= endTime) {
+                //filter room choice
+                if(MData.filterChoicedRoom != null && MData.filterChoicedRoom.contains(true)) {
+                    for (int j = 0; j < MData.filterChoicedRoom.size(); j++) {
+                        if (MData.filterChoicedRoom.get(j)) {
+                            int idRoom = MData.arrRoom.get(j).getId();
+                            if (event.getRoom_id() == idRoom) {
+                                MData.arrFilterEvent.add(event);
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    //add all event if no filter from roomChoice
+                    MData.arrFilterEvent.add(event);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void updateFilterEvent(LocalDate selectedDay) {
+        long startTime = getMiliFirstDayChoiceCal(selectedDay);
+        long endTime = getMiliLastDayChoiceCal(selectedDay);
+        filterEvents(startTime , endTime);
     }
 }

@@ -85,6 +85,7 @@ public class RoomFilterAdapter extends RecyclerView.Adapter<RoomFilterAdapter.Vi
 
     public void setChoiced(List<Boolean> choiced) {
         if(choiced == null){
+            //TODO fix the length 20 do not know why?
             this.choiced = new ArrayList<>(Arrays.asList(new Boolean[20]));
             Collections.fill(this.choiced , false);
         } else {

@@ -37,7 +37,6 @@ public class DashboardFragment extends Fragment {
     private AlertDialog.Builder dialogBuilder;
     private AlertDialog dialog;
     private RoomFilterAdapter adapterFilter;
-    private List<Boolean> filterChoiced;
 
     public DashboardFragment() {
         super(R.layout.fragment_dashboard);
@@ -82,34 +81,18 @@ public class DashboardFragment extends Fragment {
     private void initDialog() {
         dialogBuilder = new AlertDialog.Builder(getContext());
         final DialogFilterBinding bindingPopupView = DialogFilterBinding.inflate(getLayoutInflater());
-        adapterFilter = new RoomFilterAdapter(filterChoiced);
+        adapterFilter = new RoomFilterAdapter(MData.filterChoicedRoom);
         bindingPopupView.rvRooms.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL , false));
         bindingPopupView.rvRooms.setAdapter(adapterFilter);
         bindingPopupView.btnSave.setOnClickListener(view -> {
-            //TODO save information in the filter
-            filterChoiced = new ArrayList<>(adapterFilter.getChoiced());
-            if(filterChoiced.contains(true)){
-                //filter data with room choice
-                MData.arrFilterEvent.clear();
-                for(int i=0 ; i<filterChoiced.size() ; i++){
-                    if(filterChoiced.get(i)){
-                        int idRoom = MData.arrRoom.get(i).getId();
-                        for(int j=0 ; j<MData.arrEvent.size(); j++){
-                            Event tempEvent = MData.arrEvent.get(j);
-                            if(tempEvent.getRoom_id() == idRoom){
-                                MData.arrFilterEvent.add(tempEvent);
-                            }
-                        }
-                    }
-                }
-                dashboardTypeAdapter.updateDataDisplayInMonth();
+            // save information in the filter
+            MData.filterChoicedRoom = new ArrayList<>(adapterFilter.getChoiced());
+            if(MData.filterChoicedRoom.contains(true)){
                 binding.imgFilter.setImageResource(R.drawable.ic_filter_on);
             } else {
-                MData.arrFilterEvent.clear();
-                MData.arrFilterEvent.addAll(MData.arrEvent);
-                dashboardTypeAdapter.updateDataDisplayInMonth();
                 binding.imgFilter.setImageResource(R.drawable.ic_filter_off);
             }
+            dashboardTypeAdapter.updateDataDisplayInMonth();
             dialog.dismiss();
         });
         bindingPopupView.btnCancel.setOnClickListener(view -> {dialog.dismiss();});
@@ -118,7 +101,7 @@ public class DashboardFragment extends Fragment {
         dialogBuilder.setView(bindingPopupView.getRoot());
         dialogBuilder.setTitle("Filter with room");
         dialogBuilder.setOnDismissListener(dialogInterface -> {
-            adapterFilter.setChoiced(filterChoiced);});
+            adapterFilter.setChoiced(MData.filterChoicedRoom);});
         dialog = dialogBuilder.create();
     }
 
