@@ -183,18 +183,7 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
 
     private void initRecycleView() {
         adapter = new EventsDashMonthAdapter(this);
-        //TODO it is just a sample event in here
         List<Event> events = new ArrayList<>();
-        for (int i=0 ; i<2 ; i++){
-            Event event = new Event();
-            event.setSummery("Test summery");
-            event.setId(0);
-            event.setDateStart(mConvertTime.convertDateToMili(GregorianCalendar.getInstance().getTime()));
-            Calendar calEndTime = GregorianCalendar.getInstance();
-            calEndTime.add(Calendar.HOUR_OF_DAY, 5);
-            event.setDateEnd(mConvertTime.convertDateToMili(calEndTime.getTime()));
-            events.add(event);
-        }
         adapter.setEvents(events);
         binding.rvResultEvents.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
         binding.rvResultEvents.setAdapter(adapter);
@@ -203,7 +192,6 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
     private void findEvent() {
         String title;
         String room;
-        String startTime , endTime;
         String startDate, endDate;
         if(mDialog.checkConnection(getContext())){
             //get data input

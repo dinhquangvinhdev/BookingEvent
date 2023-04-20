@@ -351,10 +351,11 @@ public class DashboardMonthFragment extends Fragment
         adapter.notifyDataSetChanged();
         //update calendar
         if(binding != null){
-            for(int i=0 ; i<events.size() ; i++){
-                LocalDate localDate = Instant.ofEpochMilli(events.get(i).getDateStart()).atZone(ZoneId.systemDefault()).toLocalDate();
-                binding.exOneCalendar.notifyCalendarChanged();
-            }
+            binding.exOneCalendar.notifyCalendarChanged();
+//            for(int i=0 ; i<events.size() ; i++){
+//                LocalDate localDate = Instant.ofEpochMilli(events.get(i).getDateStart()).atZone(ZoneId.systemDefault()).toLocalDate();
+//                //TODO just update the day need to draw again
+//            }
         }
     }
 
