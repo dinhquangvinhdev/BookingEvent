@@ -6,8 +6,8 @@ import com.vdev.bookingevent.model.User;
 import java.time.LocalDate;
 import java.util.List;
 
-public class DashboardMonthContract {
-    public interface Presenter{
+public interface DashboardMonthContract {
+    interface Presenter{
         Event findEventInData(int idEvent);
 
         String convertTimeToStringDE(long dateStart, long dateEnd);
@@ -22,5 +22,5 @@ public class DashboardMonthContract {
 
         void updateFilterEvent(LocalDate selectedDay);
     }
-    public interface View{}
+    interface View{}
 }
