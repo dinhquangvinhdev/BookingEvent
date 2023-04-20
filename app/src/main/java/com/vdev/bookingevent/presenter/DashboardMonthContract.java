@@ -14,10 +14,6 @@ public interface DashboardMonthContract {
 
         String getNameRoom(int room_id);
 
-        long getMiliFirstDayChoiceCal(LocalDate selectedDay);
-
-        long getMiliLastDayChoiceCal(LocalDate selectedDay);
-
         void filterEvents(long startTime , long endTime);
 
         void updateFilterEvent(LocalDate selectedDay);

@@ -6,13 +6,11 @@ import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
-import com.vdev.bookingevent.model.User;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.List;
 
 public class DashboardMonthPresenter implements DashboardMonthContract.Presenter {
     private DashboardMonthContract.View view;
@@ -57,22 +55,6 @@ public class DashboardMonthPresenter implements DashboardMonthContract.Presenter
     }
 
     @Override
-    public long getMiliFirstDayChoiceCal(LocalDate selectedDay) {
-        LocalDateTime startLDT = selectedDay.atTime(0, 0, 0, 0);
-        ZonedDateTime startZDT = ZonedDateTime.of(startLDT, ZoneId.systemDefault());
-        long startTime = startZDT.toInstant().toEpochMilli();
-        return startTime;
-    }
-
-    @Override
-    public long getMiliLastDayChoiceCal(LocalDate selectedDay) {
-        LocalDateTime startLDT = selectedDay.atTime(23, 59, 59, 0);
-        ZonedDateTime startZDT = ZonedDateTime.of(startLDT, ZoneId.systemDefault());
-        long lastTime = startZDT.toInstant().toEpochMilli();
-        return lastTime;
-    }
-
-    @Override
     public void filterEvents(long startTime, long endTime) {
         MData.arrFilterEvent.clear();
         for (int i = 0; i < MData.arrEvent.size(); i++) {
@@ -100,8 +82,8 @@ public class DashboardMonthPresenter implements DashboardMonthContract.Presenter
 
     @Override
     public void updateFilterEvent(LocalDate selectedDay) {
-        long startTime = getMiliFirstDayChoiceCal(selectedDay);
-        long endTime = getMiliLastDayChoiceCal(selectedDay);
+        long startTime = mConvertTime.getMiliStartDayFromLocalDate(selectedDay);
+        long endTime = mConvertTime.getMiliLastDayFromLocalDate(selectedDay);
         filterEvents(startTime , endTime);
     }
 }

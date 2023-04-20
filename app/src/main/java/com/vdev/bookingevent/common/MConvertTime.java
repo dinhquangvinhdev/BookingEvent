@@ -2,8 +2,11 @@ package com.vdev.bookingevent.common;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -37,7 +40,23 @@ public class MConvertTime {
         }
     }
 
+    public long getMiliStartDayFromLocalDate(LocalDate localDate){
+        LocalDateTime startLDT = localDate.atTime(0, 0, 0, 0);
+        ZonedDateTime startZDT = ZonedDateTime.of(startLDT, ZoneId.systemDefault());
+        long startTime = startZDT.toInstant().toEpochMilli();
+        return startTime;
+    }
 
+    public long getMiliLastDayFromLocalDate(LocalDate localDate){
+        LocalDateTime startLDT = localDate.atTime(23, 59, 59, 0);
+        ZonedDateTime startZDT = ZonedDateTime.of(startLDT, ZoneId.systemDefault());
+        long lastTime = startZDT.toInstant().toEpochMilli();
+        return lastTime;
+    }
+
+    public LocalDate convertMiliToLocalDate(long time){
+        return Instant.ofEpochMilli(time).atZone(ZoneId.systemDefault()).toLocalDate();
+    }
 
     public long convertDateToMili(Date date){
         return date.toInstant().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();

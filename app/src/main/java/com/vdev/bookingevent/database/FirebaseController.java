@@ -21,6 +21,7 @@ import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
 import com.vdev.bookingevent.model.User;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 public final class FirebaseController {
@@ -64,19 +65,8 @@ public final class FirebaseController {
         });
     }
 
-    public boolean addEvent(String title, String summery, Date dateCreated, Date dateUpdated, Date dateStart, Date dateEnd, int room_id, int numberParticipant, int status){
+    public boolean addEvent(Event event){
         //TODO check internet when call this function
-
-        Event event = new Event();
-        event.setTitle(title);
-        event.setSummery(summery);
-        event.setDateCreated(mConvertTime.convertDateToMili(dateCreated));
-        event.setDateUpdated(mConvertTime.convertDateToMili(dateUpdated));
-        event.setDateStart(mConvertTime.convertDateToMili(dateStart));
-        event.setDateEnd(mConvertTime.convertDateToMili(dateEnd));
-        event.setRoom_id(room_id);
-        event.setNumberParticipant(numberParticipant);
-        event.setStatus(status);
 
         if(MData.id_event != -1){
             MData.id_event += 1;
@@ -210,5 +200,52 @@ public final class FirebaseController {
                         Log.w("bibibla", "loadEvent:onCancelled", error.toException());
                     }
                 });
+    }
+
+    public void checkAddNewEvent(Event tempEvent) {
+        //get all event of the day want to add
+        LocalDate tempLC = mConvertTime.convertMiliToLocalDate(tempEvent.getDateStart());
+        long timeStart = mConvertTime.getMiliStartDayFromLocalDate(tempLC);
+        long timeEnd = mConvertTime.getMiliLastDayFromLocalDate(tempLC);
+        mDatabase.child("Event")
+                .orderByChild("dateStart")
+                .startAt(timeStart)
+                .endAt(timeEnd)
+                        .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if(task.isSuccessful()){
+                            DataSnapshot result = task.getResult();
+                            boolean canAdd = true;
+                            //check duplicate event
+                            for(DataSnapshot dataSnapshot : result.getChildren()){
+                                Event event1 = dataSnapshot.getValue(Event.class);
+                                if(event1.getRoom_id() == tempEvent.getRoom_id()){
+                                    if((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() < event1.getDateStart())
+                                        || (tempEvent.getDateStart() > event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd() )){
+                                        //can add the event
+                                        canAdd = true;
+                                        break;
+                                    } else {
+                                        canAdd = false;
+                                        Log.d("bibibla", "onComplete: " + "can not add because already event there");
+                                    }
+                                } else {
+                                    Log.d("bibibla", "onComplete: " + "different room");
+                                    canAdd = false;
+                                }
+                            }
+                            //check can add
+                            if(canAdd){
+                                callbackAddDetailParticipant.callbackCanAddNewEvent(tempEvent);
+                            } else {
+                                callbackAddDetailParticipant.callbackCanAddNewEvent(null);
+                            }
+                        } else {
+                            Log.d("bibibla", "onComplete: " + task.getException());
+                        }
+                    }
+                });
+
     }
 }
