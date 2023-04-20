@@ -17,6 +17,5 @@ public class MConst {
     public static final String ROLE_HOST = "host";
     public static final List<String> titleOptionAccount = new ArrayList<>(Arrays.asList("Detail Account", "Logout"));
     public static final List<String> titleTabDashboard = new ArrayList<>(Arrays.asList("Month", "Week", "Day"));
-    public static final SimpleDateFormat FORMAT_DATE = new SimpleDateFormat("dd-MM-yyyy");
     public static final String FORMAT_TIME = "%02d:%02d";
 }

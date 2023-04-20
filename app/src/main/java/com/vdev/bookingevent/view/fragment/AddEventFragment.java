@@ -32,6 +32,7 @@ import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.databinding.FragmentAddEventBinding;
+import com.vdev.bookingevent.model.Event;
 
 import java.text.SimpleDateFormat;
 import java.time.Duration;
@@ -128,7 +129,7 @@ public class AddEventFragment extends Fragment implements CallbackAddDetailParti
             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
                 Calendar mCalendar = Calendar.getInstance();
                 mCalendar.set(year, month, day);
-                String date = MConst.FORMAT_DATE.format(mCalendar.getTime());
+                String date = mConvertTime.convertDateToString3(mCalendar.getTime());
                 binding.tvDate.setText(date);
             }
         }, year_now, month_now, day_now);
@@ -224,13 +225,18 @@ public class AddEventFragment extends Fragment implements CallbackAddDetailParti
                         Date dateEnd = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvEndTime.getText().toString() + " " + binding.tvDate.getText()));
                         Date dateCreated = mConvertTime.convertMiliToDate(System.currentTimeMillis());
                         Date dateUpdated = dateCreated;
-                        //TODO add event and detail event into firebase
-                        if(fc.addEvent(title , summary ,dateCreated , dateUpdated , dateStart , dateEnd , room_id , 1 , 0)){
-                            if(!fc.addEventDetailParticipant(MData.id_event ,MData.id_user , MConst.ROLE_HOST)){
-                                //notification can not add event
-                                mDialog.showFillData(getContext() , "Some error when add new Event");
-                            }
-                        }
+                        //create event
+                        Event tempEvent = new Event();
+                        tempEvent.setTitle(title);
+                        tempEvent.setSummery(summary);
+                        tempEvent.setDateCreated(mConvertTime.convertDateToMili(dateCreated));
+                        tempEvent.setDateUpdated(mConvertTime.convertDateToMili(dateUpdated));
+                        tempEvent.setDateStart(mConvertTime.convertDateToMili(dateStart));
+                        tempEvent.setDateEnd(mConvertTime.convertDateToMili(dateEnd));
+                        tempEvent.setRoom_id(room_id);
+                        tempEvent.setNumberParticipant(1);  // TODO change number participant
+                        tempEvent.setStatus(0);
+                        fc.checkAddNewEvent(tempEvent);
                     } else {
                         mDialog.showTimeError(getContext());
                     }
@@ -243,7 +249,7 @@ public class AddEventFragment extends Fragment implements CallbackAddDetailParti
         LocalTime start = LocalTime.parse(StartTime);
         LocalTime end = LocalTime.parse(EndTime);
         Duration duration = Duration.between(start , end);
-        if(duration.isNegative() && duration.isZero()){
+        if(duration.isNegative() || duration.isZero()){
             return false;
         }
         return true;
@@ -278,5 +284,23 @@ public class AddEventFragment extends Fragment implements CallbackAddDetailParti
         //show notification success add and update UI to the main home
         mDialog.showAddEventSuccess(getContext());
         callbackFragmentManager.goToFragmentDashboard();
+    }
+
+    @Override
+    public void callbackCanAddNewEvent(Event event) {
+        if(event != null) {
+            if (fc.addEvent(event)) {
+                if (!fc.addEventDetailParticipant(MData.id_event, MData.id_user, MConst.ROLE_HOST)) {
+                    //notification can not add detail event
+                    mDialog.showFillData(getContext(), "Some error when add new Event");
+                }
+            } else {
+                //notification can not add event
+                mDialog.showFillData(getContext(), "Some error when add new Event");
+            }
+        } else {
+            //notification if duplicate event
+            mDialog.showFillData(getContext(), "The Event schedule overlap");
+        }
     }
 }

@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +28,7 @@ import com.kizitonwose.calendar.view.MonthHeaderFooterBinder;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.DayViewContainer;
 import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
+import com.vdev.bookingevent.adapter.GuestEventDetailAdapter;
 import com.vdev.bookingevent.adapter.MonthViewContainer;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
@@ -36,6 +38,7 @@ import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.databinding.CalendarDayLayoutBinding;
 import com.vdev.bookingevent.databinding.FragmentDashboardMonthBinding;
+import com.vdev.bookingevent.databinding.LayoutDetailEventBinding;
 import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.presenter.DashboardMonthContract;
 import com.vdev.bookingevent.presenter.DashboardMonthPresenter;
@@ -43,8 +46,12 @@ import com.vdev.bookingevent.presenter.DashboardMonthPresenter;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.Calendar;
 import java.util.List;
@@ -57,6 +64,7 @@ public class DashboardMonthFragment extends Fragment
         implements DashboardMonthContract.View , CallbackItemCalDashMonth , CallbackItemDayCalMonth, CallbackUpdateEventDisplay {
 
     private FragmentDashboardMonthBinding binding;
+    private LayoutDetailEventBinding bindingDetailEvent;
     private DashboardMonthPresenter presenter;
     private EventsDashMonthAdapter adapter;
     private LocalDate selectedDay;
@@ -70,6 +78,9 @@ public class DashboardMonthFragment extends Fragment
     }
 
     public void updateDisplayData(){
+        //update event filter
+        presenter.updateFilterEvent(selectedDay);
+        //update adapter
         adapter.setEvents(MData.arrFilterEvent);
         adapter.notifyDataSetChanged();
     }
@@ -84,6 +95,7 @@ public class DashboardMonthFragment extends Fragment
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         binding = FragmentDashboardMonthBinding.inflate(getLayoutInflater() , container , false);
+        bindingDetailEvent = binding.includeLayoutDetailEvent;
         return binding.getRoot();
     }
 
@@ -91,10 +103,11 @@ public class DashboardMonthFragment extends Fragment
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        initMConvertTime();
+        selectedDay = LocalDate.now();
+        initMConvertTime();         //always create convert time before create presenter
+        initFirebaseController();   //always create firebase before create presenter
         initPresenter();
         initSlidingPanel();
-        initFirebaseController();
         setupMonthCalendar();
         initHeaderCalendar();
         initRVEvents();
@@ -162,7 +175,7 @@ public class DashboardMonthFragment extends Fragment
 
     private void initPresenter() {
         if(presenter == null){
-            presenter = new DashboardMonthPresenter(this);
+            presenter = new DashboardMonthPresenter(this, mConvertTime, fc);
         }
     }
 
@@ -285,9 +298,27 @@ public class DashboardMonthFragment extends Fragment
     }
 
     @Override
-    public void openSlidingPanel(String idEvent, String roomColor) {
-        //TODO
+    public void openSlidingPanel(int idEvent, String roomColor) {
         bsb.setState(BottomSheetBehavior.STATE_EXPANDED);
+        // find the event in data
+        Event event = presenter.findEventInData(idEvent);
+        if(event != null){
+            Log.d("bibibla", "openSlidingPanel: " + "found event");
+            bindingDetailEvent.tvEventDetailTitle.setText(event.getTitle());
+            String textTime = presenter.convertTimeToStringDE(event.getDateStart(), event.getDateEnd());
+            bindingDetailEvent.tvEventDetailTime.setText(textTime);
+            String nameRoom = presenter.getNameRoom(event.getRoom_id());
+            bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
+            bindingDetailEvent.tvEventDetailParticipant.setText((event.getNumberParticipant()-1) + " Guest");
+            //TODO recycle view Guest
+            //create adapter
+            //GuestEventDetailAdapter adapterGuest = new GuestEventDetailAdapter(presenter.getGuests(), presenter.getHost());
+            //bindingDetailEvent.rvGuest.setAdapter(adapterGuest);
+            //bindingDetailEvent.rvGuest.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
+        } else {
+            //TODO show notification or not do anything when not found event
+            Log.d("bibibla", "openSlidingPanel: " + "not found event");
+        }
     }
 
     @Override
@@ -306,12 +337,17 @@ public class DashboardMonthFragment extends Fragment
         if(oldDate != null){
             binding.exOneCalendar.notifyDateChanged(oldDate);
         }
+        //update event filter
+        updateDisplayData();
     }
 
     @Override
     public void updateEvent(List<Event> events) {
+        //update event filter
+        updateDisplayData();
+
         //update adapter event
-        adapter.setEvents(events);
+        adapter.setEvents(MData.arrFilterEvent);
         adapter.notifyDataSetChanged();
         //update calendar
         if(binding != null){

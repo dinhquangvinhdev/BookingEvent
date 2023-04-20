@@ -4,6 +4,8 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -17,8 +19,12 @@ import com.vdev.bookingevent.model.Department;
 import com.vdev.bookingevent.model.Detail_participant;
 import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
+import com.vdev.bookingevent.model.User;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public final class FirebaseController {
     private DatabaseReference mDatabase;
@@ -61,19 +67,8 @@ public final class FirebaseController {
         });
     }
 
-    public boolean addEvent(String title, String summery, Date dateCreated, Date dateUpdated, Date dateStart, Date dateEnd, int room_id, int numberParticipant, int status){
+    public boolean addEvent(Event event){
         //TODO check internet when call this function
-
-        Event event = new Event();
-        event.setTitle(title);
-        event.setSummery(summery);
-        event.setDateCreated(mConvertTime.convertDateToMili(dateCreated));
-        event.setDateUpdated(mConvertTime.convertDateToMili(dateUpdated));
-        event.setDateStart(mConvertTime.convertDateToMili(dateStart));
-        event.setDateEnd(mConvertTime.convertDateToMili(dateEnd));
-        event.setRoom_id(room_id);
-        event.setNumberParticipant(numberParticipant);
-        event.setStatus(status);
 
         if(MData.id_event != -1){
             MData.id_event += 1;
@@ -208,4 +203,206 @@ public final class FirebaseController {
                     }
                 });
     }
+    public void getEventWithRoomId(String title, int roomId, String startDate, String endDate) {
+        //TODO check internet when call this function
+        //convert time
+        long startDateMili = -1 , endDateMili = -1;
+        if(!startDate.equals("")){
+            startDateMili = mConvertTime.convertStringToMili(startDate);
+        }
+        if(!endDate.equals("")){
+            endDateMili = mConvertTime.convertStringToMili(endDate);
+        }
+
+        //query from database
+        long finalStartDateMili = startDateMili;
+        long finalEndDateMili = endDateMili;
+        mDatabase.child("Event")
+                .orderByChild("room_id")
+                .equalTo(roomId)
+                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if(task.isSuccessful()){
+                            List<Event> arrEventResult = new ArrayList<>();
+                            DataSnapshot result = task.getResult();
+                            for(DataSnapshot dataSnapshot : result.getChildren()){
+                                Event tempEvent = dataSnapshot.getValue(Event.class);
+                                //check filter
+                               if(!title.equals("")){
+                                    if(!tempEvent.getTitle().contains(title)){
+                                        continue;
+                                    }
+                               }
+                               if(finalStartDateMili >= 0){
+                                    if(tempEvent.getDateStart() < finalStartDateMili){
+                                        continue;
+                                    }
+                               }
+                               if(finalEndDateMili >= 0){
+                                   if(tempEvent.getDateEnd() > finalEndDateMili){
+                                       continue;
+                                   }
+                               }
+                               //add event
+                                arrEventResult.add(tempEvent);
+                            }
+                            //call back
+                            callbackUpdateEventDisplay.updateEvent(arrEventResult);
+                        } else {
+                            Log.d("bibibla", "onComplete: " + task.getException());
+                        }
+                    }
+                });
+    }
+    public void getEventWithTitle(String title) {
+        //TODO check internet when call this function
+        mDatabase.child("Event")
+                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if(task.isSuccessful()) {
+                            List<Event> arrEventResult = new ArrayList<>();
+                            DataSnapshot result = task.getResult();
+                            for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                Event tempEvent = dataSnapshot.getValue(Event.class);
+                                if(tempEvent.getTitle().contains(title)){
+                                    arrEventResult.add(tempEvent);
+                                }
+                            }
+                            //call back
+                            callbackUpdateEventDisplay.updateEvent(arrEventResult);
+                        } else {
+                            Log.d("bibibla", "onComplete: " + task.getException());
+                        }
+                    }
+                });
+    }
+    public void getEventWithStartDate(String title, String startDate, String endDate) {
+        //TODO check internet when call this function
+        long startDateMili = -1 , endDateMili = -1;
+        if(!startDate.equals("")){
+            startDateMili = mConvertTime.convertStringToMili(startDate);
+        }
+        if(!endDate.equals("")){
+            endDateMili = mConvertTime.convertStringToMili(endDate);
+        }
+
+        //query from database
+        long finalStartDateMili = startDateMili;
+        long finalEndDateMili = endDateMili;
+        mDatabase.child("Event")
+                .orderByChild("dateStart")
+                .startAt(startDateMili)
+                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if(task.isSuccessful()) {
+                            List<Event> arrEventResult = new ArrayList<>();
+                            DataSnapshot result = task.getResult();
+                            for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                Event tempEvent = dataSnapshot.getValue(Event.class);
+                                if(!title.equals("")){
+                                    if(!tempEvent.getTitle().contains(title)){
+                                        continue;
+                                    }
+                                }
+                                if(finalEndDateMili >= 0){
+                                    if(tempEvent.getDateEnd() > finalEndDateMili){
+                                        continue;
+                                    }
+                                }
+                                //add event
+                                arrEventResult.add(tempEvent);
+                            }
+                            //call back
+                            callbackUpdateEventDisplay.updateEvent(arrEventResult);
+                        } else {
+                            Log.d("bibibla", "onComplete: " + task.getException());
+                        }
+                    }
+                });
+    }
+    public void getEventWithEndDate(String title, String endDate) {
+        //TODO check internet when call this function
+        long startDateMili = -1 , endDateMili = -1;
+        if(!endDate.equals("")){
+            endDateMili = mConvertTime.convertStringToMili(endDate);
+        }
+        //query
+        mDatabase.child("Event")
+                .orderByChild("dateEnd")
+                .endAt(endDateMili)
+                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if(task.isSuccessful()) {
+                            List<Event> arrEventResult = new ArrayList<>();
+                            DataSnapshot result = task.getResult();
+                            for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                Event tempEvent = dataSnapshot.getValue(Event.class);
+                                if(!title.equals("")){
+                                    if(!tempEvent.getTitle().contains(title)){
+                                        continue;
+                                    }
+                                }
+                                //add event
+                                arrEventResult.add(tempEvent);
+                            }
+                            //call back
+                            callbackUpdateEventDisplay.updateEvent(arrEventResult);
+                        } else {
+                            Log.d("bibibla", "onComplete: " + task.getException());
+                        }
+                    }
+                });
+    }
+    public void checkAddNewEvent(Event tempEvent) {
+        //get all event of the day want to add
+        LocalDate tempLC = mConvertTime.convertMiliToLocalDate(tempEvent.getDateStart());
+        long timeStart = mConvertTime.getMiliStartDayFromLocalDate(tempLC);
+        long timeEnd = mConvertTime.getMiliLastDayFromLocalDate(tempLC);
+        mDatabase.child("Event")
+                .orderByChild("dateStart")
+                .startAt(timeStart)
+                .endAt(timeEnd)
+                        .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if(task.isSuccessful()){
+                            DataSnapshot result = task.getResult();
+                            boolean canAdd = true;
+                            //check duplicate event
+                            for(DataSnapshot dataSnapshot : result.getChildren()){
+                                Event event1 = dataSnapshot.getValue(Event.class);
+                                if(event1.getRoom_id() == tempEvent.getRoom_id()){
+                                    if((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() < event1.getDateStart())
+                                        || (tempEvent.getDateStart() > event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd() )){
+                                        //can add the event
+                                        canAdd = true;
+                                        break;
+                                    } else {
+                                        canAdd = false;
+                                        Log.d("bibibla", "onComplete: " + "can not add because already event there");
+                                    }
+                                } else {
+                                    Log.d("bibibla", "onComplete: " + "different room");
+                                    canAdd = false;
+                                }
+                            }
+                            //check can add
+                            if(canAdd){
+                                callbackAddDetailParticipant.callbackCanAddNewEvent(tempEvent);
+                            } else {
+                                callbackAddDetailParticipant.callbackCanAddNewEvent(null);
+                            }
+                        } else {
+                            Log.d("bibibla", "onComplete: " + task.getException());
+                        }
+                    }
+                });
+
+    }
+
+
 }
