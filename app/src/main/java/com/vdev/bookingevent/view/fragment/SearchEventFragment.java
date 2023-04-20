@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
@@ -27,11 +28,14 @@ import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
 import com.vdev.bookingevent.callback.CallbackItemDayCalMonth;
+import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.databinding.FragmentSearchEventBinding;
 import com.vdev.bookingevent.model.Event;
+import com.vdev.bookingevent.presenter.SearchEventContract;
+import com.vdev.bookingevent.presenter.SearchPresenter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,7 +43,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-public class SearchEventFragment extends Fragment implements CallbackItemCalDashMonth {
+public class SearchEventFragment extends Fragment implements CallbackItemCalDashMonth , SearchEventContract.View , CallbackUpdateEventDisplay {
+    private SearchPresenter presenter;
     private FragmentSearchEventBinding binding;
     private MDialog mDialog;
     private EventsDashMonthAdapter adapter;
@@ -50,12 +55,11 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
     private TimePickerDialog tpd_end;
     private DatePickerDialog dpd_start;
     private DatePickerDialog dpd_end;
-
     private MConvertTime mConvertTime;
+    private int index_room_choice = 0;
 
     public SearchEventFragment() {
         super(R.layout.fragment_search_event);
-        mConvertTime = new MConvertTime();
     }
 
     @Override
@@ -74,9 +78,17 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
         //init dialog
         mDialog = new MDialog();
         //init other view
+        initPresenter();
         initView();
         initRecycleView();
         binding.btnFind.setOnClickListener(it -> {findEvent();});
+    }
+
+    private void initPresenter() {
+        if(presenter == null){
+            presenter = new SearchPresenter(this, this);
+            mConvertTime = presenter.getmConvertTime();
+        }
     }
 
     private void initTimeAndDatePicker() {
@@ -86,7 +98,7 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
             @Override
             public void onTimeSet(TimePicker timePicker, int hour, int minute) {
                 String start_time = String.format(MConst.FORMAT_TIME, hour , minute);
-                binding.tvStartTime.setText(start_time);
+                binding.tvDateStart.setText(start_time + " " + binding.tvDateStart.getText());
             }
         },0,0,true);
         //TimePickerDialog end Time
@@ -95,7 +107,7 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
             @Override
             public void onTimeSet(TimePicker timePicker, int hour, int minute) {
                 String end_time = String.format(MConst.FORMAT_TIME, hour , minute);
-                binding.tvEndTime.setText(end_time);
+                binding.tvDateEnd.setText(end_time + " " + binding.tvDateEnd.getText());
             }
         },0,0,true);
         //start date
@@ -104,47 +116,45 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
                 Calendar mCalendar = Calendar.getInstance();
                 mCalendar.set(year, month, day);
-                String date = MConst.FORMAT_DATE.format(mCalendar.getTime());
+                String date = mConvertTime.convertDateToString3(mCalendar.getTime());
                 binding.tvDateStart.setText(date);
+                initTimeChoiceStart();
             }
         }, year_now, month_now, day_now);
-
         //end date
         dpd_end = new DatePickerDialog(getContext(), new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
                 Calendar mCalendar = Calendar.getInstance();
                 mCalendar.set(year, month, day);
-                String date = MConst.FORMAT_DATE.format(mCalendar.getTime());
-                binding.tvDateStart.setText(date);
+                String date = mConvertTime.convertDateToString3(mCalendar.getTime());
+                binding.tvDateEnd.setText(date);
+                initTimeChoiceEnd();
             }
         }, year_now, month_now, day_now);
     }
 
     private void initView() {
         //room
-        //TODO temp data
-        List<String> tempRooms = new ArrayList<>();
-        tempRooms.add("None");
-        for(int i=0 ; i<10 ; i++){
-            tempRooms.add("room " + (i+1));
-        }
-        //TODO end temp
-        ArrayAdapter<String> aaRoom = new ArrayAdapter<>(getContext() , androidx.appcompat.R.layout.support_simple_spinner_dropdown_item , tempRooms);
+        ArrayAdapter<String> aaRoom = new ArrayAdapter<>(getContext() , androidx.appcompat.R.layout.support_simple_spinner_dropdown_item , presenter.getTempRooms());
         binding.actvRoom.setAdapter(aaRoom);
         binding.actvRoom.setText(aaRoom.getItem(0), false);
-        //start time
-        binding.tvStartTime.setOnClickListener(it -> {initTimeChoiceStart();});
-        binding.tvStartTime.setInputType(InputType.TYPE_NULL);
-        //end time
-        binding.tvEndTime.setOnClickListener(it -> {initTimeChoiceEnd();});
-        binding.tvEndTime.setInputType(InputType.TYPE_NULL);
+        binding.actvRoom.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                index_room_choice = i;
+            }
+        });
         //start date
         binding.tvDateStart.setOnClickListener(it -> {initDateChoiceStart();});
         binding.tvDateStart.setInputType(InputType.TYPE_NULL);
+        //image clear date start
+        binding.imgCloseDateStart.setOnClickListener(it -> {binding.tvDateStart.setText("");});
         //end date
         binding.tvDateEnd.setOnClickListener(it -> {initDateChoiceEnd();});
         binding.tvDateEnd.setInputType(InputType.TYPE_NULL);
+        //image clear date end
+        binding.imgCloseDateEnd.setOnClickListener(it -> {binding.tvDateEnd.setText("");});
     }
 
     private void initDateChoiceEnd() {
@@ -175,7 +185,7 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
         adapter = new EventsDashMonthAdapter(this);
         //TODO it is just a sample event in here
         List<Event> events = new ArrayList<>();
-        for (int i=0 ; i<10 ; i++){
+        for (int i=0 ; i<2 ; i++){
             Event event = new Event();
             event.setSummery("Test summery");
             event.setId(0);
@@ -199,23 +209,23 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
             //get data input
             title = binding.edtTitle.getText().toString();
             room = binding.actvRoom.getText().toString();
-            startTime = binding.tvStartTime.getText().toString();
-            endTime = binding.tvEndTime.getText().toString();
             startDate = binding.tvDateStart.getText().toString();
             endDate = binding.tvDateEnd.getText().toString();
             //check data
-            if(title.equals("") && room.equals("None") && startTime.equals("") && endTime.equals("") && startDate.equals("") && endDate.equals("")){
+            if(title.equals("") && room.equals("None") && startDate.equals("") && endDate.equals("")){
                 mDialog.showFillData(getContext(), "Please fill at least one field to search");
             } else {
-                if((!startTime.equals("") && endTime.equals("")) || (startTime.equals("") && !endTime.equals(""))){
-                    mDialog.showFillData(getContext() , "Please choice time for start Time and end Time");
-                } else if((!startDate.equals("") && endDate.equals("")) || (startDate.equals("") && !endDate.equals(""))){
-                    mDialog.showFillData(getContext() , "Please choice time for start Date and end Date");
+                if((!startDate.equals("") && !endDate.equals(""))){
+                    if(mConvertTime.convertStringToMili(binding.tvDateStart.getText().toString()) >= mConvertTime.convertStringToMili(binding.tvDateEnd.getText().toString())){
+                        mDialog.showFillData(getContext() , "Please set start Date smaller than end Date");
+                    } else {
+                        // then query to data
+                        presenter.searchEvents(title , index_room_choice - 1, startDate , endDate);
+                    }
                 } else {
-                    // TODO check logic about input start,end for time and date
                     // then query to data
+                    presenter.searchEvents(title , index_room_choice - 1, startDate , endDate);
                 }
-
             }
         }
     }
@@ -229,5 +239,12 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
     @Override
     public void openSlidingPanel(int idEvent, String roomColor) {
         //TODO open event detail
+    }
+
+    @Override
+    public void updateEvent(List<Event> events) {
+        //TODO update adapter here
+        adapter.setEvents(events);
+        adapter.notifyDataSetChanged();
     }
 }

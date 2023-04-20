@@ -22,7 +22,9 @@ import com.vdev.bookingevent.model.Room;
 import com.vdev.bookingevent.model.User;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public final class FirebaseController {
     private DatabaseReference mDatabase;
@@ -201,7 +203,160 @@ public final class FirebaseController {
                     }
                 });
     }
+    public void getEventWithRoomId(String title, int roomId, String startDate, String endDate) {
+        //TODO check internet when call this function
+        //convert time
+        long startDateMili = -1 , endDateMili = -1;
+        if(!startDate.equals("")){
+            startDateMili = mConvertTime.convertStringToMili(startDate);
+        }
+        if(!endDate.equals("")){
+            endDateMili = mConvertTime.convertStringToMili(endDate);
+        }
 
+        //query from database
+        long finalStartDateMili = startDateMili;
+        long finalEndDateMili = endDateMili;
+        mDatabase.child("Event")
+                .orderByChild("room_id")
+                .equalTo(roomId)
+                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if(task.isSuccessful()){
+                            List<Event> arrEventResult = new ArrayList<>();
+                            DataSnapshot result = task.getResult();
+                            for(DataSnapshot dataSnapshot : result.getChildren()){
+                                Event tempEvent = dataSnapshot.getValue(Event.class);
+                                //check filter
+                               if(!title.equals("")){
+                                    if(!tempEvent.getTitle().contains(title)){
+                                        continue;
+                                    }
+                               }
+                               if(finalStartDateMili >= 0){
+                                    if(tempEvent.getDateStart() < finalStartDateMili){
+                                        continue;
+                                    }
+                               }
+                               if(finalEndDateMili >= 0){
+                                   if(tempEvent.getDateEnd() > finalEndDateMili){
+                                       continue;
+                                   }
+                               }
+                               //add event
+                                arrEventResult.add(tempEvent);
+                            }
+                            //call back
+                            callbackUpdateEventDisplay.updateEvent(arrEventResult);
+                        } else {
+                            Log.d("bibibla", "onComplete: " + task.getException());
+                        }
+                    }
+                });
+    }
+    public void getEventWithTitle(String title) {
+        //TODO check internet when call this function
+        mDatabase.child("Event")
+                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if(task.isSuccessful()) {
+                            List<Event> arrEventResult = new ArrayList<>();
+                            DataSnapshot result = task.getResult();
+                            for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                Event tempEvent = dataSnapshot.getValue(Event.class);
+                                if(tempEvent.getTitle().contains(title)){
+                                    arrEventResult.add(tempEvent);
+                                }
+                            }
+                            //call back
+                            callbackUpdateEventDisplay.updateEvent(arrEventResult);
+                        } else {
+                            Log.d("bibibla", "onComplete: " + task.getException());
+                        }
+                    }
+                });
+    }
+    public void getEventWithStartDate(String title, String startDate, String endDate) {
+        //TODO check internet when call this function
+        long startDateMili = -1 , endDateMili = -1;
+        if(!startDate.equals("")){
+            startDateMili = mConvertTime.convertStringToMili(startDate);
+        }
+        if(!endDate.equals("")){
+            endDateMili = mConvertTime.convertStringToMili(endDate);
+        }
+
+        //query from database
+        long finalStartDateMili = startDateMili;
+        long finalEndDateMili = endDateMili;
+        mDatabase.child("Event")
+                .orderByChild("dateStart")
+                .startAt(startDateMili)
+                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if(task.isSuccessful()) {
+                            List<Event> arrEventResult = new ArrayList<>();
+                            DataSnapshot result = task.getResult();
+                            for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                Event tempEvent = dataSnapshot.getValue(Event.class);
+                                if(!title.equals("")){
+                                    if(!tempEvent.getTitle().contains(title)){
+                                        continue;
+                                    }
+                                }
+                                if(finalEndDateMili >= 0){
+                                    if(tempEvent.getDateEnd() > finalEndDateMili){
+                                        continue;
+                                    }
+                                }
+                                //add event
+                                arrEventResult.add(tempEvent);
+                            }
+                            //call back
+                            callbackUpdateEventDisplay.updateEvent(arrEventResult);
+                        } else {
+                            Log.d("bibibla", "onComplete: " + task.getException());
+                        }
+                    }
+                });
+    }
+    public void getEventWithEndDate(String title, String endDate) {
+        //TODO check internet when call this function
+        long startDateMili = -1 , endDateMili = -1;
+        if(!endDate.equals("")){
+            endDateMili = mConvertTime.convertStringToMili(endDate);
+        }
+        //query
+        mDatabase.child("Event")
+                .orderByChild("dateEnd")
+                .endAt(endDateMili)
+                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if(task.isSuccessful()) {
+                            List<Event> arrEventResult = new ArrayList<>();
+                            DataSnapshot result = task.getResult();
+                            for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                Event tempEvent = dataSnapshot.getValue(Event.class);
+                                if(!title.equals("")){
+                                    if(!tempEvent.getTitle().contains(title)){
+                                        continue;
+                                    }
+                                }
+                                //add event
+                                arrEventResult.add(tempEvent);
+                            }
+                            //call back
+                            callbackUpdateEventDisplay.updateEvent(arrEventResult);
+                        } else {
+                            Log.d("bibibla", "onComplete: " + task.getException());
+                        }
+                    }
+                });
+    }
     public void checkAddNewEvent(Event tempEvent) {
         //get all event of the day want to add
         LocalDate tempLC = mConvertTime.convertMiliToLocalDate(tempEvent.getDateStart());
@@ -248,4 +403,6 @@ public final class FirebaseController {
                 });
 
     }
+
+
 }

@@ -129,7 +129,7 @@ public class AddEventFragment extends Fragment implements CallbackAddDetailParti
             public void onDateSet(DatePicker datePicker, int year, int month, int day) {
                 Calendar mCalendar = Calendar.getInstance();
                 mCalendar.set(year, month, day);
-                String date = MConst.FORMAT_DATE.format(mCalendar.getTime());
+                String date = mConvertTime.convertDateToString3(mCalendar.getTime());
                 binding.tvDate.setText(date);
             }
         }, year_now, month_now, day_now);

@@ -14,11 +14,13 @@ public class MConvertTime {
     SimpleDateFormat sdf1;
     SimpleDateFormat sdf2;
     SimpleDateFormat sdf3;
+    SimpleDateFormat sdf4;
 
     public MConvertTime() {
         sdf1 = new SimpleDateFormat("HH:mm");
         sdf2 = new SimpleDateFormat("HH:mm dd-MM-yyyy");
         sdf3 = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        sdf4 = new SimpleDateFormat("dd-MM-yyyy");
     }
 
     public Date convertMiliToDate(long miliseconds){
@@ -31,6 +33,11 @@ public class MConvertTime {
         return calendar;
     }
 
+    /**
+     * convert string HH:mm dd-MM-yyyy
+     * @param date
+     * @return
+     */
     public long convertStringToMili(String date){
         try {
             Date tempDate = sdf2.parse(date);
@@ -79,6 +86,16 @@ public class MConvertTime {
      */
     public String convertDateToString1(Date date){
         String result = sdf3.format(date);
+        return result;
+    }
+
+    /**
+     * return dd-MM-yyyy
+     * @param date
+     * @return
+     */
+    public String convertDateToString3(Date date){
+        String result = sdf4.format(date);
         return result;
     }
 }

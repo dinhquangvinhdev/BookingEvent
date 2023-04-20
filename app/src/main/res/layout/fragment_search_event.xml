@@ -11,10 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Search Events"
-        android:background="@drawable/background_solid_blue"
-        android:gravity="center"
-        android:textColor="@color/white"
-        android:textSize="20sp"
+        style="@style/title_fragment"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
@@ -70,54 +67,6 @@
             android:inputType="none" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!--time start-->
-    <TextView
-        android:id="@+id/tv_title_start_time"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Start time"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/til_room" />
-
-    <TextView
-        android:id="@+id/tv_start_time"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="5dp"
-        android:background="@drawable/rounded_outline_black"
-        android:padding="10dp"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="@id/guideline_mid"
-        app:layout_constraintStart_toStartOf="@id/tv_title_start_time"
-        app:layout_constraintTop_toBottomOf="@id/tv_title_start_time" />
-
-    <!--time end-->
-    <TextView
-        android:id="@+id/tv_title_end_time"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="End time"
-        android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="@id/guideline_mid"
-        app:layout_constraintTop_toBottomOf="@id/til_room" />
-
-    <TextView
-        android:id="@+id/tv_end_time"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="5dp"
-        android:background="@drawable/rounded_outline_black"
-        android:padding="10dp"
-        android:textSize="12sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@id/tv_title_end_time"
-        app:layout_constraintTop_toBottomOf="@id/tv_title_end_time" />
-
     <!--Date start-->
     <TextView
         android:id="@+id/tv_title_date_start"
@@ -126,7 +75,7 @@
         android:text="Date Start"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_start_time" />
+        app:layout_constraintTop_toBottomOf="@id/til_room" />
 
     <TextView
         android:id="@+id/tv_date_start"
@@ -144,10 +93,11 @@
         app:layout_constraintTop_toBottomOf="@id/tv_title_date_start" />
 
     <ImageView
+        android:id="@+id/img_close_date_start"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="5dp"
-        android:src="@drawable/ic_calendar"
+        android:src="@drawable/ic_close"
         app:layout_constraintBottom_toBottomOf="@id/tv_date_start"
         app:layout_constraintEnd_toEndOf="@id/tv_date_start"
         app:layout_constraintTop_toTopOf="@id/tv_date_start" />
@@ -160,7 +110,7 @@
         android:text="Date End"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="@id/guideline_mid"
-        app:layout_constraintTop_toBottomOf="@id/tv_start_time" />
+        app:layout_constraintTop_toBottomOf="@id/til_room" />
 
     <TextView
         android:id="@+id/tv_date_end"
@@ -178,10 +128,11 @@
         app:layout_constraintTop_toBottomOf="@id/tv_title_date_end" />
 
     <ImageView
+        android:id="@+id/img_close_date_end"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="5dp"
-        android:src="@drawable/ic_calendar"
+        android:src="@drawable/ic_close"
         app:layout_constraintBottom_toBottomOf="@id/tv_date_end"
         app:layout_constraintEnd_toEndOf="@id/tv_date_end"
         app:layout_constraintTop_toTopOf="@id/tv_date_end" />
@@ -200,7 +151,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintGuide_begin="205dp" />
+        app:layout_constraintGuide_percent="0.5" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_result_events"
