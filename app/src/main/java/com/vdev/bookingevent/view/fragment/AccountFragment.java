@@ -57,7 +57,7 @@ public class AccountFragment extends Fragment implements AccountContract.View , 
         mDialog = new MDialog();
         dialogLogout = mDialog.confirmLogout(getContext());
 
-        dialogLogout.findViewById(R.id.btn_ok).setOnClickListener(new View.OnClickListener() {
+        dialogLogout.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(mDialog.checkConnection(getContext())){

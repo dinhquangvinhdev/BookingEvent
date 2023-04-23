@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface CallbackUpdateEventDisplay {
     void updateEvent(List<Event> events);
+    void deleteEventSuccess(Event event);
 }

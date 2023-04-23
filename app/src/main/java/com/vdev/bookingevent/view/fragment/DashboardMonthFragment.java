@@ -3,6 +3,7 @@ package com.vdev.bookingevent.view.fragment;
 import static com.kizitonwose.calendar.core.ExtensionsKt.daysOfWeek;
 import static com.kizitonwose.calendar.core.ExtensionsKt.firstDayOfWeekFromLocale;
 
+import android.app.Dialog;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -35,6 +36,7 @@ import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
 import com.vdev.bookingevent.callback.CallbackItemDayCalMonth;
 import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MData;
+import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.databinding.CalendarDayLayoutBinding;
 import com.vdev.bookingevent.databinding.FragmentDashboardMonthBinding;
@@ -72,6 +74,9 @@ public class DashboardMonthFragment extends Fragment
     private FirebaseController fc;
     private MConvertTime mConvertTime;
     private BottomSheetBehavior bsb;
+    private Dialog confirmDeleteEvent;
+
+    private MDialog mDialog;
 
     public DashboardMonthFragment() {
         // Required empty public constructor
@@ -104,6 +109,7 @@ public class DashboardMonthFragment extends Fragment
         super.onViewCreated(view, savedInstanceState);
 
         selectedDay = LocalDate.now();
+        initMDialog();
         initMConvertTime();         //always create convert time before create presenter
         initFirebaseController();   //always create firebase before create presenter
         initPresenter();
@@ -113,6 +119,13 @@ public class DashboardMonthFragment extends Fragment
         initRVEvents();
 
         updateTitleTime(today);
+    }
+
+    private void initMDialog() {
+        if(mDialog == null){
+            mDialog = new MDialog();
+            confirmDeleteEvent = mDialog.confirmDeleteEvent(getContext());
+        }
     }
 
     private void initSlidingPanel() {
@@ -296,6 +309,9 @@ public class DashboardMonthFragment extends Fragment
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        if(confirmDeleteEvent.isShowing()){
+            confirmDeleteEvent.dismiss();
+        }
     }
 
     @Override
@@ -311,6 +327,23 @@ public class DashboardMonthFragment extends Fragment
             String nameRoom = presenter.getNameRoom(event.getRoom_id());
             bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
             bindingDetailEvent.tvEventDetailParticipant.setText((event.getNumberParticipant()-1) + " Guest");
+            bindingDetailEvent.imgDeleteEvent.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    confirmDeleteEvent.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            if(mDialog.checkConnection(getContext())){
+                                fc.deleteEvent(event);
+                                confirmDeleteEvent.dismiss();
+                            } else {
+                                confirmDeleteEvent.dismiss();
+                            }
+                        }
+                    });
+                    confirmDeleteEvent.show();
+                }
+            });
             //TODO recycle view Guest
             //create adapter
             //GuestEventDetailAdapter adapterGuest = new GuestEventDetailAdapter(presenter.getGuests(), presenter.getHost());
@@ -358,6 +391,12 @@ public class DashboardMonthFragment extends Fragment
 //                //TODO just update the day need to draw again
 //            }
         }
+    }
+
+    @Override
+    public void deleteEventSuccess(Event event) {
+        bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
+        mDialog.showDeleteSuccess(getContext(), event);
     }
 
 }

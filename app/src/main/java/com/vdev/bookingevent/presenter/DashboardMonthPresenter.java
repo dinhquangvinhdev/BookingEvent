@@ -59,22 +59,25 @@ public class DashboardMonthPresenter implements DashboardMonthContract.Presenter
         MData.arrFilterEvent.clear();
         for (int i = 0; i < MData.arrEvent.size(); i++) {
             Event event = MData.arrEvent.get(i);
-            //filter time
-            if (event.getDateStart() >= startTime && event.getDateEnd() <= endTime) {
-                //filter room choice
-                if(MData.filterChoicedRoom != null && MData.filterChoicedRoom.contains(true)) {
-                    for (int j = 0; j < MData.filterChoicedRoom.size(); j++) {
-                        if (MData.filterChoicedRoom.get(j)) {
-                            int idRoom = MData.arrRoom.get(j).getId();
-                            if (event.getRoom_id() == idRoom) {
-                                MData.arrFilterEvent.add(event);
-                                break;
+            //the event have status is 0 is deleted (hide)
+            if(event.getStatus() == 0){
+                //filter time
+                if (event.getDateStart() >= startTime && event.getDateEnd() <= endTime) {
+                    //filter room choice
+                    if(MData.filterChoicedRoom != null && MData.filterChoicedRoom.contains(true)) {
+                        for (int j = 0; j < MData.filterChoicedRoom.size(); j++) {
+                            if (MData.filterChoicedRoom.get(j)) {
+                                int idRoom = MData.arrRoom.get(j).getId();
+                                if (event.getRoom_id() == idRoom) {
+                                    MData.arrFilterEvent.add(event);
+                                    break;
+                                }
                             }
                         }
+                    } else {
+                        //add all event if no filter from roomChoice
+                        MData.arrFilterEvent.add(event);
                     }
-                } else {
-                    //add all event if no filter from roomChoice
-                    MData.arrFilterEvent.add(event);
                 }
             }
         }

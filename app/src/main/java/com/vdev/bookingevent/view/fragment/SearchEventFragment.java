@@ -235,4 +235,9 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
         adapter.setEvents(events);
         adapter.notifyDataSetChanged();
     }
+
+    @Override
+    public void deleteEventSuccess(Event event) {
+        // not do any thing here
+    }
 }

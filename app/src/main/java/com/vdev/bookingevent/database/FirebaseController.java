@@ -176,7 +176,7 @@ public final class FirebaseController {
                 //must check != null because may be user in the add activity
                 if(callbackUpdateEventDisplay != null) {
                     Event event = snapshot.getValue(Event.class);
-                    if(!MData.arrEvent.contains(event)){
+                    if(event != null && !MData.arrEvent.contains(event) && event.getStatus() == 0){
                         MData.arrEvent.add(event);
                     }
                     callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
@@ -187,10 +187,20 @@ public final class FirebaseController {
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 //must check because may be user in the add activity
-                //TODO update the event change
                 if(callbackUpdateEventDisplay != null) {
-                    callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
-                    Log.d("bibibla", "onChildChanged: " + previousChildName);
+                    Event event = snapshot.getValue(Event.class);
+                    if(event != null){
+                        //update status event
+                        for(int i=0 ; i< MData.arrEvent.size() ; i++){
+                            Event tempEvent = MData.arrEvent.get(i);
+                            if(tempEvent.getId() == event.getId()){
+                                MData.arrEvent.set(i, event);
+                                break;
+                            }
+                        }
+                        callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
+                        Log.d("bibibla", "onChildChanged: " + event.getId());
+                    }
                 }
             }
 
@@ -198,9 +208,12 @@ public final class FirebaseController {
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
                 //must check because may be user in the add activity
                 if(callbackUpdateEventDisplay != null) {
-                    MData.arrEvent.remove(snapshot.getValue(Event.class));
-                    callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
-                    Log.d("bibibla", "onChildReMoved: " + snapshot.getValue(Event.class).getTitle());
+                    Event event = snapshot.getValue(Event.class);
+                    if(event != null){
+                        MData.arrEvent.remove(event);
+                        callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
+                        Log.d("bibibla", "onChildReMoved: " + event.getTitle());
+                    }
                 }
             }
 
@@ -279,6 +292,10 @@ public final class FirebaseController {
                             DataSnapshot result = task.getResult();
                             for(DataSnapshot dataSnapshot : result.getChildren()){
                                 Event tempEvent = dataSnapshot.getValue(Event.class);
+                                //check event is deleted
+                                if(tempEvent == null || tempEvent.getStatus() == -1){
+                                    continue;
+                                }
                                 //check filter
                                if(!title.equals("")){
                                     if(!tempEvent.getTitle().contains(title)){
@@ -317,6 +334,11 @@ public final class FirebaseController {
                             DataSnapshot result = task.getResult();
                             for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event tempEvent = dataSnapshot.getValue(Event.class);
+                                //check event is deleted
+                                if(tempEvent == null || tempEvent.getStatus() == -1){
+                                    continue;
+                                }
+                                //filter
                                 if(tempEvent.getTitle().contains(title)){
                                     arrEventResult.add(tempEvent);
                                 }
@@ -353,6 +375,11 @@ public final class FirebaseController {
                             DataSnapshot result = task.getResult();
                             for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event tempEvent = dataSnapshot.getValue(Event.class);
+                                //check event is deleted
+                                if(tempEvent == null || tempEvent.getStatus() == -1){
+                                    continue;
+                                }
+                                //filter
                                 if(!title.equals("")){
                                     if(!tempEvent.getTitle().contains(title)){
                                         continue;
@@ -392,6 +419,11 @@ public final class FirebaseController {
                             DataSnapshot result = task.getResult();
                             for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event tempEvent = dataSnapshot.getValue(Event.class);
+                                //check event is deleted
+                                if(tempEvent == null || tempEvent.getStatus() == -1){
+                                    continue;
+                                }
+                                //filter
                                 if(!title.equals("")){
                                     if(!tempEvent.getTitle().contains(title)){
                                         continue;
@@ -515,5 +547,22 @@ public final class FirebaseController {
 
         GoogleSignInClient gsic = GoogleSignIn.getClient(context, gsio);
         gsic.signOut();
+    }
+
+    public void deleteEvent(Event event) {
+        //set event status to -1 to delete it
+        event.setStatus(-1);
+        mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+                    //notification if delete success
+                    callbackUpdateEventDisplay.deleteEventSuccess(event);
+                } else {
+                    Log.d("bibibla", "onComplete: " + task.getException());
+                }
+
+            }
+        });
     }
 }

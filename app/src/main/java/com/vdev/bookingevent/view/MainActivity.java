@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             mDialog = new MDialog();
 
             dialogConfirmExit = mDialog.confirmExitApp(this);
-            dialogConfirmExit.findViewById(R.id.btn_ok).setOnClickListener(new View.OnClickListener() {
+            dialogConfirmExit.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     finish();

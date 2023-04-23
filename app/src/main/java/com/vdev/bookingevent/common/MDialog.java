@@ -9,10 +9,8 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.core.content.ContextCompat;
-
 import com.vdev.bookingevent.R;
-import com.vdev.bookingevent.view.MainActivity;
+import com.vdev.bookingevent.model.Event;
 
 public class MDialog {
 
@@ -47,7 +45,7 @@ public class MDialog {
         Dialog dialogConfirm = new Dialog(context);
         dialogConfirm.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogConfirm.setCancelable(true);
-        dialogConfirm.setContentView(R.layout.dialog_confirm_logout);
+        dialogConfirm.setContentView(R.layout.dialog_confirm);
 
         dialogConfirm.findViewById(R.id.btn_cancel).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -121,7 +119,12 @@ public class MDialog {
         Dialog dialogSuccess = new Dialog(context);
         dialogSuccess.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogSuccess.setCancelable(false);
-        dialogSuccess.setContentView(R.layout.dialog_add_success);
+        dialogSuccess.setContentView(R.layout.dialog_success);
+
+        TextView tvTitle = dialogSuccess.findViewById(R.id.tv_title_title);
+        TextView tvBody = dialogSuccess.findViewById(R.id.tv_body);
+        tvTitle.setText("Add Success");
+        tvBody.setText("Add Event Success");
 
         dialogSuccess.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -167,7 +170,7 @@ public class MDialog {
         Dialog dialogConfirm = new Dialog(context);
         dialogConfirm.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogConfirm.setCancelable(true);
-        dialogConfirm.setContentView(R.layout.dialog_confirm_logout);
+        dialogConfirm.setContentView(R.layout.dialog_confirm);
 
         //set text
         TextView tvTitle = dialogConfirm.findViewById(R.id.tv_title);
@@ -175,12 +178,66 @@ public class MDialog {
         TextView tvBody = dialogConfirm.findViewById(R.id.tv_body);
         tvBody.setText("Are you sure you want to exit app?");
         //button
-        Button btnOk = dialogConfirm.findViewById(R.id.btn_ok);
-        btnOk.setText("Yes");
-        Button btnCancel = dialogConfirm.findViewById(R.id.btn_cancel);
-        btnCancel.setText("No");
+        Button btnYes = dialogConfirm.findViewById(R.id.btn_yes);
+        Button btnNo = dialogConfirm.findViewById(R.id.btn_no);
 
-        btnCancel.setOnClickListener(new View.OnClickListener() {
+        btnNo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogConfirm.dismiss();
+            }
+        });
+
+        dialogConfirm.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogConfirm.dismiss();
+            }
+        });
+
+        return dialogConfirm;
+    }
+
+    public void showDeleteSuccess(Context context , Event event) {
+        Dialog dialogSuccess = new Dialog(context);
+        dialogSuccess.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogSuccess.setCancelable(false);
+        dialogSuccess.setContentView(R.layout.dialog_success);
+
+        TextView tvTitle = dialogSuccess.findViewById(R.id.tv_title_title);
+        TextView tvBody = dialogSuccess.findViewById(R.id.tv_body);
+        tvTitle.setText("Delete Success");
+        tvBody.setText(event.getTitle() + " is deleted");
+
+        dialogSuccess.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogSuccess.dismiss();
+            }
+        });
+
+        dialogSuccess.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogSuccess.dismiss();
+            }
+        });
+
+        dialogSuccess.show();
+    }
+
+    public Dialog confirmDeleteEvent(Context context) {
+        Dialog dialogConfirm = new Dialog(context);
+        dialogConfirm.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogConfirm.setCancelable(true);
+        dialogConfirm.setContentView(R.layout.dialog_confirm);
+
+        TextView tvTitle = dialogConfirm.findViewById(R.id.tv_title);
+        TextView tvBody = dialogConfirm.findViewById(R.id.tv_body);
+        tvTitle.setText("Confirm Delete");
+        tvBody.setText("Are you sure want to delete event ?");
+
+        dialogConfirm.findViewById(R.id.btn_no).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 dialogConfirm.dismiss();
