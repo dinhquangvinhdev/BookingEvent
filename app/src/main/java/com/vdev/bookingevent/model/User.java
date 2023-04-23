@@ -8,7 +8,7 @@ public class User {
     String phoneNumber;
     String address;
     String avatar;
-    int email_id;
+    String email_id;
     int department_id;
     String fullName;
     String gender;
@@ -48,11 +48,11 @@ public class User {
         this.address = address;
     }
 
-    public int getEmail_id() {
+    public String getEmail_id() {
         return email_id;
     }
 
-    public void setEmail_id(int email_id) {
+    public void setEmail_id(String email_id) {
         this.email_id = email_id;
     }
 

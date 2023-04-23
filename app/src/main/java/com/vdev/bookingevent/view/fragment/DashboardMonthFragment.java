@@ -131,7 +131,8 @@ public class DashboardMonthFragment extends Fragment
             fc = new FirebaseController(this, null);
             //get event in the first time
             int monthNow = Calendar.getInstance().get(Calendar.MONTH);
-            fc.getEventInRange2(MData.getStartMonth(monthNow), MData.getEndMonth(monthNow));
+            fc.getAllEvent();
+            //fc.getEventInRange2(MData.getStartMonth(monthNow), MData.getEndMonth(monthNow));
             //get room
             fc.getRoom();
             //get department

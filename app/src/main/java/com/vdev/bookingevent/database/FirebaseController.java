@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -11,6 +12,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -26,6 +28,7 @@ import com.vdev.bookingevent.model.Detail_participant;
 import com.vdev.bookingevent.model.Email;
 import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
+import com.vdev.bookingevent.model.User;
 import com.vdev.bookingevent.presenter.LoginContract;
 import com.vdev.bookingevent.view.MainActivity;
 
@@ -86,7 +89,6 @@ public final class FirebaseController {
             return false;
         }
     }
-
     public boolean addEventDetailParticipant(int event_id , int user_id , String role){
         //TODO check internet when call this function
         Detail_participant detailParticipant = new Detail_participant();
@@ -120,7 +122,6 @@ public final class FirebaseController {
             return false;
         }
     }
-
     public void getRoom(){
         //TODO check internet when call this function
 
@@ -144,7 +145,6 @@ public final class FirebaseController {
 
         mDatabase.child("Room").addValueEventListener(roomListener);
     }
-
     public void getDepartment(){
         //TODO check internet when call this function
 
@@ -169,11 +169,55 @@ public final class FirebaseController {
 
         mDatabase.child("Department").addValueEventListener(departmentListener);
     }
+    public void getAllEvent(){
+        mDatabase.child("Event").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                //must check != null because may be user in the add activity
+                if(callbackUpdateEventDisplay != null) {
+                    Event event = snapshot.getValue(Event.class);
+                    if(!MData.arrEvent.contains(event)){
+                        MData.arrEvent.add(event);
+                    }
+                    callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
+                    Log.d("bibibla", "onChildAdded: " + previousChildName);
+                }
+            }
 
-    public void getEventInRange1(double startAtDS, double endAtDS, double startAtDE, double endAtDE){
-        //TODO check internet when call this function
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                //must check because may be user in the add activity
+                //TODO update the event change
+                if(callbackUpdateEventDisplay != null) {
+                    callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
+                    Log.d("bibibla", "onChildChanged: " + previousChildName);
+                }
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                //must check because may be user in the add activity
+                if(callbackUpdateEventDisplay != null) {
+                    MData.arrEvent.remove(snapshot.getValue(Event.class));
+                    callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
+                    Log.d("bibibla", "onChildReMoved: " + snapshot.getValue(Event.class).getTitle());
+                }
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                if(callbackUpdateEventDisplay != null) {
+                    callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
+                    Log.d("bibibla", "onChildMoved: " + previousChildName);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w("bibibla", "loadEvent:onCancelled", error.toException());
+            }
+        });
     }
-
     public void getEventInRange2(long startTime, long endTime){
         //TODO check internet when call this function
 
@@ -393,8 +437,9 @@ public final class FirebaseController {
                                         Log.d("bibibla", "onComplete: " + "can not add because already event there");
                                     }
                                 } else {
-                                    Log.d("bibibla", "onComplete: " + "different room");
-                                    canAdd = false;
+                                    //can add the event
+                                    canAdd = true;
+                                    break;
                                 }
                             }
                             //check can add
@@ -410,8 +455,6 @@ public final class FirebaseController {
                 });
 
     }
-
-
     public void checkUserAccount(LoginContract.View view, Context context, MDialog mDialog, String uid, String email) {
 
         mDatabase.child("Email").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
@@ -436,12 +479,30 @@ public final class FirebaseController {
                         logoutAccount(context);
                         view.turnOffProgressBar();
                     } else {
+                        getUserLogin(uid);
                         view.startActivity(MainActivity.class);
                     }
                 } else {
                     Log.d("bibibla", "onComplete: " + task.getException());
                     view.turnOffProgressBar();
                 }
+            }
+        });
+    }
+
+    private void getUserLogin(String email_id) {
+        mDatabase.child("User").orderByChild("email_id").equalTo(email_id).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for(DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    MData.userLogin = dataSnapshot.getValue(User.class);
+                    Log.d("bibibla" , "user name : " + MData.userLogin.getFullName());
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w("bibibla", "loadEvent:onCancelled", error.toException());
             }
         });
     }

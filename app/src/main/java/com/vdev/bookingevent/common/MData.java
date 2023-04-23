@@ -21,7 +21,6 @@ public class MData {
     public static List<Boolean> filterChoicedRoom;
     public static int id_detail_participant = -1;   //save the last id detail participant in database
     public static int id_event = -1;                //save the last id event in database
-    //TODO get the id_user when login
     public static User userLogin;                  //save the id user login
     public static long getStartMonth(int month) {
         Calendar calendar = Calendar.getInstance();
