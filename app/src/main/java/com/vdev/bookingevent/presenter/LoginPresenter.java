@@ -21,15 +21,25 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.vdev.bookingevent.R;
+import com.vdev.bookingevent.common.MDialog;
+import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.view.MainActivity;
 
 public class LoginPresenter implements LoginContract.Presenter {
     private LoginContract.View view;
     private GoogleSignInClient gsic;
     private FirebaseAuth firebaseAuth;
+    private FirebaseController fc;
+    private MDialog mDialog;
 
     public LoginPresenter(LoginContract.View view, Context contextActivity) {
         this.view = view;
+
+        //create dialog
+        mDialog = new MDialog();
+
+        //create Firebase Controller
+        fc = new FirebaseController(null, null);
 
         //configure the Google SignIn
         GoogleSignInOptions gsio = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -50,9 +60,9 @@ public class LoginPresenter implements LoginContract.Presenter {
     private void checkUser() {
         //if user is already sign in then go to main activity
         FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
-        if(firebaseUser != null){
-            view.startActivity(MainActivity.class);
-        }
+//        if(firebaseUser != null){
+//            view.startActivity(MainActivity.class);
+//        }
     }
 
     /**
@@ -102,11 +112,8 @@ public class LoginPresenter implements LoginContract.Presenter {
                             //get user info
                             String uid = firebaseUser.getUid();
                             String email = firebaseUser.getEmail();
-                            Log.d(TAG, "onSuccess: Email: " + email);
-                            Log.d(TAG, "onSuccess: UID" + uid);
-
-                            //start main activity
-                            view.startActivity(MainActivity.class);
+                            //check uid in firebase
+                            fc.checkUserAccount(view , view.getContext(),mDialog, uid , email);
                         }
                         else{
                             Log.d(TAG, "onFailure: Loggin failed " + task.getException().getMessage());

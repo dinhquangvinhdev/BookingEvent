@@ -290,7 +290,7 @@ public class AddEventFragment extends Fragment implements CallbackAddDetailParti
     public void callbackCanAddNewEvent(Event event) {
         if(event != null) {
             if (fc.addEvent(event)) {
-                if (!fc.addEventDetailParticipant(MData.id_event, MData.id_user, MConst.ROLE_HOST)) {
+                if (!fc.addEventDetailParticipant(MData.id_event, MData.userLogin.getId(), MConst.ROLE_HOST)) {
                     //notification can not add detail event
                     mDialog.showFillData(getContext(), "Some error when add new Event");
                 }

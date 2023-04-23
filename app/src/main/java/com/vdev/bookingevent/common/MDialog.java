@@ -6,11 +6,13 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
 
 import com.vdev.bookingevent.R;
+import com.vdev.bookingevent.view.MainActivity;
 
 public class MDialog {
 
@@ -159,5 +161,39 @@ public class MDialog {
         });
 
         dialogTimeError.show();
+    }
+
+    public Dialog confirmExitApp(Context context) {
+        Dialog dialogConfirm = new Dialog(context);
+        dialogConfirm.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogConfirm.setCancelable(true);
+        dialogConfirm.setContentView(R.layout.dialog_confirm_logout);
+
+        //set text
+        TextView tvTitle = dialogConfirm.findViewById(R.id.tv_title);
+        tvTitle.setText("Confirm Exit App");
+        TextView tvBody = dialogConfirm.findViewById(R.id.tv_body);
+        tvBody.setText("Are you sure you want to exit app?");
+        //button
+        Button btnOk = dialogConfirm.findViewById(R.id.btn_ok);
+        btnOk.setText("Yes");
+        Button btnCancel = dialogConfirm.findViewById(R.id.btn_cancel);
+        btnCancel.setText("No");
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogConfirm.dismiss();
+            }
+        });
+
+        dialogConfirm.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogConfirm.dismiss();
+            }
+        });
+
+        return dialogConfirm;
     }
 }

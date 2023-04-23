@@ -1,52 +1,28 @@
 package com.vdev.bookingevent.model;
 
 public class Email {
-    int id;
-    String email;
-    String full_name;
-    String gender;
-    String avatar;
+    String id;
+    String accountName;
     int role_id;
-    boolean status;
+    int status;
 
-    public int getId() {
+    public Email() {
+    }
+
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public String getEmail() {
-        return email;
+    public String getAccountName() {
+        return accountName;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getFull_name() {
-        return full_name;
-    }
-
-    public void setFull_name(String full_name) {
-        this.full_name = full_name;
-    }
-
-    public String getGender() {
-        return gender;
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
-    public String getAvatar() {
-        return avatar;
-    }
-
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
     }
 
     public int getRole_id() {
@@ -57,11 +33,11 @@ public class Email {
         this.role_id = role_id;
     }
 
-    public boolean isStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(boolean status) {
+    public void setStatus(int status) {
         this.status = status;
     }
 }

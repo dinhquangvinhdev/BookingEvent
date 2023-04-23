@@ -6,8 +6,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.callback.CallbackFragmentManager;
@@ -26,10 +29,11 @@ import java.util.Date;
 
 import me.ibrahimsn.lib.OnItemSelectedListener;
 
-public class MainActivity extends AppCompatActivity implements MainContract.View , CallbackFragmentManager {
+public class MainActivity extends AppCompatActivity implements MainContract.View, CallbackFragmentManager {
     private ActivityMainBinding binding;
     private MainPresenter presenter;
     private MDialog mDialog;
+    private Dialog dialogConfirmExit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +49,14 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     private void initDialog() {
         if (mDialog == null) {
             mDialog = new MDialog();
+
+            dialogConfirmExit = mDialog.confirmExitApp(this);
+            dialogConfirmExit.findViewById(R.id.btn_ok).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    finish();
+                }
+            });
         }
     }
 
@@ -102,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                 transaction.commit();
                 break;
             }
-            case MConst.FRAGMENT_ADD_EVENT:{
+            case MConst.FRAGMENT_ADD_EVENT: {
                 fragment = new AddEventFragment(this);
                 transaction.replace(R.id.fcv_container, fragment);
                 transaction.commit();
@@ -140,7 +152,16 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     @Override
     protected void onDestroy() {
+        presenter.logout(getApplicationContext());
+        if (dialogConfirmExit.isShowing()) {
+            dialogConfirmExit.dismiss();
+        }
         super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed() {
+        dialogConfirmExit.show();
     }
 
     @Override

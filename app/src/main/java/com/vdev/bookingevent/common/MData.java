@@ -5,6 +5,7 @@ import android.util.Log;
 import com.vdev.bookingevent.model.Department;
 import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
+import com.vdev.bookingevent.model.User;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +22,7 @@ public class MData {
     public static int id_detail_participant = -1;   //save the last id detail participant in database
     public static int id_event = -1;                //save the last id event in database
     //TODO get the id_user when login
-    public static int id_user = 0;                  //save the id user login
+    public static User userLogin;                  //save the id user login
     public static long getStartMonth(int month) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());

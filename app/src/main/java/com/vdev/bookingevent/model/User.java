@@ -7,6 +7,7 @@ public class User {
     String birthday;
     String phoneNumber;
     String address;
+    String avatar;
     int email_id;
     int department_id;
     String fullName;
@@ -61,6 +62,14 @@ public class User {
 
     public void setDepartment_id(int department_id) {
         this.department_id = department_id;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
     }
 
     public String getFullName() {

@@ -1,11 +1,16 @@
 package com.vdev.bookingevent.database;
 
+import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -15,15 +20,17 @@ import com.vdev.bookingevent.callback.CallbackAddDetailParticipant;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MData;
+import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.model.Department;
 import com.vdev.bookingevent.model.Detail_participant;
+import com.vdev.bookingevent.model.Email;
 import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
-import com.vdev.bookingevent.model.User;
+import com.vdev.bookingevent.presenter.LoginContract;
+import com.vdev.bookingevent.view.MainActivity;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public final class FirebaseController {
@@ -405,4 +412,47 @@ public final class FirebaseController {
     }
 
 
+    public void checkUserAccount(LoginContract.View view, Context context, MDialog mDialog, String uid, String email) {
+
+        mDatabase.child("Email").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if(task.isSuccessful()) {
+                    DataSnapshot result = task.getResult();
+                    boolean check = false;
+                    // check account
+                    for(DataSnapshot dataSnapshot : result.getChildren()){
+                        Email email1 = dataSnapshot.getValue(Email.class);
+                        if(email1.getId().equals(uid)){
+                            //start main activity
+                            check = true;
+                            break;
+                        }
+                    }
+                    // notification account not active
+                    if (!check){
+                        mDialog.showFillData(context , "The account is not activated");
+                        //logout account
+                        logoutAccount(context);
+                        view.turnOffProgressBar();
+                    } else {
+                        view.startActivity(MainActivity.class);
+                    }
+                } else {
+                    Log.d("bibibla", "onComplete: " + task.getException());
+                    view.turnOffProgressBar();
+                }
+            }
+        });
+    }
+
+    private void logoutAccount(Context context) {
+        FirebaseAuth.getInstance().signOut();
+        GoogleSignInOptions gsio = new GoogleSignInOptions
+                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail().build();
+
+        GoogleSignInClient gsic = GoogleSignIn.getClient(context, gsio);
+        gsic.signOut();
+    }
 }

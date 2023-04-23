@@ -3,6 +3,7 @@ package com.vdev.bookingevent.view;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -73,6 +74,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         Intent intent = new Intent(this, activityClass);
         turnOffProgressBar();
         startActivity(intent);
+        finish();
     }
 
     @Override
@@ -86,6 +88,11 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         binding.pb.setVisibility(View.VISIBLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+    }
+
+    @Override
+    public Context getContext() {
+        return this;
     }
 
     @Override

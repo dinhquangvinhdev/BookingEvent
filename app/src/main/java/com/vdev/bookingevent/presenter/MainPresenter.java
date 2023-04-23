@@ -23,4 +23,15 @@ public class MainPresenter implements MainContract.Presenter {
     public MainPresenter(MainContract.View view, Context activityContext) {
         this.view = view;
     }
+
+    @Override
+    public void logout(Context context) {
+        FirebaseAuth.getInstance().signOut();
+        GoogleSignInOptions gsio = new GoogleSignInOptions
+                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail().build();
+
+        GoogleSignInClient gsic = GoogleSignIn.getClient(context, gsio);
+        gsic.signOut();
+    }
 }
