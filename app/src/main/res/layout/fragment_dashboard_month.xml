@@ -96,6 +96,27 @@
             android:src="@drawable/ic_black_crossbar"
             android:scaleType="centerCrop"
             android:layout_gravity="center|top" />
+
+        <ImageView
+            android:id="@+id/img_delete_event"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_delete"
+            android:scaleType="centerCrop"
+            android:layout_gravity="right"
+            android:layout_marginEnd="10dp"
+            android:layout_marginTop="30dp"/>
+
+        <ImageView
+            android:id="@+id/img_edit_event"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_edit"
+            android:scaleType="centerCrop"
+            android:layout_gravity="right"
+            android:layout_marginEnd="50dp"
+            android:layout_marginTop="30dp"/>
+
         <include
             android:id="@+id/include_layout_detail_event"
             android:layout_marginStart="10dp"
