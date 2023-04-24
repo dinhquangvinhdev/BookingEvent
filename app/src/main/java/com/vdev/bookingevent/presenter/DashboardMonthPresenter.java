@@ -29,7 +29,7 @@ public class DashboardMonthPresenter implements DashboardMonthContract.Presenter
     public Event findEventInData(int idEvent) {
         for (int i = 0; i < MData.arrEvent.size(); i++) {
             Event tempEvent = MData.arrEvent.get(i);
-            if (tempEvent.getId() == idEvent) {
+            if (tempEvent.getId() == idEvent && tempEvent.getStatus() == 0) {
                 return tempEvent;
             }
         }
