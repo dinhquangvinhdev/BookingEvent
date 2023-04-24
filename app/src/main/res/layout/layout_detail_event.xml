@@ -56,8 +56,7 @@
                 <ImageView
                     android:id="@+id/img_color_room"
                     android:layout_width="30dp"
-                    android:layout_height="30dp"
-                    android:background="@color/white" />
+                    android:layout_height="30dp" />
 
             </androidx.cardview.widget.CardView>
 

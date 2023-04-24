@@ -43,6 +43,7 @@ import com.vdev.bookingevent.databinding.CalendarDayLayoutBinding;
 import com.vdev.bookingevent.databinding.FragmentDashboardMonthBinding;
 import com.vdev.bookingevent.databinding.LayoutDetailEventBinding;
 import com.vdev.bookingevent.model.Event;
+import com.vdev.bookingevent.model.Room;
 import com.vdev.bookingevent.presenter.DashboardMonthContract;
 import com.vdev.bookingevent.presenter.DashboardMonthPresenter;
 
@@ -327,6 +328,13 @@ public class DashboardMonthFragment extends Fragment
             bindingDetailEvent.tvEventDetailTime.setText(textTime);
             String nameRoom = presenter.getNameRoom(event.getRoom_id());
             bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
+            for(int i=0 ; i<MData.arrRoom.size() ; i++){
+                Room room = MData.arrRoom.get(i);
+                if(room.getId() == event.getRoom_id()){
+                    bindingDetailEvent.imgColorRoom.setBackgroundColor(Color.parseColor(room.getColor()));
+                    break;
+                }
+            }
             bindingDetailEvent.tvEventDetailParticipant.setText((event.getNumberParticipant() - 1) + " Guest");
             bindingDetailEvent.imgDeleteEvent.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -343,6 +351,12 @@ public class DashboardMonthFragment extends Fragment
                         }
                     });
                     confirmDeleteEvent.show();
+                }
+            });
+            bindingDetailEvent.imgEditEvent.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //TODO edit event in here
                 }
             });
             //TODO recycle view Guest
