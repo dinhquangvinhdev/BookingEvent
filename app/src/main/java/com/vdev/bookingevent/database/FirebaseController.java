@@ -184,7 +184,6 @@ public final class FirebaseController {
                         MData.arrEvent.add(event);
                     }
                     callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
-                    Log.d("bibibla", "onChildAdded: " + previousChildName);
                 }
             }
 
@@ -458,18 +457,17 @@ public final class FirebaseController {
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
                         if(task.isSuccessful()){
                             DataSnapshot result = task.getResult();
-                            boolean canAdd = true;
+                            List<Event> eventsDuplicate = new ArrayList<>();
                             //check duplicate event
                             for(DataSnapshot dataSnapshot : result.getChildren()){
                                 Event event1 = dataSnapshot.getValue(Event.class);
-                                if(event1.getRoom_id() == tempEvent.getRoom_id()){
+                                if(event1.getStatus() == 0 && event1.getRoom_id() == tempEvent.getRoom_id()){
                                     if((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() < event1.getDateStart())
                                         || (tempEvent.getDateStart() > event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd() )){
                                         //can add the event
                                         continue;
                                     } else {
-                                        canAdd = false;
-                                        break;
+                                        eventsDuplicate.add(event1);
                                     }
                                 } else {
                                     //can add the event
@@ -477,10 +475,10 @@ public final class FirebaseController {
                                 }
                             }
                             //check can add
-                            if(canAdd){
-                                callbackAddEvent.callbackCanAddNewEvent(tempEvent);
+                            if(eventsDuplicate.isEmpty()){
+                                callbackAddEvent.callbackCanAddNewEvent(tempEvent, eventsDuplicate);
                             } else {
-                                callbackAddEvent.callbackCanAddNewEvent(null);
+                                callbackAddEvent.callbackCanAddNewEvent(null , eventsDuplicate);
                             }
                         } else {
                             Log.d("bibibla", "onComplete: " + task.getException());

@@ -131,7 +131,7 @@ public class DashboardMonthFragment extends Fragment
     private void initMDialog() {
         if (mDialog == null) {
             mDialog = new MDialog();
-            confirmDeleteEvent = mDialog.confirmDeleteEvent(getContext());
+            confirmDeleteEvent = mDialog.confirmDialog(getContext(), "Confirm Delete Event", "Are you sure want to delete event ?");
         }
     }
 

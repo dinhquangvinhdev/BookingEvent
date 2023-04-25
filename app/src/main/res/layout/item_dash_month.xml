@@ -4,9 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="54dp"
     android:layout_marginEnd="1dp"
-    android:background="@drawable/rounded_item_dash_month">
+    android:background="@drawable/rounded_item_dash_month"
+    android:orientation="horizontal">
 
-    <TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    <TextView
         android:id="@+id/tv_title_item_dash_month"
         style="@style/tv_title_item"
         android:layout_width="0dp"

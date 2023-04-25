@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         if (mDialog == null) {
             mDialog = new MDialog();
 
-            dialogConfirmExit = mDialog.confirmExitApp(this);
+            dialogConfirmExit = mDialog.confirmDialog(this , "Confirm Exit App" , "Are you sure you want to exit app?");
             dialogConfirmExit.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
