@@ -115,7 +115,7 @@ public class MDialog {
         dialogNeedFillData.show();
     }
 
-    public void showAddEventSuccess(Context context){
+    public void showDialogSuccess(Context context, String title , String body){
         Dialog dialogSuccess = new Dialog(context);
         dialogSuccess.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogSuccess.setCancelable(false);
@@ -123,8 +123,8 @@ public class MDialog {
 
         TextView tvTitle = dialogSuccess.findViewById(R.id.tv_title_title);
         TextView tvBody = dialogSuccess.findViewById(R.id.tv_body);
-        tvTitle.setText("Add Success");
-        tvBody.setText("Add Event Success");
+        tvTitle.setText(title);
+        tvBody.setText(body);
 
         dialogSuccess.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
             @Override

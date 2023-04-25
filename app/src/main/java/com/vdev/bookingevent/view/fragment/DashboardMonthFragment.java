@@ -3,7 +3,9 @@ package com.vdev.bookingevent.view.fragment;
 import static com.kizitonwose.calendar.core.ExtensionsKt.daysOfWeek;
 import static com.kizitonwose.calendar.core.ExtensionsKt.firstDayOfWeekFromLocale;
 
+import android.app.Activity;
 import android.app.Dialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -46,6 +48,8 @@ import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
 import com.vdev.bookingevent.presenter.DashboardMonthContract;
 import com.vdev.bookingevent.presenter.DashboardMonthPresenter;
+import com.vdev.bookingevent.view.DetailAccountActivity;
+import com.vdev.bookingevent.view.EditEventActivity;
 
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -67,6 +71,8 @@ import kotlin.jvm.functions.Function1;
 public class DashboardMonthFragment extends Fragment
         implements DashboardMonthContract.View, CallbackItemCalDashMonth, CallbackItemDayCalMonth, CallbackUpdateEventDisplay {
 
+    private final String KEY_EVENT_EDIT_ACTIVITY = "KEY_EVENT_EDIT_ACTIVITY";
+    private final int REQUEST_CODE_EDIT_EVENT_ACTIVITY = 10;
     private FragmentDashboardMonthBinding binding;
     private LayoutDetailEventBinding bindingDetailEvent;
     private DashboardMonthPresenter presenter;
@@ -77,7 +83,6 @@ public class DashboardMonthFragment extends Fragment
     private MConvertTime mConvertTime;
     private BottomSheetBehavior bsb;
     private Dialog confirmDeleteEvent;
-
     private MDialog mDialog;
 
     public DashboardMonthFragment() {
@@ -143,7 +148,7 @@ public class DashboardMonthFragment extends Fragment
 
     private void initFirebaseController() {
         if (fc == null) {
-            fc = new FirebaseController(this, null);
+            fc = new FirebaseController(this, null, null);
             //get event in the first time
             int monthNow = Calendar.getInstance().get(Calendar.MONTH);
             fc.getAllEvent();
@@ -327,6 +332,7 @@ public class DashboardMonthFragment extends Fragment
             String textTime = presenter.convertTimeToStringDE(event.getDateStart(), event.getDateEnd());
             bindingDetailEvent.tvEventDetailTime.setText(textTime);
             String nameRoom = presenter.getNameRoom(event.getRoom_id());
+            bindingDetailEvent.tvEventSummary.setText(event.getSummery());
             bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
             for(int i=0 ; i<MData.arrRoom.size() ; i++){
                 Room room = MData.arrRoom.get(i);
@@ -356,7 +362,11 @@ public class DashboardMonthFragment extends Fragment
             bindingDetailEvent.imgEditEvent.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    //TODO edit event in here
+                    Intent intent = new Intent(getContext(), EditEventActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , event);
+                    intent.putExtras(bundle);
+                    startActivityForResult(intent, REQUEST_CODE_EDIT_EVENT_ACTIVITY);
                 }
             });
             //TODO recycle view Guest
@@ -414,4 +424,73 @@ public class DashboardMonthFragment extends Fragment
         mDialog.showDeleteSuccess(getContext(), event);
     }
 
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == REQUEST_CODE_EDIT_EVENT_ACTIVITY){
+            if(resultCode == Activity.RESULT_OK){
+                Bundle bundle = data.getExtras();
+                Event updatedEvent;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    updatedEvent = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY, Event.class);
+                } else {
+                    updatedEvent = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY);
+                }
+                updatedEventInSlidingPanel(updatedEvent);
+            }
+        }
+    }
+
+    private void updatedEventInSlidingPanel(Event updatedEvent) {
+        if(bsb != null && bsb.getState() == BottomSheetBehavior.STATE_EXPANDED){
+            if (updatedEvent != null) {
+                Log.d("bibibla", "openSlidingPanel: " + "found event");
+                bindingDetailEvent.tvEventDetailTitle.setText(updatedEvent.getTitle());
+                String textTime = presenter.convertTimeToStringDE(updatedEvent.getDateStart(), updatedEvent.getDateEnd());
+                bindingDetailEvent.tvEventDetailTime.setText(textTime);
+                String nameRoom = presenter.getNameRoom(updatedEvent.getRoom_id());
+                bindingDetailEvent.tvEventSummary.setText(updatedEvent.getSummery());
+                bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
+                for(int i=0 ; i<MData.arrRoom.size() ; i++){
+                    Room room = MData.arrRoom.get(i);
+                    if(room.getId() == updatedEvent.getRoom_id()){
+                        bindingDetailEvent.imgColorRoom.setBackgroundColor(Color.parseColor(room.getColor()));
+                        break;
+                    }
+                }
+                bindingDetailEvent.tvEventDetailParticipant.setText((updatedEvent.getNumberParticipant() - 1) + " Guest");
+                bindingDetailEvent.imgDeleteEvent.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        confirmDeleteEvent.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                if (mDialog.checkConnection(getContext())) {
+                                    fc.deleteEvent(updatedEvent);
+                                    confirmDeleteEvent.dismiss();
+                                } else {
+                                    confirmDeleteEvent.dismiss();
+                                }
+                            }
+                        });
+                        confirmDeleteEvent.show();
+                    }
+                });
+                bindingDetailEvent.imgEditEvent.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(getContext(), EditEventActivity.class);
+                        intent.putExtra(KEY_EVENT_EDIT_ACTIVITY , updatedEvent);
+                        startActivityForResult(intent, REQUEST_CODE_EDIT_EVENT_ACTIVITY);
+                    }
+                });
+                //TODO recycle view Guest
+                //create adapter
+                //GuestEventDetailAdapter adapterGuest = new GuestEventDetailAdapter(presenter.getGuests(), presenter.getHost());
+                //bindingDetailEvent.rvGuest.setAdapter(adapterGuest);
+                //bindingDetailEvent.rvGuest.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
+            }
+        }
+    }
 }

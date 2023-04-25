@@ -1,11 +1,7 @@
 package com.vdev.bookingevent.view.fragment;
 
-import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
-
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
-import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -14,7 +10,6 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import android.text.InputType;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +19,7 @@ import android.widget.DatePicker;
 import android.widget.TimePicker;
 
 import com.vdev.bookingevent.R;
-import com.vdev.bookingevent.callback.CallbackAddDetailParticipant;
+import com.vdev.bookingevent.callback.CallbackAddEvent;
 import com.vdev.bookingevent.callback.CallbackFragmentManager;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MConvertTime;
@@ -34,16 +29,14 @@ import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.databinding.FragmentAddEventBinding;
 import com.vdev.bookingevent.model.Event;
 
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class AddEventFragment extends Fragment implements CallbackAddDetailParticipant {
+public class AddEventFragment extends Fragment implements CallbackAddEvent {
 
     private FragmentAddEventBinding binding;
     final int year_now = Calendar.getInstance().get(Calendar.YEAR);
@@ -100,7 +93,7 @@ public class AddEventFragment extends Fragment implements CallbackAddDetailParti
 
     private void initFC(){
         if(fc == null){
-            fc = new FirebaseController(null, this);
+            fc = new FirebaseController(null, this, null);
         }
     }
 
@@ -282,7 +275,7 @@ public class AddEventFragment extends Fragment implements CallbackAddDetailParti
     @Override
     public void callbackAddDetailParticipant() {
         //show notification success add and update UI to the main home
-        mDialog.showAddEventSuccess(getContext());
+        mDialog.showDialogSuccess(getContext(), "Add Success" , "Add Event Success");
         callbackFragmentManager.goToFragmentDashboard();
     }
 

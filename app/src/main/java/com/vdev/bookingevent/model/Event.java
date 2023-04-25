@@ -1,15 +1,19 @@
 package com.vdev.bookingevent.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.google.firebase.database.Exclude;
 import com.vdev.bookingevent.common.MData;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class Event {
+public class Event implements Parcelable {
     int id;
     String title;
     String summery;
@@ -24,6 +28,19 @@ public class Event {
     String roomColor;
 
     public Event() {
+    }
+
+    protected Event(Parcel in) {
+        this.id = in.readInt();
+        this.title = in.readString();
+        this.summery = in.readString();
+        this.dateCreated = in.readLong();
+        this.dateUpdated = in.readLong();
+        this.dateStart = in.readLong();
+        this.dateEnd = in.readLong();
+        this.room_id = in.readInt();
+        this.numberParticipant = in.readInt();
+        this.status = in.readInt();
     }
 
     public Event(int id, String title, String summery, long dateCreated, long dateUpdated, long dateStart, long dateEnd, int room_id, int numberParticipant, int status) {
@@ -150,14 +167,51 @@ public class Event {
         return roomColor;
     }
 
+    @Exclude
     @Override
     public boolean equals(@Nullable Object obj) {
         Event tempEvent = (Event) obj;
         return this.getId() == tempEvent.getId();
     }
 
+    @Exclude
     @Override
     public int hashCode() {
         return super.hashCode();
     }
+
+    @Exclude
+    public static final Creator<Event> CREATOR = new Creator<Event>() {
+        @Override
+        public Event createFromParcel(Parcel in) {
+            return new Event(in);
+        }
+
+        @Override
+        public Event[] newArray(int size) {
+            return new Event[size];
+        }
+    };
+
+    @Exclude
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Exclude
+    @Override
+    public void writeToParcel(@NonNull Parcel parcel, int i) {
+        parcel.writeInt(id);
+        parcel.writeString(title);
+        parcel.writeString(summery);
+        parcel.writeLong(dateCreated);
+        parcel.writeLong(dateUpdated);
+        parcel.writeLong(dateStart);
+        parcel.writeLong(dateEnd);
+        parcel.writeInt(room_id);
+        parcel.writeInt(numberParticipant);
+        parcel.writeInt(status);
+    }
+
 }

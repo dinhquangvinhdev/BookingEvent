@@ -18,7 +18,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.vdev.bookingevent.callback.CallbackAddDetailParticipant;
+import com.vdev.bookingevent.callback.CallbackAddEvent;
+import com.vdev.bookingevent.callback.CallbackEditEvent;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MData;
@@ -34,19 +35,22 @@ import com.vdev.bookingevent.view.MainActivity;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public final class FirebaseController {
     private DatabaseReference mDatabase;
     private MConvertTime mConvertTime;
     private CallbackUpdateEventDisplay callbackUpdateEventDisplay;
-    private CallbackAddDetailParticipant callbackAddDetailParticipant;
+    private CallbackAddEvent callbackAddEvent;
+    private CallbackEditEvent callbackEditEvent;
 
-    public FirebaseController(CallbackUpdateEventDisplay callbackUpdateEventDisplay, CallbackAddDetailParticipant callbackAddDetailParticipant) {
+    public FirebaseController(CallbackUpdateEventDisplay callbackUpdateEventDisplay, CallbackAddEvent callbackAddEvent , CallbackEditEvent callbackEditEvent) {
         this.mDatabase = FirebaseDatabase.getInstance().getReference();
         mConvertTime = new MConvertTime();
         this.callbackUpdateEventDisplay = callbackUpdateEventDisplay;
-        this.callbackAddDetailParticipant = callbackAddDetailParticipant;
+        this.callbackAddEvent = callbackAddEvent;
+        this.callbackEditEvent = callbackEditEvent;
 
         mDatabase.child("Event").orderByKey().limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -107,7 +111,7 @@ public final class FirebaseController {
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     for(DataSnapshot dataSnapshot : snapshot.getChildren()){
                         if(Integer.parseInt(dataSnapshot.getKey()) == MData.id_detail_participant){
-                            callbackAddDetailParticipant.callbackAddDetailParticipant();
+                            callbackAddEvent.callbackAddDetailParticipant();
                         }
                     }
                 }
@@ -462,23 +466,21 @@ public final class FirebaseController {
                                     if((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() < event1.getDateStart())
                                         || (tempEvent.getDateStart() > event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd() )){
                                         //can add the event
-                                        canAdd = true;
-                                        break;
+                                        continue;
                                     } else {
                                         canAdd = false;
-                                        Log.d("bibibla", "onComplete: " + "can not add because already event there");
+                                        break;
                                     }
                                 } else {
                                     //can add the event
-                                    canAdd = true;
-                                    break;
+                                    continue;
                                 }
                             }
                             //check can add
                             if(canAdd){
-                                callbackAddDetailParticipant.callbackCanAddNewEvent(tempEvent);
+                                callbackAddEvent.callbackCanAddNewEvent(tempEvent);
                             } else {
-                                callbackAddDetailParticipant.callbackCanAddNewEvent(null);
+                                callbackAddEvent.callbackCanAddNewEvent(null);
                             }
                         } else {
                             Log.d("bibibla", "onComplete: " + task.getException());
@@ -562,6 +564,60 @@ public final class FirebaseController {
                     Log.d("bibibla", "onComplete: " + task.getException());
                 }
 
+            }
+        });
+    }
+
+    public void checkEditEvent(Event tempEvent) {
+        //get all event of the day want to update
+        LocalDate tempLC = mConvertTime.convertMiliToLocalDate(tempEvent.getDateStart());
+        long timeStart = mConvertTime.getMiliStartDayFromLocalDate(tempLC);
+        long timeEnd = mConvertTime.getMiliLastDayFromLocalDate(tempLC);
+        mDatabase.child("Event")
+                .orderByChild("dateStart")
+                .startAt(timeStart)
+                .endAt(timeEnd)
+                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if(task.isSuccessful()){
+                            DataSnapshot result = task.getResult();
+                            boolean canEdit = true;
+                            //check duplicate event
+                            for(DataSnapshot dataSnapshot : result.getChildren()){
+                                Event event1 = dataSnapshot.getValue(Event.class);
+                                if(event1.getRoom_id() == tempEvent.getRoom_id()){
+                                    if((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() < event1.getDateStart())
+                                            || (tempEvent.getDateStart() > event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd() )){
+                                        //can edit the event
+                                        continue;
+                                    } else {
+                                        canEdit = false;
+                                        break;
+                                    }
+                                } else {
+                                    //can edit the event
+                                    continue;
+                                }
+                            }
+                            //check can edit
+                            if(canEdit){
+                                callbackEditEvent.callbackEditEvent(tempEvent);
+                            } else {
+                                callbackEditEvent.callbackEditEvent(null);
+                            }
+                        } else {
+                            Log.d("bibibla", "onComplete: " + task.getException());
+                        }
+                    }
+                });
+    }
+
+    public void editEvent(Event event) {
+        mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                callbackEditEvent.editEventSuccess(event);
             }
         });
     }
