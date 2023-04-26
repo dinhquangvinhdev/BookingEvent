@@ -734,7 +734,7 @@ public final class FirebaseController {
                             //check duplicate event
                             for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event event1 = dataSnapshot.getValue(Event.class);
-                                if (event1.getRoom_id() == tempEvent.getRoom_id()) {
+                                if (event1.getStatus() == 0 && event1.getId() != tempEvent.getId() && event1.getRoom_id() == tempEvent.getRoom_id()) {
                                     if ((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() < event1.getDateStart())
                                             || (tempEvent.getDateStart() > event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd())) {
                                         //can edit the event

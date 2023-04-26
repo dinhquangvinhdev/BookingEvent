@@ -5,6 +5,7 @@ import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.model.Event;
+import com.vdev.bookingevent.model.Room;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,4 +56,33 @@ public class SearchPresenter implements SearchEventContract.Presenter{
             fc.getEventWithTitle(title);
         }
     }
+
+    @Override
+    public Event findEventInData(int idEvent) {
+        for (int i = 0; i < MData.arrEvent.size(); i++) {
+            Event tempEvent = MData.arrEvent.get(i);
+            if (tempEvent.getId() == idEvent && tempEvent.getStatus() == 0) {
+                return tempEvent;
+            }
+        }
+        return null;
+    }
+    @Override
+    public String convertTimeToStringDE(long dateStart, long dateEnd) {
+        String timeStart = mConvertTime.convertDateToString1(mConvertTime.convertMiliToDate(dateStart));
+        String timeEnd = mConvertTime.convertDateToString1(mConvertTime.convertMiliToDate(dateEnd));
+        return timeStart + "\n" + timeEnd;
+    }
+
+    @Override
+    public String getNameRoom(int room_id) {
+        for (int i = 0; i < MData.arrRoom.size(); i++) {
+            Room room = MData.arrRoom.get(i);
+            if (room.getId() == room_id) {
+                return room.getName();
+            }
+        }
+        return null;
+    }
+
 }

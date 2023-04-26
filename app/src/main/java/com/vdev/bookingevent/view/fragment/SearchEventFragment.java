@@ -1,9 +1,13 @@
 package com.vdev.bookingevent.view.fragment;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -13,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -23,19 +28,27 @@ import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.kizitonwose.calendar.core.CalendarDay;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
+import com.vdev.bookingevent.callback.CallbackDetailEvent;
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
 import com.vdev.bookingevent.callback.CallbackItemDayCalMonth;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MConvertTime;
+import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.common.MDialog;
+import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.databinding.FragmentSearchEventBinding;
+import com.vdev.bookingevent.databinding.LayoutDetailEventBinding;
 import com.vdev.bookingevent.model.Event;
+import com.vdev.bookingevent.model.Room;
+import com.vdev.bookingevent.model.User;
 import com.vdev.bookingevent.presenter.SearchEventContract;
 import com.vdev.bookingevent.presenter.SearchPresenter;
+import com.vdev.bookingevent.view.EditEventActivity;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,9 +56,13 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-public class SearchEventFragment extends Fragment implements CallbackItemCalDashMonth , SearchEventContract.View , CallbackUpdateEventDisplay {
+public class SearchEventFragment extends Fragment implements CallbackItemCalDashMonth , SearchEventContract.View ,
+        CallbackUpdateEventDisplay, CallbackDetailEvent {
     private SearchPresenter presenter;
+    private final String KEY_EVENT_EDIT_ACTIVITY = "KEY_EVENT_EDIT_ACTIVITY";
+    private final int REQUEST_CODE_EDIT_EVENT_ACTIVITY = 10;
     private FragmentSearchEventBinding binding;
+    private LayoutDetailEventBinding bindingDetailEvent;
     private MDialog mDialog;
     private EventsDashMonthAdapter adapter;
     final int year_now = Calendar.getInstance().get(Calendar.YEAR);
@@ -57,6 +74,10 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
     private DatePickerDialog dpd_end;
     private MConvertTime mConvertTime;
     private int index_room_choice = 0;
+    private FirebaseController fc;
+    private BottomSheetBehavior bsb;
+    private Dialog dialogDelete;
+    private Dialog confirmDeleteEvent;
 
     public SearchEventFragment() {
         super(R.layout.fragment_search_event);
@@ -67,6 +88,7 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         binding = FragmentSearchEventBinding.inflate(inflater , container , false);
+        bindingDetailEvent = binding.includeLayoutDetailEvent;
         return binding.getRoot();
     }
 
@@ -76,12 +98,32 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
         //init TimePicker and DatePicker
         initTimeAndDatePicker();
         //init dialog
-        mDialog = new MDialog();
+        initMDialog();
+        initFirebaseController();
         //init other view
         initPresenter();
+        initSlidingPanel();
         initView();
         initRecycleView();
         binding.btnFind.setOnClickListener(it -> {findEvent();});
+    }
+
+    private void initMDialog() {
+        if(mDialog == null){
+            mDialog = new MDialog();
+            confirmDeleteEvent = mDialog.confirmDialog(getContext(), "Confirm Delete Event", "Are you sure want to delete event ?");
+        }
+    }
+
+    private void initSlidingPanel() {
+        bsb = BottomSheetBehavior.from(binding.flBottomSheet);
+        bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
+    }
+
+    private void initFirebaseController() {
+        if(fc == null){
+            fc = new FirebaseController(this, null, null, this);
+        }
     }
 
     private void initPresenter() {
@@ -222,22 +264,162 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        if (confirmDeleteEvent.isShowing()) {
+            confirmDeleteEvent.dismiss();
+        }
+        if (dialogDelete != null && dialogDelete.isShowing()){
+            dialogDelete.dismiss();
+        }
     }
 
     @Override
     public void openSlidingPanel(int idEvent, String roomColor) {
-        //TODO open event detail
+        fc.getHostOfEvent(idEvent);
     }
 
     @Override
     public void updateEvent(List<Event> events) {
-        //TODO update adapter here
         adapter.setEvents(events);
         adapter.notifyDataSetChanged();
     }
 
     @Override
     public void deleteEventSuccess(Event event) {
-        // not do any thing here
+        bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
+        dialogDelete = mDialog.dialogDeleteSuccess(getContext(), event);
+        dialogDelete.show();
+    }
+
+    @Override
+    public void callbackShowSlidingPanel(User host, int idEvent) {
+        bsb.setState(BottomSheetBehavior.STATE_EXPANDED);
+        // find the event in data
+        Event event = presenter.findEventInData(idEvent);
+        if (event != null) {
+            Log.d("bibibla", "openSlidingPanel: " + "found event");
+            bindingDetailEvent.tvEventDetailTitle.setText(event.getTitle());
+            String textTime = presenter.convertTimeToStringDE(event.getDateStart(), event.getDateEnd());
+            bindingDetailEvent.tvEventDetailTime.setText(textTime);
+            String nameRoom = presenter.getNameRoom(event.getRoom_id());
+            bindingDetailEvent.tvEventSummary.setText(event.getSummery());
+            bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
+            if(fc.comparePriorityUser(host.getId()) != 0){
+                bindingDetailEvent.imgEditEvent.setVisibility(View.INVISIBLE);
+                bindingDetailEvent.imgDeleteEvent.setVisibility(View.INVISIBLE);
+            }
+            for(int i = 0; i< MData.arrRoom.size() ; i++){
+                Room room = MData.arrRoom.get(i);
+                if(room.getId() == event.getRoom_id()){
+                    bindingDetailEvent.imgColorRoom.setBackgroundColor(Color.parseColor(room.getColor()));
+                    break;
+                }
+            }
+            bindingDetailEvent.tvEventDetailParticipant.setText((event.getNumberParticipant() - 1) + " Guest");
+            bindingDetailEvent.imgDeleteEvent.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    confirmDeleteEvent.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            if (mDialog.checkConnection(getContext())) {
+                                fc.deleteEvent(event);
+                                confirmDeleteEvent.dismiss();
+                            } else {
+                                confirmDeleteEvent.dismiss();
+                            }
+                        }
+                    });
+                    confirmDeleteEvent.show();
+                }
+            });
+            bindingDetailEvent.imgEditEvent.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(getContext(), EditEventActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , event);
+                    intent.putExtras(bundle);
+                    startActivityForResult(intent, REQUEST_CODE_EDIT_EVENT_ACTIVITY);
+                }
+            });
+            //TODO recycle view Guest
+            //create adapter
+            //GuestEventDetailAdapter adapterGuest = new GuestEventDetailAdapter(presenter.getGuests(), presenter.getHost());
+            //bindingDetailEvent.rvGuest.setAdapter(adapterGuest);
+            //bindingDetailEvent.rvGuest.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
+        } else {
+            //TODO show notification or not do anything when not found event
+            Log.d("bibibla", "openSlidingPanel: " + "not found event");
+        }
+    }
+
+    private void updatedEventInSlidingPanel(Event updatedEvent) {
+        if(bsb != null && bsb.getState() == BottomSheetBehavior.STATE_EXPANDED){
+            if (updatedEvent != null) {
+                Log.d("bibibla", "openSlidingPanel: " + "found event");
+                bindingDetailEvent.tvEventDetailTitle.setText(updatedEvent.getTitle());
+                String textTime = presenter.convertTimeToStringDE(updatedEvent.getDateStart(), updatedEvent.getDateEnd());
+                bindingDetailEvent.tvEventDetailTime.setText(textTime);
+                String nameRoom = presenter.getNameRoom(updatedEvent.getRoom_id());
+                bindingDetailEvent.tvEventSummary.setText(updatedEvent.getSummery());
+                bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
+                for(int i=0 ; i<MData.arrRoom.size() ; i++){
+                    Room room = MData.arrRoom.get(i);
+                    if(room.getId() == updatedEvent.getRoom_id()){
+                        bindingDetailEvent.imgColorRoom.setBackgroundColor(Color.parseColor(room.getColor()));
+                        break;
+                    }
+                }
+                bindingDetailEvent.tvEventDetailParticipant.setText((updatedEvent.getNumberParticipant() - 1) + " Guest");
+                bindingDetailEvent.imgDeleteEvent.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        confirmDeleteEvent.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                if (mDialog.checkConnection(getContext())) {
+                                    fc.deleteEvent(updatedEvent);
+                                    confirmDeleteEvent.dismiss();
+                                } else {
+                                    confirmDeleteEvent.dismiss();
+                                }
+                            }
+                        });
+                        confirmDeleteEvent.show();
+                    }
+                });
+                bindingDetailEvent.imgEditEvent.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Intent intent = new Intent(getContext(), EditEventActivity.class);
+                        intent.putExtra(KEY_EVENT_EDIT_ACTIVITY , updatedEvent);
+                        startActivityForResult(intent, REQUEST_CODE_EDIT_EVENT_ACTIVITY);
+                    }
+                });
+                //TODO recycle view Guest
+                //create adapter
+                //GuestEventDetailAdapter adapterGuest = new GuestEventDetailAdapter(presenter.getGuests(), presenter.getHost());
+                //bindingDetailEvent.rvGuest.setAdapter(adapterGuest);
+                //bindingDetailEvent.rvGuest.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
+            }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == REQUEST_CODE_EDIT_EVENT_ACTIVITY){
+            if(resultCode == Activity.RESULT_OK){
+                Bundle bundle = data.getExtras();
+                Event updatedEvent;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    updatedEvent = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY, Event.class);
+                } else {
+                    updatedEvent = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY);
+                }
+                updatedEventInSlidingPanel(updatedEvent);
+            }
+        }
     }
 }
