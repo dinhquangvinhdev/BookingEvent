@@ -32,6 +32,7 @@ import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.DayViewContainer;
 import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
 import com.vdev.bookingevent.adapter.MonthViewContainer;
+import com.vdev.bookingevent.callback.CallbackDetailEvent;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
 import com.vdev.bookingevent.callback.CallbackItemDayCalMonth;
@@ -44,6 +45,7 @@ import com.vdev.bookingevent.databinding.FragmentDashboardMonthBinding;
 import com.vdev.bookingevent.databinding.LayoutDetailEventBinding;
 import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
+import com.vdev.bookingevent.model.User;
 import com.vdev.bookingevent.presenter.DashboardMonthContract;
 import com.vdev.bookingevent.presenter.DashboardMonthPresenter;
 import com.vdev.bookingevent.view.EditEventActivity;
@@ -60,7 +62,8 @@ import kotlin.Unit;
 import kotlin.jvm.functions.Function1;
 
 public class DashboardMonthFragment extends Fragment
-        implements DashboardMonthContract.View, CallbackItemCalDashMonth, CallbackItemDayCalMonth, CallbackUpdateEventDisplay {
+        implements DashboardMonthContract.View, CallbackItemCalDashMonth,
+        CallbackItemDayCalMonth, CallbackUpdateEventDisplay , CallbackDetailEvent {
 
     private final String KEY_EVENT_EDIT_ACTIVITY = "KEY_EVENT_EDIT_ACTIVITY";
     private final int REQUEST_CODE_EDIT_EVENT_ACTIVITY = 10;
@@ -140,7 +143,7 @@ public class DashboardMonthFragment extends Fragment
 
     private void initFirebaseController() {
         if (fc == null) {
-            fc = new FirebaseController(this, null, null);
+            fc = new FirebaseController(this, null, null,this);
             //get event in the first time
             int monthNow = Calendar.getInstance().get(Calendar.MONTH);
             fc.getAllEvent();
@@ -314,61 +317,7 @@ public class DashboardMonthFragment extends Fragment
 
     @Override
     public void openSlidingPanel(int idEvent, String roomColor) {
-        bsb.setState(BottomSheetBehavior.STATE_EXPANDED);
-        // find the event in data
-        Event event = presenter.findEventInData(idEvent);
-        if (event != null) {
-            Log.d("bibibla", "openSlidingPanel: " + "found event");
-            bindingDetailEvent.tvEventDetailTitle.setText(event.getTitle());
-            String textTime = presenter.convertTimeToStringDE(event.getDateStart(), event.getDateEnd());
-            bindingDetailEvent.tvEventDetailTime.setText(textTime);
-            String nameRoom = presenter.getNameRoom(event.getRoom_id());
-            bindingDetailEvent.tvEventSummary.setText(event.getSummery());
-            bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
-            for(int i=0 ; i<MData.arrRoom.size() ; i++){
-                Room room = MData.arrRoom.get(i);
-                if(room.getId() == event.getRoom_id()){
-                    bindingDetailEvent.imgColorRoom.setBackgroundColor(Color.parseColor(room.getColor()));
-                    break;
-                }
-            }
-            bindingDetailEvent.tvEventDetailParticipant.setText((event.getNumberParticipant() - 1) + " Guest");
-            bindingDetailEvent.imgDeleteEvent.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    confirmDeleteEvent.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if (mDialog.checkConnection(getContext())) {
-                                fc.deleteEvent(event);
-                                confirmDeleteEvent.dismiss();
-                            } else {
-                                confirmDeleteEvent.dismiss();
-                            }
-                        }
-                    });
-                    confirmDeleteEvent.show();
-                }
-            });
-            bindingDetailEvent.imgEditEvent.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(getContext(), EditEventActivity.class);
-                    Bundle bundle = new Bundle();
-                    bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , event);
-                    intent.putExtras(bundle);
-                    startActivityForResult(intent, REQUEST_CODE_EDIT_EVENT_ACTIVITY);
-                }
-            });
-            //TODO recycle view Guest
-            //create adapter
-            //GuestEventDetailAdapter adapterGuest = new GuestEventDetailAdapter(presenter.getGuests(), presenter.getHost());
-            //bindingDetailEvent.rvGuest.setAdapter(adapterGuest);
-            //bindingDetailEvent.rvGuest.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
-        } else {
-            //TODO show notification or not do anything when not found event
-            Log.d("bibibla", "openSlidingPanel: " + "not found event");
-        }
+        fc.getHostOfEvent(idEvent);
     }
 
     @Override
@@ -483,6 +432,69 @@ public class DashboardMonthFragment extends Fragment
                 //bindingDetailEvent.rvGuest.setAdapter(adapterGuest);
                 //bindingDetailEvent.rvGuest.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
             }
+        }
+    }
+
+    @Override
+    public void callbackShowSlidingPanel(User host, int idEvent) {
+        bsb.setState(BottomSheetBehavior.STATE_EXPANDED);
+        // find the event in data
+        Event event = presenter.findEventInData(idEvent);
+        if (event != null) {
+            Log.d("bibibla", "openSlidingPanel: " + "found event");
+            bindingDetailEvent.tvEventDetailTitle.setText(event.getTitle());
+            String textTime = presenter.convertTimeToStringDE(event.getDateStart(), event.getDateEnd());
+            bindingDetailEvent.tvEventDetailTime.setText(textTime);
+            String nameRoom = presenter.getNameRoom(event.getRoom_id());
+            bindingDetailEvent.tvEventSummary.setText(event.getSummery());
+            bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
+            if(fc.comparePriorityUser(host.getId()) != 0){
+                bindingDetailEvent.imgEditEvent.setVisibility(View.INVISIBLE);
+                bindingDetailEvent.imgDeleteEvent.setVisibility(View.INVISIBLE);
+            }
+            for(int i=0 ; i<MData.arrRoom.size() ; i++){
+                Room room = MData.arrRoom.get(i);
+                if(room.getId() == event.getRoom_id()){
+                    bindingDetailEvent.imgColorRoom.setBackgroundColor(Color.parseColor(room.getColor()));
+                    break;
+                }
+            }
+            bindingDetailEvent.tvEventDetailParticipant.setText((event.getNumberParticipant() - 1) + " Guest");
+            bindingDetailEvent.imgDeleteEvent.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    confirmDeleteEvent.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            if (mDialog.checkConnection(getContext())) {
+                                fc.deleteEvent(event);
+                                confirmDeleteEvent.dismiss();
+                            } else {
+                                confirmDeleteEvent.dismiss();
+                            }
+                        }
+                    });
+                    confirmDeleteEvent.show();
+                }
+            });
+            bindingDetailEvent.imgEditEvent.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(getContext(), EditEventActivity.class);
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , event);
+                    intent.putExtras(bundle);
+                    startActivityForResult(intent, REQUEST_CODE_EDIT_EVENT_ACTIVITY);
+                }
+            });
+            //TODO recycle view Guest
+            //create adapter
+            //GuestEventDetailAdapter adapterGuest = new GuestEventDetailAdapter(presenter.getGuests(), presenter.getHost());
+            //bindingDetailEvent.rvGuest.setAdapter(adapterGuest);
+            //bindingDetailEvent.rvGuest.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
+        } else {
+            //TODO show notification or not do anything when not found event
+            Log.d("bibibla", "openSlidingPanel: " + "not found event");
         }
     }
 }

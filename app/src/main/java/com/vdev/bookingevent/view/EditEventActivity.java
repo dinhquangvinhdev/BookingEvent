@@ -282,7 +282,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
 
     private void initFirebaseController() {
         if(fc == null){
-            fc = new FirebaseController(null , null, this);
+            fc = new FirebaseController(null , null, this, null);
         }
     }
 

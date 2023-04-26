@@ -107,7 +107,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
 
     private void initFC(){
         if(fc == null){
-            fc = new FirebaseController(this, this, null);
+            fc = new FirebaseController(this, this, null,null);
         }
     }
 

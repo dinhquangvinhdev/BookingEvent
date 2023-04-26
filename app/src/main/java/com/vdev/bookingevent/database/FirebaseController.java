@@ -1,6 +1,7 @@
 package com.vdev.bookingevent.database;
 
 import android.content.Context;
+import android.provider.ContactsContract;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -19,8 +20,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.vdev.bookingevent.callback.CallbackAddEvent;
+import com.vdev.bookingevent.callback.CallbackDetailEvent;
 import com.vdev.bookingevent.callback.CallbackEditEvent;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
+import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.common.MDialog;
@@ -45,13 +48,16 @@ public final class FirebaseController {
     private CallbackUpdateEventDisplay callbackUpdateEventDisplay;
     private CallbackAddEvent callbackAddEvent;
     private CallbackEditEvent callbackEditEvent;
+    private CallbackDetailEvent callbackDetailEvent;
 
-    public FirebaseController(CallbackUpdateEventDisplay callbackUpdateEventDisplay, CallbackAddEvent callbackAddEvent, CallbackEditEvent callbackEditEvent) {
+    public FirebaseController(CallbackUpdateEventDisplay callbackUpdateEventDisplay, CallbackAddEvent callbackAddEvent,
+                              CallbackEditEvent callbackEditEvent, CallbackDetailEvent callbackDetailEvent) {
         this.mDatabase = FirebaseDatabase.getInstance().getReference();
         mConvertTime = new MConvertTime();
         this.callbackUpdateEventDisplay = callbackUpdateEventDisplay;
         this.callbackAddEvent = callbackAddEvent;
         this.callbackEditEvent = callbackEditEvent;
+        this.callbackDetailEvent = callbackDetailEvent;
     }
 
     public void addEvent(Event event) {
@@ -769,38 +775,30 @@ public final class FirebaseController {
         });
     }
 
-    public void getDetailParticipantOfEvent(int idEvent){
-        mDatabase.child("Detail_participant").orderByChild("event_id").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+    public void getHostOfEvent(int eventId){
+        mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(eventId).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 if(task.isSuccessful()){
-                    DataSnapshot result = task.getResult();
-                    List<User> listUser = new ArrayList<>();
-                    for (DataSnapshot dataSnapshot : result.getChildren()) {
+                    for(DataSnapshot dataSnapshot : task.getResult().getChildren()){
                         Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
-                        for(int i=0 ; i<MData.arrUser.size() ; i++) {
-                            User user = MData.arrUser.get(i);
-                            if (user.getId() == detailParticipant.getUser_id()) {
-                                if (detailParticipant.getRole().compareTo("host") == 0) {
-                                    //add host to first
-                                    listUser.add(0, user);
-                                } else {
-                                    //add other to last
-                                    listUser.add(user);
+                        if(detailParticipant.getRole().compareTo(MConst.ROLE_HOST) == 0){
+                            for(int i=0 ; i<MData.arrUser.size() ; i++){
+                                User user = MData.arrUser.get(i);
+                                if(user.getId() == detailParticipant.getUser_id()){
+                                    callbackDetailEvent.callbackShowSlidingPanel(user, eventId);
+                                    break;
                                 }
-                                break;
                             }
+                            break;
                         }
                     }
-                    //TODO callbackUpdateDetail event in here return listUser
                 } else {
                     Log.d("bibibla", "onComplete: " + task.getException());
                 }
-
             }
         });
     }
-
     public void getArrHostOfArrEvent(List<Event> events){
         List<User> arrHost = Arrays.asList(new User[events.size()]);
 
@@ -811,7 +809,7 @@ public final class FirebaseController {
                     DataSnapshot result = task.getResult();
                     for (DataSnapshot dataSnapshot : result.getChildren()) {
                         Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
-                        if(detailParticipant.getRole().compareTo("host") == 0){
+                        if(detailParticipant.getRole().compareTo(MConst.ROLE_HOST) == 0){
                             for(int i=0 ; i<events.size() ; i++){
                                 if(events.get(i).getId() == detailParticipant.getEvent_id()){
                                     for(User user : MData.arrUser){
