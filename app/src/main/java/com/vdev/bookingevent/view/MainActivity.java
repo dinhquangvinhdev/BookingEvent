@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     private MainPresenter presenter;
     private MDialog mDialog;
     private Dialog dialogConfirmExit;
+    private FirebaseController fc;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,9 +42,21 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        initFirebaseController();
         initDialog();
         initPresenter();
         initView();
+    }
+
+    private void initFirebaseController() {
+        if(fc == null){
+            fc = new FirebaseController(null, null , null);
+            fc.getEmail();
+            fc.getUser();
+            fc.getRole();
+            fc.getRoom();
+            fc.getDepartment();
+        }
     }
 
     private void initDialog() {

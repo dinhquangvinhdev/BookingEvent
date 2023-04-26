@@ -13,13 +13,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.InputType;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -37,6 +35,7 @@ import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.databinding.FragmentAddEventBinding;
 import com.vdev.bookingevent.model.Event;
+import com.vdev.bookingevent.model.User;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -61,7 +60,10 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     private MConvertTime mConvertTime;
     private CallbackFragmentManager callbackFragmentManager;
     private Dialog dialogConfirmDeleteEvent;
+    private Dialog dialogDeleteEvent;
     private Dialog dialogEventOverlap;
+
+    private Event eventWantToAdd = new Event();
 
     public AddEventFragment(CallbackFragmentManager callbackFragmentManager) {
         // Required public constructor
@@ -241,6 +243,8 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                         tempEvent.setRoom_id(room_id);
                         tempEvent.setNumberParticipant(1);  // TODO change number participant
                         tempEvent.setStatus(0);
+                        //set event to local variable to create a loop when show event overlap
+                        eventWantToAdd = tempEvent;
                         fc.checkAddNewEvent(tempEvent);
                     } else {
                         mDialog.showTimeError(getContext());
@@ -285,43 +289,56 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     }
 
     @Override
-    public void callbackAddDetailParticipant() {
-        //show notification success add and update UI to the main home
-        mDialog.showDialogSuccess(getContext(), "Add Success" , "Add Event Success");
-        callbackFragmentManager.goToFragmentDashboard();
+    public void callbackAddDetailParticipant(boolean b) {
+        if(b){
+            //show notification success add and update UI to the main home
+            mDialog.showDialogSuccess(getContext(), "Add Success" , "Add Event Success");
+            callbackFragmentManager.goToFragmentDashboard();
+        } else {
+            mDialog.showFillData(getContext(), "Some error when add new Event");
+        }
+
     }
 
     @Override
     public void callbackCanAddNewEvent(Event event , List<Event> eventsDuplicate) {
         if(event != null) {
-            if (fc.addEvent(event)) {
-                if (!fc.addEventDetailParticipant(MData.id_event, MData.userLogin.getId(), MConst.ROLE_HOST)) {
-                    //notification can not add detail event
-                    mDialog.showFillData(getContext(), "Some error when add new Event");
-                }
-            } else {
-                //notification can not add event
-                mDialog.showFillData(getContext(), "Some error when add new Event");
-            }
+            fc.addEvent(event);
         } else {
-            dialogEventOverlap = mDialog.showEventsDuplicate(getContext(), eventsDuplicate);
-            //set title time
-            TextView tv = dialogEventOverlap.findViewById(R.id.tv_date);
-            Date date = mConvertTime.convertMiliToDate(eventsDuplicate.get(0).getDateStart());
-            tv.setText(mConvertTime.convertDateToString3(date));
-            //set recycle view
-            RecyclerView rv = dialogEventOverlap.findViewById(R.id.rv_event_overlap);
+            fc.getArrHostOfArrEvent(eventsDuplicate);
+        }
+    }
 
-            EventsOverlapAdapter adapter = new EventsOverlapAdapter(getContext(), eventsDuplicate, new OnItemEventOverlap() {
-                @Override
-                public void OnItemCLickListener(int position) {
-                    showDialogDeleteEvent(eventsDuplicate.get(position));
-                }
-            });
-            rv.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL , false));
-            rv.setAdapter(adapter);
-            //show dialog
-            dialogEventOverlap.show();
+    @Override
+    public void callbackGetHostEventOverlap(List<Event> eventsOverlap, List<User> hosts) {
+        dialogEventOverlap = mDialog.showEventsDuplicate(getContext(), eventsOverlap);
+        //set title time
+        TextView tv = dialogEventOverlap.findViewById(R.id.tv_date);
+        Date date = mConvertTime.convertMiliToDate(eventsOverlap.get(0).getDateStart());
+        tv.setText(mConvertTime.convertDateToString3(date));
+        //set recycle view
+        RecyclerView rv = dialogEventOverlap.findViewById(R.id.rv_event_overlap);
+
+        EventsOverlapAdapter adapter = new EventsOverlapAdapter(getContext(), eventsOverlap, hosts, new OnItemEventOverlap() {
+            @Override
+            public void OnItemCLickListener(int position) {
+                showDialogDeleteEvent(eventsOverlap.get(position));
+            }
+        });
+        rv.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL , false));
+        rv.setAdapter(adapter);
+        //show dialog
+        dialogEventOverlap.show();
+    }
+
+    @Override
+    public void callbackAddEventSuccess(boolean b) {
+        if(b){
+            //add detail participant
+            fc.addEventDetailParticipant(MData.id_event, MData.userLogin.getId(), MConst.ROLE_HOST);
+        } else {
+            //notification can not add event
+            mDialog.showFillData(getContext(), "Some error when add new Event");
         }
     }
 
@@ -337,7 +354,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
 
     @Override
     public void updateEvent(List<Event> events) {
-        //not do any thing here because we do not need it and reach it
+        //not do any thing here because we do not need to do here and reach here
     }
 
     @Override
@@ -347,7 +364,19 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
         if(dialogConfirmDeleteEvent != null && dialogConfirmDeleteEvent.isShowing()){
             dialogConfirmDeleteEvent.dismiss();
         }
+        if(dialogEventOverlap.isShowing()){
+            dialogEventOverlap.dismiss();
+        }
         //show delete success
-        mDialog.showDeleteSuccess(getContext() , event);
+        dialogDeleteEvent = mDialog.dialogDeleteSuccess(getContext() , event);
+        dialogDeleteEvent.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //update adapter of dialog event overlap by a loop
+                fc.checkAddNewEvent(eventWantToAdd);
+                dialogDeleteEvent.dismiss();
+            }
+        });
+        dialogDeleteEvent.show();
     }
 }

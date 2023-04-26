@@ -6,16 +6,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.view.View;
 import android.view.Window;
-import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.vdev.bookingevent.R;
-import com.vdev.bookingevent.adapter.EventsOverlapAdapter;
-import com.vdev.bookingevent.callback.OnItemEventOverlap;
 import com.vdev.bookingevent.model.Event;
 
 import java.util.List;
@@ -180,7 +173,7 @@ public class MDialog {
         dialogTimeError.show();
     }
 
-    public void showDeleteSuccess(Context context , Event event) {
+    public Dialog dialogDeleteSuccess(Context context , Event event) {
         Dialog dialogSuccess = new Dialog(context);
         dialogSuccess.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogSuccess.setCancelable(false);
@@ -205,7 +198,7 @@ public class MDialog {
             }
         });
 
-        dialogSuccess.show();
+        return dialogSuccess;
     }
 
     public Dialog showEventsDuplicate(Context context , List<Event> eventsDuplicate){

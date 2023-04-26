@@ -14,7 +14,6 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,7 +31,6 @@ import com.kizitonwose.calendar.view.MonthHeaderFooterBinder;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.DayViewContainer;
 import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
-import com.vdev.bookingevent.adapter.GuestEventDetailAdapter;
 import com.vdev.bookingevent.adapter.MonthViewContainer;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
@@ -48,18 +46,11 @@ import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
 import com.vdev.bookingevent.presenter.DashboardMonthContract;
 import com.vdev.bookingevent.presenter.DashboardMonthPresenter;
-import com.vdev.bookingevent.view.DetailAccountActivity;
 import com.vdev.bookingevent.view.EditEventActivity;
 
 import java.time.DayOfWeek;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.YearMonth;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.time.format.TextStyle;
 import java.util.Calendar;
 import java.util.List;
@@ -83,6 +74,7 @@ public class DashboardMonthFragment extends Fragment
     private MConvertTime mConvertTime;
     private BottomSheetBehavior bsb;
     private Dialog confirmDeleteEvent;
+    private Dialog dialogDelete;
     private MDialog mDialog;
 
     public DashboardMonthFragment() {
@@ -153,10 +145,6 @@ public class DashboardMonthFragment extends Fragment
             int monthNow = Calendar.getInstance().get(Calendar.MONTH);
             fc.getAllEvent();
             //fc.getEventInRange2(MData.getStartMonth(monthNow), MData.getEndMonth(monthNow));
-            //get room
-            fc.getRoom();
-            //get department
-            fc.getDepartment();
         }
     }
 
@@ -319,6 +307,9 @@ public class DashboardMonthFragment extends Fragment
         if (confirmDeleteEvent.isShowing()) {
             confirmDeleteEvent.dismiss();
         }
+        if (dialogDelete != null && dialogDelete.isShowing()){
+            dialogDelete.dismiss();
+        }
     }
 
     @Override
@@ -421,7 +412,8 @@ public class DashboardMonthFragment extends Fragment
     @Override
     public void deleteEventSuccess(Event event) {
         bsb.setState(BottomSheetBehavior.STATE_HIDDEN);
-        mDialog.showDeleteSuccess(getContext(), event);
+        dialogDelete = mDialog.dialogDeleteSuccess(getContext(), event);
+        dialogDelete.show();
     }
 
     @Override

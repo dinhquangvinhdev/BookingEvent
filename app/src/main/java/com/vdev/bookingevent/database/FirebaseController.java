@@ -28,6 +28,7 @@ import com.vdev.bookingevent.model.Department;
 import com.vdev.bookingevent.model.Detail_participant;
 import com.vdev.bookingevent.model.Email;
 import com.vdev.bookingevent.model.Event;
+import com.vdev.bookingevent.model.Role;
 import com.vdev.bookingevent.model.Room;
 import com.vdev.bookingevent.model.User;
 import com.vdev.bookingevent.presenter.LoginContract;
@@ -35,7 +36,7 @@ import com.vdev.bookingevent.view.MainActivity;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Arrays;
 import java.util.List;
 
 public final class FirebaseController {
@@ -45,55 +46,51 @@ public final class FirebaseController {
     private CallbackAddEvent callbackAddEvent;
     private CallbackEditEvent callbackEditEvent;
 
-    public FirebaseController(CallbackUpdateEventDisplay callbackUpdateEventDisplay, CallbackAddEvent callbackAddEvent , CallbackEditEvent callbackEditEvent) {
+    public FirebaseController(CallbackUpdateEventDisplay callbackUpdateEventDisplay, CallbackAddEvent callbackAddEvent, CallbackEditEvent callbackEditEvent) {
         this.mDatabase = FirebaseDatabase.getInstance().getReference();
         mConvertTime = new MConvertTime();
         this.callbackUpdateEventDisplay = callbackUpdateEventDisplay;
         this.callbackAddEvent = callbackAddEvent;
         this.callbackEditEvent = callbackEditEvent;
-
-        mDatabase.child("Event").orderByKey().limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for(DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Event event = dataSnapshot.getValue(Event.class);
-                    MData.id_event = event.getId();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.w("bibibla", "loadEvent:onCancelled", error.toException());
-            }
-        });
-        mDatabase.child("Detail_participant").orderByKey().limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for(DataSnapshot dataSnapshot : snapshot.getChildren()){
-                    MData.id_detail_participant = Integer.parseInt(dataSnapshot.getKey());
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.w("bibibla", "loadEvent:onCancelled", error.toException());
-            }
-        });
     }
 
-    public boolean addEvent(Event event){
+    public void addEvent(Event event) {
         //TODO check internet when call this function
-
-        if(MData.id_event != -1){
-            MData.id_event += 1;
-            event.setId(MData.id_event);
-            mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event);
-            return true;
-        } else {
-            return false;
-        }
+        //get the last item and the id event newest
+        mDatabase.child("Event").orderByKey().limitToLast(1).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if(task.isSuccessful()){
+                    for(DataSnapshot snapshot : task.getResult().getChildren()){
+                        Event event1 = snapshot.getValue(Event.class);
+                        MData.id_event = event1.getId();
+                        //add event
+                        if (MData.id_event != -1) {
+                            MData.id_event += 1;
+                            event.setId(MData.id_event);
+                            mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if(task.isSuccessful()){
+                                        callbackAddEvent.callbackAddEventSuccess(true);
+                                    } else {
+                                        callbackAddEvent.callbackAddEventSuccess(false);
+                                    }
+                                }
+                            });
+                        } else {
+                            callbackAddEvent.callbackAddEventSuccess(false);
+                        }
+                        break;
+                    }
+                } else {
+                    callbackAddEvent.callbackAddEventSuccess(false);
+                }
+            }
+        });
     }
-    public boolean addEventDetailParticipant(int event_id , int user_id , String role){
+
+    public void addEventDetailParticipant(int event_id, int user_id, String role) {
         //TODO check internet when call this function
         Detail_participant detailParticipant = new Detail_participant();
         detailParticipant.setEvent_id(event_id);
@@ -102,40 +99,46 @@ public final class FirebaseController {
 
         Log.d("bibibla", "addEventDetailParticipant: calling here");
 
-        //add event detail
-        if(MData.id_detail_participant != -1){  //can not update while not update the last data from backend
-            MData.id_detail_participant += 1;
-            mDatabase.child("Detail_participant").child(String.valueOf(MData.id_detail_participant)).setValue(detailParticipant);
-            mDatabase.child("Detail_participant").orderByKey().limitToLast(1).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    for(DataSnapshot dataSnapshot : snapshot.getChildren()){
-                        if(Integer.parseInt(dataSnapshot.getKey()) == MData.id_detail_participant){
-                            callbackAddEvent.callbackAddDetailParticipant();
+        //get the last id of detail_participant
+        mDatabase.child("Detail_participant").orderByKey().limitToLast(1).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if(task.isSuccessful()){
+                    for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
+                        MData.id_detail_participant = Integer.parseInt(dataSnapshot.getKey());
+                        //add detail participant
+                        if (MData.id_detail_participant != -1) {  //can not update while not update the last data from backend
+                            MData.id_detail_participant += 1;
+                            mDatabase.child("Detail_participant").child(String.valueOf(MData.id_detail_participant)).setValue(detailParticipant).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        callbackAddEvent.callbackAddDetailParticipant(true);
+                                    } else {
+                                        callbackAddEvent.callbackAddDetailParticipant(false);
+                                    }
+                                }
+                            });
+                        } else {
+                            callbackAddEvent.callbackAddDetailParticipant(false);
                         }
                     }
+                } else {
+                    Log.d("bibibla", "onComplete: " + task.getException());
                 }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-
-                }
-            });
-            return true;
-        } else {
-            return false;
-        }
+            }
+        });
     }
-    public void getRoom(){
-        //TODO check internet when call this function
 
+    public void getRoom() {
+        //TODO check internet when call this function
         ValueEventListener roomListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 //get room
-                for(DataSnapshot dataSnapshot : snapshot.getChildren()){
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Room rom = dataSnapshot.getValue(Room.class);
-                    if(rom != null && !MData.arrRoom.contains(rom)){
+                    if (rom != null && !MData.arrRoom.contains(rom)) {
                         MData.arrRoom.add(rom);
                     }
                 }
@@ -149,7 +152,8 @@ public final class FirebaseController {
 
         mDatabase.child("Room").addValueEventListener(roomListener);
     }
-    public void getDepartment(){
+
+    public void getDepartment() {
         //TODO check internet when call this function
 
         ValueEventListener departmentListener = new ValueEventListener() {
@@ -157,9 +161,9 @@ public final class FirebaseController {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 MData.arrDepartment.clear();
                 //get department
-                for(DataSnapshot dataSnapshot : snapshot.getChildren()){
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Department department = dataSnapshot.getValue(Department.class);
-                    if(department != null && !MData.arrDepartment.contains(department)){
+                    if (department != null && !MData.arrDepartment.contains(department)) {
                         MData.arrDepartment.add(department);
                     }
                 }
@@ -173,14 +177,147 @@ public final class FirebaseController {
 
         mDatabase.child("Department").addValueEventListener(departmentListener);
     }
-    public void getAllEvent(){
+
+    public void getUser() {
+        mDatabase.child("User").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                User user = snapshot.getValue(User.class);
+                if (user != null && !MData.arrUser.contains(user)) {
+                    MData.arrUser.add(user);
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                User user = snapshot.getValue(User.class);
+                for (int i = 0; i < MData.arrUser.size(); i++) {
+                    if (MData.arrUser.get(i).getId() == user.getId()) {
+                        MData.arrUser.set(i, user);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                User user = snapshot.getValue(User.class);
+                for (int i = 0; i < MData.arrUser.size(); i++) {
+                    if (MData.arrUser.get(i).getId() == user.getId()) {
+                        MData.arrUser.remove(i);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                Log.d("bibibla", "onChildMoved: ");
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.d("bibibla", "onChildCancelled: ");
+            }
+        });
+    }
+
+    public void getEmail() {
+        mDatabase.child("Email").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                Email email = snapshot.getValue(Email.class);
+                if (email != null && !MData.arrEvent.contains(email)) {
+                    MData.arrEmail.add(email);
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                Email email = snapshot.getValue(Email.class);
+                for (int i = 0; i < MData.arrEmail.size(); i++) {
+                    if (MData.arrEmail.get(i).getId() == email.getId()) {
+                        MData.arrEmail.set(i, email);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                Email email = snapshot.getValue(Email.class);
+                for (int i = 0; i < MData.arrEmail.size(); i++) {
+                    if (MData.arrEmail.get(i).getId() == email.getId()) {
+                        MData.arrEmail.remove(i);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                Log.d("bibibla", "onChildMoved: ");
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.d("bibibla", "onChildCancelled: ");
+            }
+        });
+    }
+
+    public void getRole() {
+        mDatabase.child("Role").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                Role role = snapshot.getValue(Role.class);
+                if (role != null && !MData.arrRole.contains(role)) {
+                    MData.arrRole.add(role);
+                }
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                Role role = snapshot.getValue(Role.class);
+                for (int i = 0; i < MData.arrRole.size(); i++) {
+                    if (MData.arrRole.get(i).getId() == role.getId()) {
+                        MData.arrRole.set(i, role);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                Role role = snapshot.getValue(Role.class);
+                for (int i = 0; i < MData.arrRole.size(); i++) {
+                    if (MData.arrRole.get(i).getId() == role.getId()) {
+                        MData.arrRole.remove(i);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                Log.d("bibibla", "onChildMoved: ");
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.d("bibibla", "onChildCancelled: ");
+            }
+        });
+    }
+
+    public void getAllEvent() {
         mDatabase.child("Event").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 //must check != null because may be user in the add activity
-                if(callbackUpdateEventDisplay != null) {
+                if (callbackUpdateEventDisplay != null) {
                     Event event = snapshot.getValue(Event.class);
-                    if(event != null && !MData.arrEvent.contains(event) && event.getStatus() == 0){
+                    if (event != null && !MData.arrEvent.contains(event) && event.getStatus() == 0) {
                         MData.arrEvent.add(event);
                     }
                     callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
@@ -190,13 +327,13 @@ public final class FirebaseController {
             @Override
             public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
                 //must check because may be user in the add activity
-                if(callbackUpdateEventDisplay != null) {
+                if (callbackUpdateEventDisplay != null) {
                     Event event = snapshot.getValue(Event.class);
-                    if(event != null){
+                    if (event != null) {
                         //update status event
-                        for(int i=0 ; i< MData.arrEvent.size() ; i++){
+                        for (int i = 0; i < MData.arrEvent.size(); i++) {
                             Event tempEvent = MData.arrEvent.get(i);
-                            if(tempEvent.getId() == event.getId()){
+                            if (tempEvent.getId() == event.getId()) {
                                 MData.arrEvent.set(i, event);
                                 break;
                             }
@@ -210,9 +347,9 @@ public final class FirebaseController {
             @Override
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
                 //must check because may be user in the add activity
-                if(callbackUpdateEventDisplay != null) {
+                if (callbackUpdateEventDisplay != null) {
                     Event event = snapshot.getValue(Event.class);
-                    if(event != null){
+                    if (event != null) {
                         MData.arrEvent.remove(event);
                         callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
                         Log.d("bibibla", "onChildReMoved: " + event.getTitle());
@@ -222,7 +359,7 @@ public final class FirebaseController {
 
             @Override
             public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                if(callbackUpdateEventDisplay != null) {
+                if (callbackUpdateEventDisplay != null) {
                     callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
                     Log.d("bibibla", "onChildMoved: " + previousChildName);
                 }
@@ -234,26 +371,27 @@ public final class FirebaseController {
             }
         });
     }
-    public void getEventInRange2(long startTime, long endTime){
+
+    public void getEventInRange2(long startTime, long endTime) {
         //TODO check internet when call this function
 
         mDatabase.child("Event")
                 .orderByChild("dateStart")
-                .startAt(startTime,"dateStart")
+                .startAt(startTime, "dateStart")
                 .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for(DataSnapshot dataSnapshot : snapshot.getChildren()){
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                             Event tempEvent = dataSnapshot.getValue(Event.class);
-                            if(tempEvent.getDateEnd() <= endTime){
-                                if(!MData.arrEvent.contains(tempEvent)) {
+                            if (tempEvent.getDateEnd() <= endTime) {
+                                if (!MData.arrEvent.contains(tempEvent)) {
                                     //add event if it not exist
                                     MData.arrEvent.add(tempEvent);
                                 } else {
                                     //update event if it exist
-                                    for(int i=0 ; i<MData.arrEvent.size() ; i++){
+                                    for (int i = 0; i < MData.arrEvent.size(); i++) {
                                         Event event = MData.arrEvent.get(i);
-                                        if(event.getId() == tempEvent.getId()){
+                                        if (event.getId() == tempEvent.getId()) {
                                             MData.arrEvent.set(i, tempEvent);
                                             break;
                                         }
@@ -270,14 +408,15 @@ public final class FirebaseController {
                     }
                 });
     }
+
     public void getEventWithRoomId(String title, int roomId, String startDate, String endDate) {
         //TODO check internet when call this function
         //convert time
-        long startDateMili = -1 , endDateMili = -1;
-        if(!startDate.equals("")){
+        long startDateMili = -1, endDateMili = -1;
+        if (!startDate.equals("")) {
             startDateMili = mConvertTime.convertStringToMili(startDate);
         }
-        if(!endDate.equals("")){
+        if (!endDate.equals("")) {
             endDateMili = mConvertTime.convertStringToMili(endDate);
         }
 
@@ -290,32 +429,32 @@ public final class FirebaseController {
                 .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if(task.isSuccessful()){
+                        if (task.isSuccessful()) {
                             List<Event> arrEventResult = new ArrayList<>();
                             DataSnapshot result = task.getResult();
-                            for(DataSnapshot dataSnapshot : result.getChildren()){
+                            for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event tempEvent = dataSnapshot.getValue(Event.class);
                                 //check event is deleted
-                                if(tempEvent == null || tempEvent.getStatus() == -1){
+                                if (tempEvent == null || tempEvent.getStatus() == -1) {
                                     continue;
                                 }
                                 //check filter
-                               if(!title.equals("")){
-                                    if(!tempEvent.getTitle().contains(title)){
+                                if (!title.equals("")) {
+                                    if (!tempEvent.getTitle().contains(title)) {
                                         continue;
                                     }
-                               }
-                               if(finalStartDateMili >= 0){
-                                    if(tempEvent.getDateStart() < finalStartDateMili){
+                                }
+                                if (finalStartDateMili >= 0) {
+                                    if (tempEvent.getDateStart() < finalStartDateMili) {
                                         continue;
                                     }
-                               }
-                               if(finalEndDateMili >= 0){
-                                   if(tempEvent.getDateEnd() > finalEndDateMili){
-                                       continue;
-                                   }
-                               }
-                               //add event
+                                }
+                                if (finalEndDateMili >= 0) {
+                                    if (tempEvent.getDateEnd() > finalEndDateMili) {
+                                        continue;
+                                    }
+                                }
+                                //add event
                                 arrEventResult.add(tempEvent);
                             }
                             //call back
@@ -326,23 +465,24 @@ public final class FirebaseController {
                     }
                 });
     }
+
     public void getEventWithTitle(String title) {
         //TODO check internet when call this function
         mDatabase.child("Event")
                 .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if(task.isSuccessful()) {
+                        if (task.isSuccessful()) {
                             List<Event> arrEventResult = new ArrayList<>();
                             DataSnapshot result = task.getResult();
                             for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event tempEvent = dataSnapshot.getValue(Event.class);
                                 //check event is deleted
-                                if(tempEvent == null || tempEvent.getStatus() == -1){
+                                if (tempEvent == null || tempEvent.getStatus() == -1) {
                                     continue;
                                 }
                                 //filter
-                                if(tempEvent.getTitle().contains(title)){
+                                if (tempEvent.getTitle().contains(title)) {
                                     arrEventResult.add(tempEvent);
                                 }
                             }
@@ -354,13 +494,14 @@ public final class FirebaseController {
                     }
                 });
     }
+
     public void getEventWithStartDate(String title, String startDate, String endDate) {
         //TODO check internet when call this function
-        long startDateMili = -1 , endDateMili = -1;
-        if(!startDate.equals("")){
+        long startDateMili = -1, endDateMili = -1;
+        if (!startDate.equals("")) {
             startDateMili = mConvertTime.convertStringToMili(startDate);
         }
-        if(!endDate.equals("")){
+        if (!endDate.equals("")) {
             endDateMili = mConvertTime.convertStringToMili(endDate);
         }
 
@@ -373,23 +514,23 @@ public final class FirebaseController {
                 .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if(task.isSuccessful()) {
+                        if (task.isSuccessful()) {
                             List<Event> arrEventResult = new ArrayList<>();
                             DataSnapshot result = task.getResult();
                             for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event tempEvent = dataSnapshot.getValue(Event.class);
                                 //check event is deleted
-                                if(tempEvent == null || tempEvent.getStatus() == -1){
+                                if (tempEvent == null || tempEvent.getStatus() == -1) {
                                     continue;
                                 }
                                 //filter
-                                if(!title.equals("")){
-                                    if(!tempEvent.getTitle().contains(title)){
+                                if (!title.equals("")) {
+                                    if (!tempEvent.getTitle().contains(title)) {
                                         continue;
                                     }
                                 }
-                                if(finalEndDateMili >= 0){
-                                    if(tempEvent.getDateEnd() > finalEndDateMili){
+                                if (finalEndDateMili >= 0) {
+                                    if (tempEvent.getDateEnd() > finalEndDateMili) {
                                         continue;
                                     }
                                 }
@@ -404,10 +545,11 @@ public final class FirebaseController {
                     }
                 });
     }
+
     public void getEventWithEndDate(String title, String endDate) {
         //TODO check internet when call this function
-        long startDateMili = -1 , endDateMili = -1;
-        if(!endDate.equals("")){
+        long startDateMili = -1, endDateMili = -1;
+        if (!endDate.equals("")) {
             endDateMili = mConvertTime.convertStringToMili(endDate);
         }
         //query
@@ -417,18 +559,18 @@ public final class FirebaseController {
                 .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if(task.isSuccessful()) {
+                        if (task.isSuccessful()) {
                             List<Event> arrEventResult = new ArrayList<>();
                             DataSnapshot result = task.getResult();
                             for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event tempEvent = dataSnapshot.getValue(Event.class);
                                 //check event is deleted
-                                if(tempEvent == null || tempEvent.getStatus() == -1){
+                                if (tempEvent == null || tempEvent.getStatus() == -1) {
                                     continue;
                                 }
                                 //filter
-                                if(!title.equals("")){
-                                    if(!tempEvent.getTitle().contains(title)){
+                                if (!title.equals("")) {
+                                    if (!tempEvent.getTitle().contains(title)) {
                                         continue;
                                     }
                                 }
@@ -443,6 +585,7 @@ public final class FirebaseController {
                     }
                 });
     }
+
     public void checkAddNewEvent(Event tempEvent) {
         //get all event of the day want to add
         LocalDate tempLC = mConvertTime.convertMiliToLocalDate(tempEvent.getDateStart());
@@ -452,18 +595,18 @@ public final class FirebaseController {
                 .orderByChild("dateStart")
                 .startAt(timeStart)
                 .endAt(timeEnd)
-                        .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if(task.isSuccessful()){
+                        if (task.isSuccessful()) {
                             DataSnapshot result = task.getResult();
                             List<Event> eventsDuplicate = new ArrayList<>();
                             //check duplicate event
-                            for(DataSnapshot dataSnapshot : result.getChildren()){
+                            for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event event1 = dataSnapshot.getValue(Event.class);
-                                if(event1.getStatus() == 0 && event1.getRoom_id() == tempEvent.getRoom_id()){
-                                    if((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() < event1.getDateStart())
-                                        || (tempEvent.getDateStart() > event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd() )){
+                                if (event1.getStatus() == 0 && event1.getRoom_id() == tempEvent.getRoom_id()) {
+                                    if ((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() < event1.getDateStart())
+                                            || (tempEvent.getDateStart() > event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd())) {
                                         //can add the event
                                         continue;
                                     } else {
@@ -475,10 +618,10 @@ public final class FirebaseController {
                                 }
                             }
                             //check can add
-                            if(eventsDuplicate.isEmpty()){
+                            if (eventsDuplicate.isEmpty()) {
                                 callbackAddEvent.callbackCanAddNewEvent(tempEvent, eventsDuplicate);
                             } else {
-                                callbackAddEvent.callbackCanAddNewEvent(null , eventsDuplicate);
+                                callbackAddEvent.callbackCanAddNewEvent(null, eventsDuplicate);
                             }
                         } else {
                             Log.d("bibibla", "onComplete: " + task.getException());
@@ -487,26 +630,27 @@ public final class FirebaseController {
                 });
 
     }
+
     public void checkUserAccount(LoginContract.View view, Context context, MDialog mDialog, String uid, String email) {
 
         mDatabase.child("Email").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if(task.isSuccessful()) {
+                if (task.isSuccessful()) {
                     DataSnapshot result = task.getResult();
                     boolean check = false;
                     // check account
-                    for(DataSnapshot dataSnapshot : result.getChildren()){
+                    for (DataSnapshot dataSnapshot : result.getChildren()) {
                         Email email1 = dataSnapshot.getValue(Email.class);
-                        if(email1.getId().equals(uid)){
+                        if (email1.getId().equals(uid)) {
                             //start main activity
                             check = true;
                             break;
                         }
                     }
                     // notification account not active
-                    if (!check){
-                        mDialog.showFillData(context , "The account is not activated");
+                    if (!check) {
+                        mDialog.showFillData(context, "The account is not activated");
                         //logout account
                         logoutAccount(context);
                         view.turnOffProgressBar();
@@ -526,9 +670,9 @@ public final class FirebaseController {
         mDatabase.child("User").orderByChild("email_id").equalTo(email_id).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for(DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     MData.userLogin = dataSnapshot.getValue(User.class);
-                    Log.d("bibibla" , "user name : " + MData.userLogin.getFullName());
+                    Log.d("bibibla", "user name : " + MData.userLogin.getFullName());
                 }
             }
 
@@ -555,7 +699,7 @@ public final class FirebaseController {
         mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     //notification if delete success
                     callbackUpdateEventDisplay.deleteEventSuccess(event);
                 } else {
@@ -578,15 +722,15 @@ public final class FirebaseController {
                 .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if(task.isSuccessful()){
+                        if (task.isSuccessful()) {
                             DataSnapshot result = task.getResult();
                             boolean canEdit = true;
                             //check duplicate event
-                            for(DataSnapshot dataSnapshot : result.getChildren()){
+                            for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event event1 = dataSnapshot.getValue(Event.class);
-                                if(event1.getRoom_id() == tempEvent.getRoom_id()){
-                                    if((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() < event1.getDateStart())
-                                            || (tempEvent.getDateStart() > event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd() )){
+                                if (event1.getRoom_id() == tempEvent.getRoom_id()) {
+                                    if ((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() < event1.getDateStart())
+                                            || (tempEvent.getDateStart() > event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd())) {
                                         //can edit the event
                                         continue;
                                     } else {
@@ -599,7 +743,7 @@ public final class FirebaseController {
                                 }
                             }
                             //check can edit
-                            if(canEdit){
+                            if (canEdit) {
                                 callbackEditEvent.callbackEditEvent(tempEvent);
                             } else {
                                 callbackEditEvent.callbackEditEvent(null);
@@ -615,8 +759,162 @@ public final class FirebaseController {
         mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                callbackEditEvent.editEventSuccess(event);
+                if(task.isSuccessful()){
+                    callbackEditEvent.editEventSuccess(event);
+                } else {
+                    Log.d("bibibla", "onComplete: " + task.getException());
+                }
+
             }
         });
+    }
+
+    public void getDetailParticipantOfEvent(int idEvent){
+        mDatabase.child("Detail_participant").orderByChild("event_id").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if(task.isSuccessful()){
+                    DataSnapshot result = task.getResult();
+                    List<User> listUser = new ArrayList<>();
+                    for (DataSnapshot dataSnapshot : result.getChildren()) {
+                        Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
+                        for(int i=0 ; i<MData.arrUser.size() ; i++) {
+                            User user = MData.arrUser.get(i);
+                            if (user.getId() == detailParticipant.getUser_id()) {
+                                if (detailParticipant.getRole().compareTo("host") == 0) {
+                                    //add host to first
+                                    listUser.add(0, user);
+                                } else {
+                                    //add other to last
+                                    listUser.add(user);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    //TODO callbackUpdateDetail event in here return listUser
+                } else {
+                    Log.d("bibibla", "onComplete: " + task.getException());
+                }
+
+            }
+        });
+    }
+
+    public void getArrHostOfArrEvent(List<Event> events){
+        List<User> arrHost = Arrays.asList(new User[events.size()]);
+
+        mDatabase.child("Detail_participant").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if(task.isSuccessful()){
+                    DataSnapshot result = task.getResult();
+                    for (DataSnapshot dataSnapshot : result.getChildren()) {
+                        Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
+                        if(detailParticipant.getRole().compareTo("host") == 0){
+                            for(int i=0 ; i<events.size() ; i++){
+                                if(events.get(i).getId() == detailParticipant.getEvent_id()){
+                                    for(User user : MData.arrUser){
+                                        if(user.getId() == detailParticipant.getUser_id()){
+                                            //set with the index of event
+                                            arrHost.set(i, user);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    //TODO callbackUpdateDetail event in here return arrHost and events
+                    callbackAddEvent.callbackGetHostEventOverlap(events, arrHost);
+                } else {
+                    Log.d("bibibla", "onComplete: " + task.getException());
+                }
+
+            }
+        });
+    }
+
+    /**
+     * This method will return 3 case
+     * -1 : something bad happen when compare
+     * 0 : the login have higher than the host
+     * 1 : the host have higher or equal than the login
+     * @param userId
+     * @return
+     */
+    public int comparePriorityUser(int userId) {
+
+        //compare id if the login is the host so they can edit any thing to their event
+        if(userId == MData.userLogin.getId()){
+            return 0;
+        }
+
+        int role_id_user_login = -1 ,role_id_host = -1;
+        String email_id_login = null, email_id_host = null;
+        int priority_login = -1 , priority_host = -1;
+
+        for(int i=0 ; i< MData.arrUser.size() ; i++){
+            User user = MData.arrUser.get(i);
+            if(user.getId() == userId){
+                email_id_host = user.getEmail_id();
+            } else if(user.getId() == MData.userLogin.getId()){
+                email_id_login = user.getEmail_id();
+            }
+
+            //save time to find
+            if(email_id_host != null && email_id_login != null){
+                break;
+            }
+        }
+
+        //check if not found email return bad
+        if(email_id_host == null || email_id_login == null){
+            return -1;
+        }
+
+        for(int j=0 ; j<MData.arrEmail.size() ; j++){
+            Email email = MData.arrEmail.get(j);
+            if(email.getId().compareTo(email_id_login) == 0){
+                role_id_user_login = email.getRole_id();
+            } else if(email.getId().compareTo(email_id_host) == 0){
+                role_id_host = email.getRole_id();
+            }
+
+            //save time find
+            if(role_id_host != -1 && role_id_user_login != -1){
+                break;
+            }
+        }
+
+        //check if not found email return bad
+        if(role_id_host == -1 || role_id_user_login == -1){
+            return -1;
+        }
+
+        for(int i=0 ; i<MData.arrRole.size() ; i++){
+            Role role = MData.arrRole.get(i);
+            if(role.getId() == role_id_user_login){
+                priority_login = role.getPriority();
+            } else if(role.getId() == role_id_host){
+                priority_host = role.getPriority();
+            }
+
+            //save time find
+            if(priority_host != -1 && priority_login != -1){
+                break;
+            }
+        }
+
+        //check if not found email return bad
+        if(priority_host == -1 || priority_login == -1){
+            return -1;
+        }
+
+        //compare priority
+        if(priority_login > priority_host){
+            return 0;
+        } else {
+            return 1;
+        }
     }
 }
