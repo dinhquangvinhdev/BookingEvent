@@ -62,6 +62,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     private Dialog dialogConfirmDeleteEvent;
     private Dialog dialogDeleteEvent;
     private Dialog dialogEventOverlap;
+    private Dialog dialogAddSuccess;
 
     private Event eventWantToAdd = new Event();
 
@@ -286,14 +287,34 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+
+        if(dialogDeleteEvent != null && dialogDeleteEvent.isShowing()){
+            dialogDeleteEvent.dismiss();
+        }
+        if(dialogAddSuccess != null && dialogAddSuccess.isShowing()){
+            dialogAddSuccess.dismiss();
+        }
+        if(dialogConfirmDeleteEvent != null && dialogConfirmDeleteEvent.isShowing()){
+            dialogConfirmDeleteEvent.dismiss();
+        }
+        if(dialogEventOverlap != null && dialogEventOverlap.isShowing()){
+            dialogEventOverlap.dismiss();
+        }
     }
 
     @Override
     public void callbackAddDetailParticipant(boolean b) {
         if(b){
             //show notification success add and update UI to the main home
-            mDialog.showDialogSuccess(getContext(), "Add Success" , "Add Event Success");
-            callbackFragmentManager.goToFragmentDashboard();
+            dialogAddSuccess = mDialog.showDialogSuccess(getContext(), "Add Success" , "Add Event Success");
+            dialogAddSuccess.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    dialogAddSuccess.dismiss();
+                    callbackFragmentManager.goToFragmentDashboard();
+                }
+            });
+            dialogAddSuccess.show();
         } else {
             mDialog.showFillData(getContext(), "Some error when add new Event");
         }

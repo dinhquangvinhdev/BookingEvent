@@ -122,7 +122,7 @@ public class MDialog {
         dialogNeedFillData.show();
     }
 
-    public void showDialogSuccess(Context context, String title , String body){
+    public Dialog showDialogSuccess(Context context, String title , String body){
         Dialog dialogSuccess = new Dialog(context);
         dialogSuccess.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogSuccess.setCancelable(false);
@@ -147,7 +147,7 @@ public class MDialog {
             }
         });
 
-        dialogSuccess.show();
+        return dialogSuccess;
     }
 
     public void showTimeError(Context context){

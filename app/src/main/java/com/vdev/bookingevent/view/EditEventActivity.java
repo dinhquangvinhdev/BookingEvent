@@ -5,6 +5,7 @@ import androidx.core.content.ContextCompat;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Build;
@@ -47,6 +48,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
     private TimePickerDialog tpd_end;
     private DatePickerDialog dpd;
     private MDialog mDialog;
+    private Dialog dialogEditSuccess;
 
 
     @Override
@@ -84,6 +86,9 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
         }
         if(dpd.isShowing()){
             dpd.dismiss();
+        }
+        if(dialogEditSuccess != null && dialogEditSuccess.isShowing()){
+            dialogEditSuccess.dismiss();
         }
     }
 
@@ -313,13 +318,20 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
     public void editEventSuccess(Event event) {
         //TODO need to edit detail participant too
         //show notification success add and update UI to the main home
-        mDialog.showDialogSuccess(this, "Edit Success", "Edit Event Success");
-        //go back month fragment
-        Intent intent = new Intent();
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , event);
-        intent.putExtras(bundle);
-        setResult(Activity.RESULT_OK, intent);
-        finish();
+        dialogEditSuccess = mDialog.showDialogSuccess(this, "Edit Success", "Edit Event Success");
+        dialogEditSuccess.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //go back month fragment
+                Intent intent = new Intent();
+                Bundle bundle = new Bundle();
+                bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , event);
+                intent.putExtras(bundle);
+                setResult(Activity.RESULT_OK, intent);
+                dialogEditSuccess.dismiss();
+                finish();
+            }
+        });
+        dialogEditSuccess.show();
     }
 }
