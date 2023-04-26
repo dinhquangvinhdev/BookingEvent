@@ -81,7 +81,10 @@ public class EventsOverlapAdapter extends RecyclerView.Adapter<EventsOverlapAdap
             binding.tvHostName.setText(hostName);
             binding.tvTitleEvent.setText(titleEvent);
             binding.tvTime.setText("Time: " + timeStart + " - " + timeEnd);
-            if(fc.comparePriorityUser(host.getId()) == 0){
+            int checkPriority = fc.comparePriorityUser(host.getId());
+            if( checkPriority != 0){
+                binding.imgDeleteEvent.setVisibility(View.INVISIBLE);
+            } else if(checkPriority == 0){
                 binding.imgDeleteEvent.setVisibility(View.VISIBLE);
             }
 //            binding.tvTimeStart.setOnClickListener(it -> {showTimePicker(calendarStart , TYPE_TIME_START_PICKER);});

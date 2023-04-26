@@ -68,7 +68,11 @@ public final class FirebaseController {
                 if (task.isSuccessful()) {
                     for (DataSnapshot snapshot : task.getResult().getChildren()) {
                         Event event1 = snapshot.getValue(Event.class);
-                        MData.id_event = event1.getId();
+                        if(event1 == null){
+                            MData.id_event = 1;
+                        } else {
+                            MData.id_event = event1.getId();
+                        }
                         //add event
                         if (MData.id_event != -1) {
                             MData.id_event += 1;
@@ -603,8 +607,8 @@ public final class FirebaseController {
                             for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event event1 = dataSnapshot.getValue(Event.class);
                                 if (event1.getStatus() == 0 && event1.getRoom_id() == tempEvent.getRoom_id()) {
-                                    if ((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() < event1.getDateStart())
-                                            || (tempEvent.getDateStart() > event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd())) {
+                                    if ((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() <= event1.getDateStart())
+                                            || (tempEvent.getDateStart() >= event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd())) {
                                         //can add the event
                                         continue;
                                     } else {
@@ -767,24 +771,34 @@ public final class FirebaseController {
         });
     }
 
-    public void getHostOfEvent(int eventId) {
+    public void getParticipantOfEvent(int eventId) {
+
         mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(eventId).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
                 if (task.isSuccessful()) {
+                    User host = new User();
+                    List<User> guests = new ArrayList<>();
                     for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
                         Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
                         if (detailParticipant.getRole().compareTo(MConst.ROLE_HOST) == 0) {
                             for (int i = 0; i < MData.arrUser.size(); i++) {
                                 User user = MData.arrUser.get(i);
                                 if (user.getId() == detailParticipant.getUser_id()) {
-                                    callbackDetailEvent.callbackShowSlidingPanel(user, eventId);
-                                    break;
+                                    host = user;
                                 }
                             }
-                            break;
+                        } else {
+                            for (int i = 0; i < MData.arrUser.size(); i++) {
+                                User user = MData.arrUser.get(i);
+                                if (user.getId() == detailParticipant.getUser_id()) {
+                                    guests.add(user);
+                                }
+                            }
                         }
                     }
+
+                    callbackDetailEvent.callbackShowSlidingPanel(host, guests, eventId);
                 } else {
                     Log.d("bibibla", "onComplete: " + task.getException());
                 }

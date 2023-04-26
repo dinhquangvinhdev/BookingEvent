@@ -31,6 +31,7 @@ import com.kizitonwose.calendar.view.MonthHeaderFooterBinder;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.DayViewContainer;
 import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
+import com.vdev.bookingevent.adapter.GuestEventDetailAdapter;
 import com.vdev.bookingevent.adapter.MonthViewContainer;
 import com.vdev.bookingevent.callback.CallbackDetailEvent;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
@@ -317,7 +318,7 @@ public class DashboardMonthFragment extends Fragment
 
     @Override
     public void openSlidingPanel(int idEvent, String roomColor) {
-        fc.getHostOfEvent(idEvent);
+        fc.getParticipantOfEvent(idEvent);
     }
 
     @Override
@@ -436,7 +437,7 @@ public class DashboardMonthFragment extends Fragment
     }
 
     @Override
-    public void callbackShowSlidingPanel(User host, int idEvent) {
+    public void callbackShowSlidingPanel(User host, List<User> guests, int idEvent) {
         bsb.setState(BottomSheetBehavior.STATE_EXPANDED);
         // find the event in data
         Event event = presenter.findEventInData(idEvent);
@@ -448,9 +449,13 @@ public class DashboardMonthFragment extends Fragment
             String nameRoom = presenter.getNameRoom(event.getRoom_id());
             bindingDetailEvent.tvEventSummary.setText(event.getSummery());
             bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
-            if(fc.comparePriorityUser(host.getId()) != 0){
+            int checkPriority = fc.comparePriorityUser(host.getId());
+            if( checkPriority != 0){
                 bindingDetailEvent.imgEditEvent.setVisibility(View.INVISIBLE);
                 bindingDetailEvent.imgDeleteEvent.setVisibility(View.INVISIBLE);
+            } else if(checkPriority == 0){
+                bindingDetailEvent.imgEditEvent.setVisibility(View.VISIBLE);
+                bindingDetailEvent.imgDeleteEvent.setVisibility(View.VISIBLE);
             }
             for(int i=0 ; i<MData.arrRoom.size() ; i++){
                 Room room = MData.arrRoom.get(i);
@@ -489,9 +494,9 @@ public class DashboardMonthFragment extends Fragment
             });
             //TODO recycle view Guest
             //create adapter
-            //GuestEventDetailAdapter adapterGuest = new GuestEventDetailAdapter(presenter.getGuests(), presenter.getHost());
-            //bindingDetailEvent.rvGuest.setAdapter(adapterGuest);
-            //bindingDetailEvent.rvGuest.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
+            GuestEventDetailAdapter adapterGuest = new GuestEventDetailAdapter(guests, host);
+            bindingDetailEvent.rvGuest.setAdapter(adapterGuest);
+            bindingDetailEvent.rvGuest.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
         } else {
             //TODO show notification or not do anything when not found event
             Log.d("bibibla", "openSlidingPanel: " + "not found event");

@@ -3,9 +3,7 @@ package com.vdev.bookingevent.view.fragment;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.SearchManager;
 import android.app.TimePickerDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -14,13 +12,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -29,12 +24,10 @@ import android.widget.DatePicker;
 import android.widget.TimePicker;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.kizitonwose.calendar.core.CalendarDay;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
 import com.vdev.bookingevent.callback.CallbackDetailEvent;
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
-import com.vdev.bookingevent.callback.CallbackItemDayCalMonth;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MConvertTime;
@@ -51,9 +44,7 @@ import com.vdev.bookingevent.presenter.SearchPresenter;
 import com.vdev.bookingevent.view.EditEventActivity;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 public class SearchEventFragment extends Fragment implements CallbackItemCalDashMonth , SearchEventContract.View ,
@@ -274,7 +265,7 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
 
     @Override
     public void openSlidingPanel(int idEvent, String roomColor) {
-        fc.getHostOfEvent(idEvent);
+        fc.getParticipantOfEvent(idEvent);
     }
 
     @Override
@@ -291,7 +282,7 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
     }
 
     @Override
-    public void callbackShowSlidingPanel(User host, int idEvent) {
+    public void callbackShowSlidingPanel(User host, List<User> guests, int idEvent) {
         bsb.setState(BottomSheetBehavior.STATE_EXPANDED);
         // find the event in data
         Event event = presenter.findEventInData(idEvent);
@@ -303,9 +294,13 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
             String nameRoom = presenter.getNameRoom(event.getRoom_id());
             bindingDetailEvent.tvEventSummary.setText(event.getSummery());
             bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
-            if(fc.comparePriorityUser(host.getId()) != 0){
+            int checkPriority = fc.comparePriorityUser(host.getId());
+            if( checkPriority != 0){
                 bindingDetailEvent.imgEditEvent.setVisibility(View.INVISIBLE);
                 bindingDetailEvent.imgDeleteEvent.setVisibility(View.INVISIBLE);
+            } else if(checkPriority == 0){
+                bindingDetailEvent.imgEditEvent.setVisibility(View.VISIBLE);
+                bindingDetailEvent.imgDeleteEvent.setVisibility(View.VISIBLE);
             }
             for(int i = 0; i< MData.arrRoom.size() ; i++){
                 Room room = MData.arrRoom.get(i);
