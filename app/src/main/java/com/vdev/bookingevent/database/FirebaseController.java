@@ -1,7 +1,6 @@
 package com.vdev.bookingevent.database;
 
 import android.content.Context;
-import android.provider.ContactsContract;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -66,8 +65,8 @@ public final class FirebaseController {
         mDatabase.child("Event").orderByKey().limitToLast(1).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if(task.isSuccessful()){
-                    for(DataSnapshot snapshot : task.getResult().getChildren()){
+                if (task.isSuccessful()) {
+                    for (DataSnapshot snapshot : task.getResult().getChildren()) {
                         Event event1 = snapshot.getValue(Event.class);
                         MData.id_event = event1.getId();
                         //add event
@@ -77,7 +76,7 @@ public final class FirebaseController {
                             mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
-                                    if(task.isSuccessful()){
+                                    if (task.isSuccessful()) {
                                         callbackAddEvent.callbackAddEventSuccess(true);
                                     } else {
                                         callbackAddEvent.callbackAddEventSuccess(false);
@@ -96,41 +95,34 @@ public final class FirebaseController {
         });
     }
 
-    public void addEventDetailParticipant(int event_id, int user_id, String role) {
+    public void addEventDetailParticipant(int event_id, List<User> guests) {
         //TODO check internet when call this function
-        Detail_participant detailParticipant = new Detail_participant();
-        detailParticipant.setEvent_id(event_id);
-        detailParticipant.setUser_id(user_id);
-        detailParticipant.setRole(role);
+        Detail_participant detailParticipantHost = new Detail_participant();
+        detailParticipantHost.setEvent_id(event_id);
+        detailParticipantHost.setUser_id(MData.userLogin.getId());
+        detailParticipantHost.setRole(MConst.ROLE_HOST);
 
-        Log.d("bibibla", "addEventDetailParticipant: calling here");
+        List<Detail_participant> dpGuest = new ArrayList<>();
+        for (int i = 0; i < guests.size(); i++) {
+            Detail_participant dp = new Detail_participant();
+            dp.setEvent_id(event_id);
+            dp.setUser_id(guests.get(i).getId());
+            dp.setRole(MConst.ROLE_GUEST);
+            dpGuest.add(dp);
+        }
 
-        //get the last id of detail_participant
-        mDatabase.child("Detail_participant").orderByKey().limitToLast(1).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+        //add guest
+        for(int i=0 ; i<dpGuest.size() ; i++){
+            mDatabase.child("Detail_participant").child(String.valueOf(event_id + guests.get(i).getId())).setValue(dpGuest.get(i));
+        }
+        //add detail participant host
+        mDatabase.child("Detail_participant").child(String.valueOf(event_id + MData.userLogin.getId())).setValue(detailParticipantHost).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if(task.isSuccessful()){
-                    for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
-                        MData.id_detail_participant = Integer.parseInt(dataSnapshot.getKey());
-                        //add detail participant
-                        if (MData.id_detail_participant != -1) {  //can not update while not update the last data from backend
-                            MData.id_detail_participant += 1;
-                            mDatabase.child("Detail_participant").child(String.valueOf(MData.id_detail_participant)).setValue(detailParticipant).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        callbackAddEvent.callbackAddDetailParticipant(true);
-                                    } else {
-                                        callbackAddEvent.callbackAddDetailParticipant(false);
-                                    }
-                                }
-                            });
-                        } else {
-                            callbackAddEvent.callbackAddDetailParticipant(false);
-                        }
-                    }
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    callbackAddEvent.callbackAddDetailParticipant(true);
                 } else {
-                    Log.d("bibibla", "onComplete: " + task.getException());
+                    callbackAddEvent.callbackAddDetailParticipant(false);
                 }
             }
         });
@@ -765,7 +757,7 @@ public final class FirebaseController {
         mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     callbackEditEvent.editEventSuccess(event);
                 } else {
                     Log.d("bibibla", "onComplete: " + task.getException());
@@ -775,17 +767,17 @@ public final class FirebaseController {
         });
     }
 
-    public void getHostOfEvent(int eventId){
+    public void getHostOfEvent(int eventId) {
         mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(eventId).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if(task.isSuccessful()){
-                    for(DataSnapshot dataSnapshot : task.getResult().getChildren()){
+                if (task.isSuccessful()) {
+                    for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
                         Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
-                        if(detailParticipant.getRole().compareTo(MConst.ROLE_HOST) == 0){
-                            for(int i=0 ; i<MData.arrUser.size() ; i++){
+                        if (detailParticipant.getRole().compareTo(MConst.ROLE_HOST) == 0) {
+                            for (int i = 0; i < MData.arrUser.size(); i++) {
                                 User user = MData.arrUser.get(i);
-                                if(user.getId() == detailParticipant.getUser_id()){
+                                if (user.getId() == detailParticipant.getUser_id()) {
                                     callbackDetailEvent.callbackShowSlidingPanel(user, eventId);
                                     break;
                                 }
@@ -799,21 +791,22 @@ public final class FirebaseController {
             }
         });
     }
-    public void getArrHostOfArrEvent(List<Event> events){
+
+    public void getArrHostOfArrEvent(List<Event> events) {
         List<User> arrHost = Arrays.asList(new User[events.size()]);
 
         mDatabase.child("Detail_participant").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
             @Override
             public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if(task.isSuccessful()){
+                if (task.isSuccessful()) {
                     DataSnapshot result = task.getResult();
                     for (DataSnapshot dataSnapshot : result.getChildren()) {
                         Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
-                        if(detailParticipant.getRole().compareTo(MConst.ROLE_HOST) == 0){
-                            for(int i=0 ; i<events.size() ; i++){
-                                if(events.get(i).getId() == detailParticipant.getEvent_id()){
-                                    for(User user : MData.arrUser){
-                                        if(user.getId() == detailParticipant.getUser_id()){
+                        if (detailParticipant.getRole().compareTo(MConst.ROLE_HOST) == 0) {
+                            for (int i = 0; i < events.size(); i++) {
+                                if (events.get(i).getId() == detailParticipant.getEvent_id()) {
+                                    for (User user : MData.arrUser) {
+                                        if (user.getId() == detailParticipant.getUser_id()) {
                                             //set with the index of event
                                             arrHost.set(i, user);
                                         }
@@ -837,79 +830,80 @@ public final class FirebaseController {
      * -1 : something bad happen when compare
      * 0 : the login have higher than the host
      * 1 : the host have higher or equal than the login
+     *
      * @param userId
      * @return
      */
     public int comparePriorityUser(int userId) {
 
         //compare id if the login is the host so they can edit any thing to their event
-        if(userId == MData.userLogin.getId()){
+        if (userId == MData.userLogin.getId()) {
             return 0;
         }
 
-        int role_id_user_login = -1 ,role_id_host = -1;
+        int role_id_user_login = -1, role_id_host = -1;
         String email_id_login = null, email_id_host = null;
-        int priority_login = -1 , priority_host = -1;
+        int priority_login = -1, priority_host = -1;
 
-        for(int i=0 ; i< MData.arrUser.size() ; i++){
+        for (int i = 0; i < MData.arrUser.size(); i++) {
             User user = MData.arrUser.get(i);
-            if(user.getId() == userId){
+            if (user.getId() == userId) {
                 email_id_host = user.getEmail_id();
-            } else if(user.getId() == MData.userLogin.getId()){
+            } else if (user.getId() == MData.userLogin.getId()) {
                 email_id_login = user.getEmail_id();
             }
 
             //save time to find
-            if(email_id_host != null && email_id_login != null){
+            if (email_id_host != null && email_id_login != null) {
                 break;
             }
         }
 
         //check if not found email return bad
-        if(email_id_host == null || email_id_login == null){
+        if (email_id_host == null || email_id_login == null) {
             return -1;
         }
 
-        for(int j=0 ; j<MData.arrEmail.size() ; j++){
+        for (int j = 0; j < MData.arrEmail.size(); j++) {
             Email email = MData.arrEmail.get(j);
-            if(email.getId().compareTo(email_id_login) == 0){
+            if (email.getId().compareTo(email_id_login) == 0) {
                 role_id_user_login = email.getRole_id();
-            } else if(email.getId().compareTo(email_id_host) == 0){
+            } else if (email.getId().compareTo(email_id_host) == 0) {
                 role_id_host = email.getRole_id();
             }
 
             //save time find
-            if(role_id_host != -1 && role_id_user_login != -1){
+            if (role_id_host != -1 && role_id_user_login != -1) {
                 break;
             }
         }
 
         //check if not found email return bad
-        if(role_id_host == -1 || role_id_user_login == -1){
+        if (role_id_host == -1 || role_id_user_login == -1) {
             return -1;
         }
 
-        for(int i=0 ; i<MData.arrRole.size() ; i++){
+        for (int i = 0; i < MData.arrRole.size(); i++) {
             Role role = MData.arrRole.get(i);
-            if(role.getId() == role_id_user_login){
+            if (role.getId() == role_id_user_login) {
                 priority_login = role.getPriority();
-            } else if(role.getId() == role_id_host){
+            } else if (role.getId() == role_id_host) {
                 priority_host = role.getPriority();
             }
 
             //save time find
-            if(priority_host != -1 && priority_login != -1){
+            if (priority_host != -1 && priority_login != -1) {
                 break;
             }
         }
 
         //check if not found email return bad
-        if(priority_host == -1 || priority_login == -1){
+        if (priority_host == -1 || priority_login == -1) {
             return -1;
         }
 
         //compare priority
-        if(priority_login > priority_host){
+        if (priority_login > priority_host) {
             return 0;
         } else {
             return 1;

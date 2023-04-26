@@ -10,6 +10,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 
 import com.vdev.bookingevent.R;
@@ -174,7 +175,12 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     @Override
     public void onBackPressed() {
-        dialogConfirmExit.show();
+        Fragment f = getSupportFragmentManager().findFragmentById(R.id.fcv_container);
+        if(f instanceof AddEventFragment){
+            ((AddEventFragment) f).closeRVGuest();
+        } else {
+            dialogConfirmExit.show();
+        }
     }
 
     @Override

@@ -78,46 +78,27 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/edt_summary" />
 
-            <EditText
-                android:id="@+id/edt_guest"
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/cg_guests"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tv_title_guest"/>
+
+            <SearchView
+                android:id="@+id/sv_guest"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
+                android:iconifiedByDefault="false"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/cg_guests"
+                android:searchIcon="@null"
                 android:layout_marginTop="5dp"
                 android:background="@drawable/rounded_outline_black"
                 android:padding="10dp"
-                android:textSize="12sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_title_guest" />
-
-            <!--Department-->
-            <TextView
-                android:id="@+id/tv_title_department"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Department"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/edt_guest" />
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/til_department"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tv_title_department"
-                app:boxStrokeErrorColor="@color/red">
-
-                <AutoCompleteTextView
-                    android:id="@+id/actv_department"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:dropDownHeight="150dp"
-                    android:inputType="none" />
-            </com.google.android.material.textfield.TextInputLayout>
+                android:textSize="12sp" />
 
             <!--Meeting room-->
             <TextView
@@ -127,7 +108,7 @@
                 android:text="Meeting room"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/til_department" />
+                app:layout_constraintTop_toBottomOf="@id/sv_guest" />
 
             <ImageView
                 android:layout_width="10dp"
@@ -276,6 +257,18 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 app:layout_constraintGuide_percent="0.5" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_guest"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/sv_guest"
+                android:visibility="invisible"
+                android:background="@color/white"
+                android:outlineProvider="bounds"
+                android:elevation="3dp"/>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 </LinearLayout>

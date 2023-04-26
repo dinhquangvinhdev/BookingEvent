@@ -1,5 +1,7 @@
 package com.vdev.bookingevent.model;
 
+import com.google.firebase.database.Exclude;
+
 import java.util.Date;
 
 public class User {
@@ -86,5 +88,14 @@ public class User {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    @Exclude
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return id == user.getId();
     }
 }

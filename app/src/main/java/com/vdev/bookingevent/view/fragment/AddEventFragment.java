@@ -3,6 +3,8 @@ package com.vdev.bookingevent.view.fragment;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -13,21 +15,26 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.InputType;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 
+import com.google.android.material.chip.Chip;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.EventsOverlapAdapter;
+import com.vdev.bookingevent.adapter.GuestAdapter;
 import com.vdev.bookingevent.callback.CallbackAddEvent;
 import com.vdev.bookingevent.callback.CallbackFragmentManager;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.callback.OnItemEventOverlap;
+import com.vdev.bookingevent.callback.OnItemGuestClickListener;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MData;
@@ -44,7 +51,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class AddEventFragment extends Fragment implements CallbackAddEvent , CallbackUpdateEventDisplay {
+public class AddEventFragment extends Fragment implements CallbackAddEvent , CallbackUpdateEventDisplay, OnItemGuestClickListener{
 
     private FragmentAddEventBinding binding;
     final int year_now = Calendar.getInstance().get(Calendar.YEAR);
@@ -63,8 +70,8 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     private Dialog dialogDeleteEvent;
     private Dialog dialogEventOverlap;
     private Dialog dialogAddSuccess;
-
     private Event eventWantToAdd = new Event();
+    private List<User> guests = new ArrayList<>();
 
     public AddEventFragment(CallbackFragmentManager callbackFragmentManager) {
         // Required public constructor
@@ -142,19 +149,49 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
             }
         }, year_now, month_now, day_now);
     }
-
-    private void initView() {
-        //department
-        //TODO temp data
-        List<String> tempDepartments = new ArrayList<>();
-        tempDepartments.add("None");
-        for(int i = 0; i< MData.arrDepartment.size(); i++){
-            tempDepartments.add(MData.arrDepartment.get(i).getNickName());
+    private ArrayAdapter<String> getNameUserAdapter(Context context) {
+        String[] userNames = new String[MData.arrUser.size()];
+        for (int i = 0; i < MData.arrUser.size(); i++) {
+            userNames[i] = MData.arrUser.get(i).getFullName();
         }
-        //TODO end temp
-        ArrayAdapter<String> aaDepartment = new ArrayAdapter<>(getContext() , androidx.appcompat.R.layout.support_simple_spinner_dropdown_item , tempDepartments);
-        binding.actvDepartment.setAdapter(aaDepartment);
-        binding.actvDepartment.setText(aaDepartment.getItem(0), false);
+        return new ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, userNames);
+    }
+    private void initView() {
+        // guests
+        GuestAdapter adapterGuest = new GuestAdapter(MData.arrUser , this);
+        binding.svGuest.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                binding.svGuest.clearFocus();
+                return false;
+            }
+        });
+        binding.svGuest.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                adapterGuest.getFilter().filter(s);
+                return false;
+            }
+        });
+        binding.rvGuest.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL , false));
+        binding.rvGuest.setHasFixedSize(true);
+        binding.rvGuest.setAdapter(adapterGuest);
+        binding.svGuest.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if(b){
+                    binding.rvGuest.setVisibility(View.VISIBLE);
+                } else {
+                    binding.rvGuest.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+
         //room
         //TODO temp data
         List<String> tempRooms = new ArrayList<>();
@@ -225,9 +262,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                         // get data to add into firebase
                         String title = binding.edtTitle.getText().toString();
                         String summary = binding.edtSummary.getText().toString();
-                        String guest = binding.edtGuest.getText().toString();
-                        //TODO count number_participant
-                        String department = binding.actvDepartment.getText().toString();
+                        int numberParticipant = guests.size();
                         int room_id = MData.arrRoom.get(index_room_choice - 1).getId();
                         Date dateStart = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvStartTime.getText().toString() + " " + binding.tvDate.getText()));
                         Date dateEnd = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvEndTime.getText().toString() + " " + binding.tvDate.getText()));
@@ -242,7 +277,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                         tempEvent.setDateStart(mConvertTime.convertDateToMili(dateStart));
                         tempEvent.setDateEnd(mConvertTime.convertDateToMili(dateEnd));
                         tempEvent.setRoom_id(room_id);
-                        tempEvent.setNumberParticipant(1);  // TODO change number participant
+                        tempEvent.setNumberParticipant(numberParticipant);
                         tempEvent.setStatus(0);
                         //set event to local variable to create a loop when show event overlap
                         eventWantToAdd = tempEvent;
@@ -356,7 +391,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     public void callbackAddEventSuccess(boolean b) {
         if(b){
             //add detail participant
-            fc.addEventDetailParticipant(MData.id_event, MData.userLogin.getId(), MConst.ROLE_HOST);
+            fc.addEventDetailParticipant(MData.id_event, guests);
         } else {
             //notification can not add event
             mDialog.showFillData(getContext(), "Some error when add new Event");
@@ -399,5 +434,28 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
             }
         });
         dialogDeleteEvent.show();
+    }
+
+    @Override
+    public void OnItemCLickListener(User user) {
+        //check user was added
+        if(!guests.contains(user)){
+            guests.add(user);
+            //create chip
+            Chip chip = new Chip(getContext());
+            chip.setText(user.getFullName());
+            chip.setCloseIconVisible(true);
+            chip.setTextAppearance(R.style.ChipTextAppearance);
+            chip.setOnCloseIconClickListener(it -> {guests.remove(user); binding.cgGuests.removeView(chip);});
+            //add chip to group
+            binding.cgGuests.addView(chip);
+        }
+    }
+
+    public void closeRVGuest(){
+        if(binding.rvGuest.getVisibility() == View.VISIBLE){
+            binding.svGuest.clearFocus();
+            binding.rvGuest.setVisibility(View.INVISIBLE);
+        }
     }
 }
