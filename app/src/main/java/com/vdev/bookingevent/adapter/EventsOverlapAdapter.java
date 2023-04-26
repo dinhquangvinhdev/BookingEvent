@@ -75,7 +75,7 @@ public class EventsOverlapAdapter extends RecyclerView.Adapter<EventsOverlapAdap
             Calendar calendarStart = mConvertTime.convertMiliToCalendar(event.getDateStart());
             Calendar calendarEnd = mConvertTime.convertMiliToCalendar(event.getDateEnd());
             String timeStart = String.format(MConst.FORMAT_TIME, calendarStart.get(Calendar.HOUR_OF_DAY)  , calendarStart.get(Calendar.MINUTE));
-            String timeEnd = String.format(MConst.FORMAT_TIME, calendarEnd.get(Calendar.HOUR_OF_DAY)  , calendarEnd.get(Calendar.MINUTE))
+            String timeEnd = String.format(MConst.FORMAT_TIME, calendarEnd.get(Calendar.HOUR_OF_DAY)  , calendarEnd.get(Calendar.MINUTE));
             String hostName = "Host name: " + host.getFullName();
             String titleEvent = "Title Event: " + event.getTitle();
             binding.tvHostName.setText(hostName);
