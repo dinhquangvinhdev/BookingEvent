@@ -69,7 +69,7 @@ public final class FirebaseController {
                     for (DataSnapshot snapshot : task.getResult().getChildren()) {
                         Event event1 = snapshot.getValue(Event.class);
                         if(event1 == null){
-                            MData.id_event = 1;
+                            MData.id_event = 0;
                         } else {
                             MData.id_event = event1.getId();
                         }
@@ -117,10 +117,10 @@ public final class FirebaseController {
 
         //add guest
         for(int i=0 ; i<dpGuest.size() ; i++){
-            mDatabase.child("Detail_participant").child(String.valueOf(event_id + guests.get(i).getId())).setValue(dpGuest.get(i));
+            mDatabase.child("Detail_participant").push().setValue(dpGuest.get(i));
         }
         //add detail participant host
-        mDatabase.child("Detail_participant").child(String.valueOf(event_id + MData.userLogin.getId())).setValue(detailParticipantHost).addOnCompleteListener(new OnCompleteListener<Void>() {
+        mDatabase.child("Detail_participant").push().setValue(detailParticipantHost).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful()) {
@@ -146,26 +146,9 @@ public final class FirebaseController {
 
         if(!addGuests.isEmpty() && removeGuests.isEmpty()){                     //case add guest not empty but removeGuest is empty
             //add guest
-            for(int i=0 ; i<dpAddGuest.size() ; i++){
-                if(i == dpAddGuest.size()-1){
-                    mDatabase.child("Detail_participant").child(String.valueOf(event_id + addGuests.get(i).getId())).setValue(dpAddGuest.get(i)).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                callbackEditEvent.callbackAddDetailParticipant(true);
-                            } else {
-                                callbackEditEvent.callbackAddDetailParticipant(false);
-                            }
-                        }
-                    });
-                } else{
-                    mDatabase.child("Detail_participant").child(String.valueOf(event_id + addGuests.get(i).getId())).setValue(dpAddGuest.get(i));
-                }
-            }
-        } else if(addGuests.isEmpty() && !removeGuests.isEmpty()){              //case add guest is empty but removeGuest is not empty
-            for(int i=0 ; i<removeGuests.size() ; i++){
-                if(i == removeGuests.size()-1){
-                    mDatabase.child("Detail_participant").child(String.valueOf(event_id + removeGuests.get(i).getId())).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+            for(int i=0 ; i<dpAddGuest.size() ; i++) {
+                if (i == dpAddGuest.size() - 1) {
+                    mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i)).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
@@ -176,18 +159,54 @@ public final class FirebaseController {
                         }
                     });
                 } else {
-                    mDatabase.child("Detail_participant").child(String.valueOf(event_id + removeGuests.get(i).getId())).removeValue();
+                    mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i));
                 }
             }
+
+        } else if(addGuests.isEmpty() && !removeGuests.isEmpty()){              //case add guest is empty but removeGuest is not empty
+            mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        for(DataSnapshot dataSnapshot : task.getResult().getChildren()){
+                            Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
+                            for(int i=0 ; i<removeGuests.size() ; i++){
+                                if(detailParticipant.getUser_id() == removeGuests.get(i).getId()){
+                                    mDatabase.child("Detail_participant").child(dataSnapshot.getKey()).removeValue();
+                                    break;
+                                }
+                            }
+                        }
+                        callbackEditEvent.callbackAddDetailParticipant(true);
+                    } else {
+                        callbackEditEvent.callbackAddDetailParticipant(false);
+                    }
+                }
+            });
+
         } else {                                                                //case both add guest and removeGuest are not empty
             //remove guest
-            for(int i=0 ; i<removeGuests.size() ; i++){
-                mDatabase.child("Detail_participant").child(String.valueOf(event_id + removeGuests.get(i).getId())).removeValue();
-            }
+            //remove guest
+            mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        for(DataSnapshot dataSnapshot : task.getResult().getChildren()){
+                            Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
+                            for(int i=0 ; i<removeGuests.size() ; i++){
+                                if(detailParticipant.getUser_id() == removeGuests.get(i).getId()){
+                                    mDatabase.child("Detail_participant").child(dataSnapshot.getKey()).removeValue();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
             //add guest
-            for(int i=0 ; i<dpAddGuest.size() ; i++){
-                if(i == dpAddGuest.size()-1){
-                    mDatabase.child("Detail_participant").child(String.valueOf(event_id + addGuests.get(i).getId())).setValue(dpAddGuest.get(i)).addOnCompleteListener(new OnCompleteListener<Void>() {
+            for(int i=0 ; i<dpAddGuest.size() ; i++) {
+                if (i == dpAddGuest.size() - 1) {
+                    mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i)).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
@@ -197,8 +216,8 @@ public final class FirebaseController {
                             }
                         }
                     });
-                } else{
-                    mDatabase.child("Detail_participant").child(String.valueOf(event_id + addGuests.get(i).getId())).setValue(dpAddGuest.get(i));
+                } else {
+                    mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i));
                 }
             }
         }
@@ -674,7 +693,7 @@ public final class FirebaseController {
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
                         if (task.isSuccessful()) {
                             DataSnapshot result = task.getResult();
-                            List<Event> eventsDuplicate = new ArrayList<>();
+                            List<Event> eventsOverlap = new ArrayList<>();
                             //check duplicate event
                             for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event event1 = dataSnapshot.getValue(Event.class);
@@ -684,7 +703,7 @@ public final class FirebaseController {
                                         //can add the event
                                         continue;
                                     } else {
-                                        eventsDuplicate.add(event1);
+                                        eventsOverlap.add(event1);
                                     }
                                 } else {
                                     //can add the event
@@ -692,10 +711,10 @@ public final class FirebaseController {
                                 }
                             }
                             //check can add
-                            if (eventsDuplicate.isEmpty()) {
-                                callbackAddEvent.callbackCanAddNewEvent(tempEvent, eventsDuplicate);
+                            if (eventsOverlap.isEmpty()) {
+                                callbackAddEvent.callbackCanAddNewEvent(tempEvent, eventsOverlap);
                             } else {
-                                callbackAddEvent.callbackCanAddNewEvent(null, eventsDuplicate);
+                                callbackAddEvent.callbackCanAddNewEvent(null, eventsOverlap);
                             }
                         } else {
                             Log.d("bibibla", "onComplete: " + task.getException());
@@ -798,18 +817,17 @@ public final class FirebaseController {
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
                         if (task.isSuccessful()) {
                             DataSnapshot result = task.getResult();
-                            boolean canEdit = true;
-                            //check duplicate event
+                            List<Event> eventsOverlap = new ArrayList<>();
+                            //check overlap event
                             for (DataSnapshot dataSnapshot : result.getChildren()) {
                                 Event event1 = dataSnapshot.getValue(Event.class);
                                 if (event1.getStatus() == 0 && event1.getId() != tempEvent.getId() && event1.getRoom_id() == tempEvent.getRoom_id()) {
-                                    if ((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() < event1.getDateStart())
-                                            || (tempEvent.getDateStart() > event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd())) {
+                                    if ((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() <= event1.getDateStart())
+                                            || (tempEvent.getDateStart() >= event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd())) {
                                         //can edit the event
                                         continue;
                                     } else {
-                                        canEdit = false;
-                                        break;
+                                        eventsOverlap.add(event1);
                                     }
                                 } else {
                                     //can edit the event
@@ -817,10 +835,10 @@ public final class FirebaseController {
                                 }
                             }
                             //check can edit
-                            if (canEdit) {
-                                callbackEditEvent.callbackEditEvent(tempEvent);
+                            if (eventsOverlap.isEmpty()) {
+                                callbackEditEvent.callbackEditEvent(tempEvent, eventsOverlap);
                             } else {
-                                callbackEditEvent.callbackEditEvent(null);
+                                callbackEditEvent.callbackEditEvent(null , eventsOverlap);
                             }
                         } else {
                             Log.d("bibibla", "onComplete: " + task.getException());
@@ -901,8 +919,12 @@ public final class FirebaseController {
                             }
                         }
                     }
-                    //TODO callbackUpdateDetail event in here return arrHost and events
-                    callbackAddEvent.callbackGetHostEventOverlap(events, arrHost);
+                    if(callbackAddEvent != null) {
+                        callbackAddEvent.callbackGetHostEventOverlap(events, arrHost);
+                    } else if(callbackEditEvent != null){
+                        callbackEditEvent.callbackGetHostEventOverlap(events, arrHost);
+                    }
+
                 } else {
                     Log.d("bibibla", "onComplete: " + task.getException());
                 }

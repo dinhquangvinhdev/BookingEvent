@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.os.Parcelable;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -52,6 +53,7 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
         CallbackUpdateEventDisplay, CallbackDetailEvent {
     private SearchPresenter presenter;
     private final String KEY_EVENT_EDIT_ACTIVITY = "KEY_EVENT_EDIT_ACTIVITY";
+    private final String KEY_GUESTS_EDIT_ACTIVITY = "KEY_GUESTS_EDIT_ACTIVITY";
     private final int REQUEST_CODE_EDIT_EVENT_ACTIVITY = 10;
     private FragmentSearchEventBinding binding;
     private LayoutDetailEventBinding bindingDetailEvent;
@@ -334,6 +336,7 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
                     Intent intent = new Intent(getContext(), EditEventActivity.class);
                     Bundle bundle = new Bundle();
                     bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , event);
+                    bundle.putParcelableArrayList(KEY_GUESTS_EDIT_ACTIVITY, (ArrayList<? extends Parcelable>) guests);
                     intent.putExtras(bundle);
                     startActivityForResult(intent, REQUEST_CODE_EDIT_EVENT_ACTIVITY);
                 }
@@ -348,7 +351,7 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
         }
     }
 
-    private void updatedEventInSlidingPanel(Event updatedEvent) {
+    private void updatedEventInSlidingPanel(Event updatedEvent, List<User> guests) {
         if(bsb != null && bsb.getState() == BottomSheetBehavior.STATE_EXPANDED){
             if (updatedEvent != null) {
                 Log.d("bibibla", "openSlidingPanel: " + "found event");
@@ -365,37 +368,23 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
                         break;
                     }
                 }
-                bindingDetailEvent.tvEventDetailParticipant.setText((updatedEvent.getNumberParticipant() - 1) + " Guest");
-                bindingDetailEvent.imgDeleteEvent.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        confirmDeleteEvent.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                if (mDialog.checkConnection(getContext())) {
-                                    fc.deleteEvent(updatedEvent);
-                                    confirmDeleteEvent.dismiss();
-                                } else {
-                                    confirmDeleteEvent.dismiss();
-                                }
-                            }
-                        });
-                        confirmDeleteEvent.show();
-                    }
-                });
+                //need to refresh edit button because new event updated
                 bindingDetailEvent.imgEditEvent.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(getContext(), EditEventActivity.class);
                         intent.putExtra(KEY_EVENT_EDIT_ACTIVITY , updatedEvent);
+                        Bundle bundle = new Bundle();
+                        bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , updatedEvent);
+                        bundle.putParcelableArrayList(KEY_GUESTS_EDIT_ACTIVITY, (ArrayList<? extends Parcelable>) guests);
+                        intent.putExtras(bundle);
                         startActivityForResult(intent, REQUEST_CODE_EDIT_EVENT_ACTIVITY);
                     }
                 });
-                //TODO recycle view Guest
-                //create adapter
-                //GuestEventDetailAdapter adapterGuest = new GuestEventDetailAdapter(presenter.getGuests(), presenter.getHost());
-                //bindingDetailEvent.rvGuest.setAdapter(adapterGuest);
-                //bindingDetailEvent.rvGuest.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
+                bindingDetailEvent.tvEventDetailParticipant.setText((updatedEvent.getNumberParticipant() - 1) + " Guest");
+                //update adapter
+                GuestEventDetailAdapter adapterGuest = (GuestEventDetailAdapter) bindingDetailEvent.rvGuest.getAdapter();
+                adapterGuest.updateDataGuest(guests);
             }
         }
     }
@@ -408,12 +397,14 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
             if(resultCode == Activity.RESULT_OK){
                 Bundle bundle = data.getExtras();
                 Event updatedEvent;
+                List<User> guests = new ArrayList<>();
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                     updatedEvent = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY, Event.class);
                 } else {
                     updatedEvent = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY);
+                    guests = bundle.getParcelableArrayList(KEY_GUESTS_EDIT_ACTIVITY);
                 }
-                updatedEventInSlidingPanel(updatedEvent);
+                updatedEventInSlidingPanel(updatedEvent,guests);
             }
         }
     }

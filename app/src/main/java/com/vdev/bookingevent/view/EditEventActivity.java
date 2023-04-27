@@ -3,6 +3,7 @@ package com.vdev.bookingevent.view;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
@@ -13,18 +14,21 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.text.InputType;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.TimePicker;
 
 import com.google.android.material.chip.Chip;
 import com.vdev.bookingevent.R;
+import com.vdev.bookingevent.adapter.EventsOverlapAdapter;
 import com.vdev.bookingevent.adapter.GuestAdapter;
 import com.vdev.bookingevent.callback.CallbackEditEvent;
+import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
+import com.vdev.bookingevent.callback.OnItemEventOverlap;
 import com.vdev.bookingevent.callback.OnItemGuestClickListener;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MConvertTime;
@@ -42,7 +46,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class EditEventActivity extends AppCompatActivity implements EditEventContract.View, CallbackEditEvent, OnItemGuestClickListener {
+public class EditEventActivity extends AppCompatActivity implements EditEventContract.View, CallbackEditEvent, OnItemGuestClickListener, CallbackUpdateEventDisplay {
 
     private final String KEY_GUESTS_EDIT_ACTIVITY = "KEY_GUESTS_EDIT_ACTIVITY";
     private final String KEY_EVENT_EDIT_ACTIVITY = "KEY_EVENT_EDIT_ACTIVITY";
@@ -50,13 +54,16 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
     private MConvertTime mConvertTime;
     private FirebaseController fc;
     private EditEventPresenter presenter;
-    private Event event;
+    private Event eventWantToEdit;
     int index_room_choice = 0;
     private TimePickerDialog tpd_start;
     private TimePickerDialog tpd_end;
     private DatePickerDialog dpd;
     private MDialog mDialog;
     private Dialog dialogEditSuccess;
+    private Dialog dialogEventOverlap;
+    private Dialog dialogConfirmDeleteEvent;
+    private Dialog dialogDeleteEvent;
     private List<User> guestListOld;
     private List<User> guestListNew;
 
@@ -71,11 +78,11 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
         //get data from month fragment
         Bundle bundle = getIntent().getExtras();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            event = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY , Event.class);
+            eventWantToEdit = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY , Event.class);
             guestListOld = bundle.getParcelable(KEY_GUESTS_EDIT_ACTIVITY);
             guestListNew = new ArrayList<>(guestListOld);
         } else {
-            event = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY);
+            eventWantToEdit = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY);
             guestListOld = bundle.getParcelableArrayList(KEY_GUESTS_EDIT_ACTIVITY);
             guestListNew = new ArrayList<>(guestListOld);
         }
@@ -104,6 +111,15 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
         if(dialogEditSuccess != null && dialogEditSuccess.isShowing()){
             dialogEditSuccess.dismiss();
         }
+        if(dialogEventOverlap != null && dialogEventOverlap.isShowing()){
+            dialogEventOverlap.dismiss();
+        }
+        if(dialogConfirmDeleteEvent != null && dialogConfirmDeleteEvent.isShowing()){
+            dialogConfirmDeleteEvent.dismiss();
+        }
+        if(dialogDeleteEvent != null && dialogDeleteEvent.isShowing()){
+            dialogDeleteEvent.dismiss();
+        }
     }
 
     @Override
@@ -130,14 +146,15 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
     private void initMDialog() {
         if(mDialog == null){
             mDialog = new MDialog();
+            dialogConfirmDeleteEvent = mDialog.confirmDialog(this, "Confirm Delete Event", "Are you sure want to delete event ?");
         }
     }
 
     private void initTimeAndDatePicker() {
         //get time of event
         int year_event, month_event, day_event, hStart , mStart , hEnd , mEnd;
-        Calendar calendarStart = mConvertTime.convertMiliToCalendar(event.getDateStart());
-        Calendar calendarEnd = mConvertTime.convertMiliToCalendar(event.getDateEnd());
+        Calendar calendarStart = mConvertTime.convertMiliToCalendar(eventWantToEdit.getDateStart());
+        Calendar calendarEnd = mConvertTime.convertMiliToCalendar(eventWantToEdit.getDateEnd());
         year_event = calendarStart.get(Calendar.YEAR);
         month_event = calendarStart.get(Calendar.MONTH);
         day_event = calendarStart.get(Calendar.DAY_OF_MONTH);
@@ -186,8 +203,8 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
 
     private void initView() {
         binding.imgIconBack.setOnClickListener(it -> {setResult(Activity.RESULT_CANCELED); finish();});
-        binding.edtTitle.setText(event.getTitle());
-        binding.edtSummary.setText(event.getSummery());
+        binding.edtTitle.setText(eventWantToEdit.getTitle());
+        binding.edtSummary.setText(eventWantToEdit.getSummery());
         // guests
         List<User> mListGuest = new ArrayList<>(MData.arrUser);
         mListGuest.remove(MData.userLogin);
@@ -252,7 +269,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                 index_room_choice = i;
             }
         });
-        index_room_choice = presenter.findIndexRoomOfEvent(event.getRoom_id()) + 1; // because in the select room index 0 is None
+        index_room_choice = presenter.findIndexRoomOfEvent(eventWantToEdit.getRoom_id()) + 1; // because in the select room index 0 is None
         binding.actvRoom.setText(aaRoom.getItem(index_room_choice), false);
         //start time
         binding.tvStartTime.setOnClickListener(it -> {initTimeChoiceStart();});
@@ -313,10 +330,10 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                         Date dateEnd = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvEndTime.getText().toString() + " " + binding.tvDate.getText()));
                         //create event
                         Event tempEvent = new Event();
-                        tempEvent.setId(event.getId());
+                        tempEvent.setId(eventWantToEdit.getId());
                         tempEvent.setTitle(title);
                         tempEvent.setSummery(summary);
-                        tempEvent.setDateCreated(event.getDateCreated());
+                        tempEvent.setDateCreated(eventWantToEdit.getDateCreated());
                         tempEvent.setDateUpdated(System.currentTimeMillis());
                         tempEvent.setDateStart(mConvertTime.convertDateToMili(dateStart));
                         tempEvent.setDateEnd(mConvertTime.convertDateToMili(dateEnd));
@@ -370,18 +387,17 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
 
 
     @Override
-    public void callbackEditEvent(Event event) {
+    public void callbackEditEvent(Event event, List<Event> eventsOverlap) {
         if(event != null) {
             fc.editEvent(event);
         } else {
-            //notification if duplicate event
-            mDialog.showFillData(this, "The Event schedule overlap");
+            fc.getArrHostOfArrEvent(eventsOverlap);
         }
     }
 
     @Override
     public void editEventSuccess(Event event) {
-        this.event = event; // set the event return to activity is the event new update
+        this.eventWantToEdit = event; // set the event return to activity is the event new update
         // check to update detail participant
         List<User> keepGuest = new ArrayList<>(guestListOld);
         keepGuest.retainAll(guestListNew);
@@ -407,7 +423,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                     //go back month fragment
                     Intent intent = new Intent();
                     Bundle bundle = new Bundle();
-                    bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , event);
+                    bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , eventWantToEdit);
                     bundle.putParcelableArrayList(KEY_GUESTS_EDIT_ACTIVITY, (ArrayList<? extends Parcelable>) guestListNew);
                     intent.putExtras(bundle);
                     setResult(Activity.RESULT_OK, intent);
@@ -419,6 +435,38 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
         } else {
             mDialog.showFillData(this, "Some error when edit event");
         }
+    }
+
+    @Override
+    public void callbackGetHostEventOverlap(List<Event> eventsOverlap, List<User> arrHost) {
+        dialogEventOverlap = mDialog.showEventsDuplicate(this, eventsOverlap);
+        //set title time
+        TextView tv = dialogEventOverlap.findViewById(R.id.tv_date);
+        Date date = mConvertTime.convertMiliToDate(eventsOverlap.get(0).getDateStart());
+        tv.setText(mConvertTime.convertDateToString3(date));
+        //set recycle view
+        RecyclerView rv = dialogEventOverlap.findViewById(R.id.rv_event_overlap);
+
+        EventsOverlapAdapter adapter = new EventsOverlapAdapter(this, eventsOverlap, arrHost, new OnItemEventOverlap() {
+            @Override
+            public void OnItemCLickListener(int position) {
+                showDialogDeleteEvent(eventsOverlap.get(position));
+            }
+        });
+        rv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL , false));
+        rv.setAdapter(adapter);
+        //show dialog
+        dialogEventOverlap.show();
+    }
+
+    private void showDialogDeleteEvent(Event event) {
+        dialogConfirmDeleteEvent.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fc.deleteEvent(event);
+            }
+        });
+        dialogConfirmDeleteEvent.show();
     }
 
     @Override
@@ -436,5 +484,33 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
             //add chip to group
             binding.cgGuests.addView(chip);
         }
+    }
+
+    @Override
+    public void updateEvent(List<Event> events) {
+        //not do any thing here because we do not need to do here and reach here
+    }
+
+    @Override
+    public void deleteEventSuccess(Event event) {
+        //dismiss all dialog when delete success and show delete success
+        //dismiss dialog
+        if(dialogConfirmDeleteEvent != null && dialogConfirmDeleteEvent.isShowing()){
+            dialogConfirmDeleteEvent.dismiss();
+        }
+        if(dialogEventOverlap.isShowing()){
+            dialogEventOverlap.dismiss();
+        }
+        //show delete success
+        dialogDeleteEvent = mDialog.dialogDeleteSuccess(this , event);
+        dialogDeleteEvent.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //update adapter of dialog event overlap by a loop
+                fc.checkEditEvent(eventWantToEdit);
+                dialogDeleteEvent.dismiss();
+            }
+        });
+        dialogDeleteEvent.show();
     }
 }
