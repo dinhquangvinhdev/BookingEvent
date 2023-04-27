@@ -26,6 +26,7 @@ import android.widget.TimePicker;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.EventsDashMonthAdapter;
+import com.vdev.bookingevent.adapter.GuestEventDetailAdapter;
 import com.vdev.bookingevent.callback.CallbackDetailEvent;
 import com.vdev.bookingevent.callback.CallbackItemCalDashMonth;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
@@ -337,11 +338,10 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
                     startActivityForResult(intent, REQUEST_CODE_EDIT_EVENT_ACTIVITY);
                 }
             });
-            //TODO recycle view Guest
             //create adapter
-            //GuestEventDetailAdapter adapterGuest = new GuestEventDetailAdapter(presenter.getGuests(), presenter.getHost());
-            //bindingDetailEvent.rvGuest.setAdapter(adapterGuest);
-            //bindingDetailEvent.rvGuest.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
+            GuestEventDetailAdapter adapterGuest = new GuestEventDetailAdapter(guests, host);
+            bindingDetailEvent.rvGuest.setAdapter(adapterGuest);
+            bindingDetailEvent.rvGuest.setLayoutManager(new LinearLayoutManager(getContext() , LinearLayoutManager.VERTICAL , false));
         } else {
             //TODO show notification or not do anything when not found event
             Log.d("bibibla", "openSlidingPanel: " + "not found event");

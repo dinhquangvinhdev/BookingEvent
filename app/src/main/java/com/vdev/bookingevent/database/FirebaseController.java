@@ -132,6 +132,78 @@ public final class FirebaseController {
         });
     }
 
+    public void editEventDetailParticipant(int event_id , List<User> addGuests, List<User> removeGuests){
+        //TODO check internet when call this function
+        //create list add guest
+        List<Detail_participant> dpAddGuest = new ArrayList<>();
+        for (int i = 0; i < addGuests.size(); i++) {
+            Detail_participant dp = new Detail_participant();
+            dp.setEvent_id(event_id);
+            dp.setUser_id(addGuests.get(i).getId());
+            dp.setRole(MConst.ROLE_GUEST);
+            dpAddGuest.add(dp);
+        }
+
+        if(!addGuests.isEmpty() && removeGuests.isEmpty()){                     //case add guest not empty but removeGuest is empty
+            //add guest
+            for(int i=0 ; i<dpAddGuest.size() ; i++){
+                if(i == dpAddGuest.size()-1){
+                    mDatabase.child("Detail_participant").child(String.valueOf(event_id + addGuests.get(i).getId())).setValue(dpAddGuest.get(i)).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                callbackEditEvent.callbackAddDetailParticipant(true);
+                            } else {
+                                callbackEditEvent.callbackAddDetailParticipant(false);
+                            }
+                        }
+                    });
+                } else{
+                    mDatabase.child("Detail_participant").child(String.valueOf(event_id + addGuests.get(i).getId())).setValue(dpAddGuest.get(i));
+                }
+            }
+        } else if(addGuests.isEmpty() && !removeGuests.isEmpty()){              //case add guest is empty but removeGuest is not empty
+            for(int i=0 ; i<removeGuests.size() ; i++){
+                if(i == removeGuests.size()-1){
+                    mDatabase.child("Detail_participant").child(String.valueOf(event_id + removeGuests.get(i).getId())).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                callbackEditEvent.callbackAddDetailParticipant(true);
+                            } else {
+                                callbackEditEvent.callbackAddDetailParticipant(false);
+                            }
+                        }
+                    });
+                } else {
+                    mDatabase.child("Detail_participant").child(String.valueOf(event_id + removeGuests.get(i).getId())).removeValue();
+                }
+            }
+        } else {                                                                //case both add guest and removeGuest are not empty
+            //remove guest
+            for(int i=0 ; i<removeGuests.size() ; i++){
+                mDatabase.child("Detail_participant").child(String.valueOf(event_id + removeGuests.get(i).getId())).removeValue();
+            }
+            //add guest
+            for(int i=0 ; i<dpAddGuest.size() ; i++){
+                if(i == dpAddGuest.size()-1){
+                    mDatabase.child("Detail_participant").child(String.valueOf(event_id + addGuests.get(i).getId())).setValue(dpAddGuest.get(i)).addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                callbackEditEvent.callbackAddDetailParticipant(true);
+                            } else {
+                                callbackEditEvent.callbackAddDetailParticipant(false);
+                            }
+                        }
+                    });
+                } else{
+                    mDatabase.child("Detail_participant").child(String.valueOf(event_id + addGuests.get(i).getId())).setValue(dpAddGuest.get(i));
+                }
+            }
+        }
+    }
+
     public void getRoom() {
         //TODO check internet when call this function
         ValueEventListener roomListener = new ValueEventListener() {

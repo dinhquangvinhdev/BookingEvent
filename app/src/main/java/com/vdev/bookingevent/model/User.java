@@ -1,10 +1,15 @@
 package com.vdev.bookingevent.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import androidx.annotation.NonNull;
+
 import com.google.firebase.database.Exclude;
 
 import java.util.Date;
 
-public class User {
+public class User implements Parcelable {
     int id;
     String birthday;
     String phoneNumber;
@@ -16,6 +21,18 @@ public class User {
     String gender;
 
     public User() {
+    }
+
+    protected User(Parcel in) {
+        this.id = in.readInt();
+        this.birthday = in.readString();
+        this.phoneNumber = in.readString();
+        this.address = in.readString();
+        this.avatar = in.readString();
+        this.email_id = in.readString();
+        this.department_id = in.readInt();
+        this.fullName = in.readString();
+        this.gender = in.readString();
     }
 
     public int getId() {
@@ -97,5 +114,38 @@ public class User {
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
         return id == user.getId();
+    }
+
+    @Exclude
+    public static final Creator<User> CREATOR = new Creator<User>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User(in);
+        }
+
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
+
+    @Exclude
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Exclude
+    @Override
+    public void writeToParcel(@NonNull Parcel parcel, int i) {
+        parcel.writeInt(id);
+        parcel.writeString(birthday);
+        parcel.writeString(phoneNumber);
+        parcel.writeString(address);
+        parcel.writeString(avatar);
+        parcel.writeString(email_id);
+        parcel.writeInt(department_id);
+        parcel.writeString(fullName);
+        parcel.writeString(gender);
     }
 }

@@ -12,6 +12,7 @@ import com.squareup.picasso.Picasso;
 import com.vdev.bookingevent.databinding.ItemGuestEventDetailBinding;
 import com.vdev.bookingevent.model.User;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GuestEventDetailAdapter extends RecyclerView.Adapter<GuestEventDetailAdapter.ViewHolder>{
@@ -19,7 +20,7 @@ public class GuestEventDetailAdapter extends RecyclerView.Adapter<GuestEventDeta
     private User host;
 
     public GuestEventDetailAdapter(List<User> guestData, User host) {
-        this.participantData = guestData;
+        this.participantData = new ArrayList<>(guestData);
         this.host = host;
         this.participantData.add(0, this.host);
     }
@@ -78,5 +79,12 @@ public class GuestEventDetailAdapter extends RecyclerView.Adapter<GuestEventDeta
             }
 
         }
+    }
+
+    public void updateDataGuest(List<User> guests){
+        this.participantData.clear();
+        this.participantData = new ArrayList<>(guests);
+        this.participantData.add(0, this.host);
+        notifyDataSetChanged();
     }
 }

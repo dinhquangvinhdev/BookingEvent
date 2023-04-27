@@ -158,7 +158,9 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     }
     private void initView() {
         // guests
-        GuestAdapter adapterGuest = new GuestAdapter(MData.arrUser , this);
+        List<User> mListGuest = new ArrayList<>(MData.arrUser);
+        mListGuest.remove(MData.userLogin);
+        GuestAdapter adapterGuest = new GuestAdapter(mListGuest , this);
         binding.svGuest.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
@@ -262,7 +264,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                         // get data to add into firebase
                         String title = binding.edtTitle.getText().toString();
                         String summary = binding.edtSummary.getText().toString();
-                        int numberParticipant = guests.size();
+                        int numberParticipant = guests.size() + 1; //because host is a participant
                         int room_id = MData.arrRoom.get(index_room_choice - 1).getId();
                         Date dateStart = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvStartTime.getText().toString() + " " + binding.tvDate.getText()));
                         Date dateEnd = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvEndTime.getText().toString() + " " + binding.tvDate.getText()));
@@ -437,7 +439,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     }
 
     @Override
-    public void OnItemCLickListener(User user) {
+    public void OnItemGuestCLickListener(User user) {
         //check user was added
         if(!guests.contains(user)){
             guests.add(user);

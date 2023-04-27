@@ -1,7 +1,6 @@
 package com.vdev.bookingevent.adapter;
 
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Filter;
 import android.widget.Filterable;
@@ -88,7 +87,7 @@ public class GuestAdapter extends RecyclerView.Adapter<GuestAdapter.MyViewHolder
 
         public void bind(User user){
             binding.tvNameGuest.setText(user.getFullName());
-            binding.tvNameGuest.setOnClickListener(it -> {callback.OnItemCLickListener(user);});
+            binding.tvNameGuest.setOnClickListener(it -> {callback.OnItemGuestCLickListener(user);});
         }
     }
 }

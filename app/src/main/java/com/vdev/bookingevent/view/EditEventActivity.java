@@ -2,6 +2,7 @@ package com.vdev.bookingevent.view;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.app.Activity;
 import android.app.DatePickerDialog;
@@ -10,16 +11,21 @@ import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
+import android.widget.SearchView;
 import android.widget.TimePicker;
 
+import com.google.android.material.chip.Chip;
 import com.vdev.bookingevent.R;
+import com.vdev.bookingevent.adapter.GuestAdapter;
 import com.vdev.bookingevent.callback.CallbackEditEvent;
+import com.vdev.bookingevent.callback.OnItemGuestClickListener;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MData;
@@ -27,6 +33,7 @@ import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.database.FirebaseController;
 import com.vdev.bookingevent.databinding.ActivityEditEventBinding;
 import com.vdev.bookingevent.model.Event;
+import com.vdev.bookingevent.model.User;
 import com.vdev.bookingevent.presenter.EditEventContract;
 import com.vdev.bookingevent.presenter.EditEventPresenter;
 
@@ -35,8 +42,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class EditEventActivity extends AppCompatActivity implements EditEventContract.View, CallbackEditEvent {
+public class EditEventActivity extends AppCompatActivity implements EditEventContract.View, CallbackEditEvent, OnItemGuestClickListener {
 
+    private final String KEY_GUESTS_EDIT_ACTIVITY = "KEY_GUESTS_EDIT_ACTIVITY";
     private final String KEY_EVENT_EDIT_ACTIVITY = "KEY_EVENT_EDIT_ACTIVITY";
     private ActivityEditEventBinding binding;
     private MConvertTime mConvertTime;
@@ -49,6 +57,8 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
     private DatePickerDialog dpd;
     private MDialog mDialog;
     private Dialog dialogEditSuccess;
+    private List<User> guestListOld;
+    private List<User> guestListNew;
 
 
     @Override
@@ -62,8 +72,12 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
         Bundle bundle = getIntent().getExtras();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             event = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY , Event.class);
+            guestListOld = bundle.getParcelable(KEY_GUESTS_EDIT_ACTIVITY);
+            guestListNew = new ArrayList<>(guestListOld);
         } else {
             event = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY);
+            guestListOld = bundle.getParcelableArrayList(KEY_GUESTS_EDIT_ACTIVITY);
+            guestListNew = new ArrayList<>(guestListOld);
         }
         initMConvertTime();
         initMDialog();
@@ -94,7 +108,6 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
         if(tpd_start.isShowing()){
             tpd_start.dismiss();
         }
@@ -104,8 +117,14 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
         if(dpd.isShowing()){
             dpd.dismiss();
         }
-        setResult(Activity.RESULT_CANCELED);
-        finish();
+
+        if(binding.rvGuest.getVisibility() == View.VISIBLE){
+            binding.svGuest.clearFocus();
+            binding.rvGuest.setVisibility(View.INVISIBLE);
+        } else {
+            setResult(Activity.RESULT_CANCELED);
+            finish();
+        }
     }
 
     private void initMDialog() {
@@ -169,7 +188,55 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
         binding.imgIconBack.setOnClickListener(it -> {setResult(Activity.RESULT_CANCELED); finish();});
         binding.edtTitle.setText(event.getTitle());
         binding.edtSummary.setText(event.getSummery());
-        // TODO for guest;
+        // guests
+        List<User> mListGuest = new ArrayList<>(MData.arrUser);
+        mListGuest.remove(MData.userLogin);
+        GuestAdapter adapterGuest = new GuestAdapter(mListGuest , this);
+        binding.svGuest.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                binding.svGuest.clearFocus();
+                return false;
+            }
+        });
+        binding.svGuest.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String s) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String s) {
+                adapterGuest.getFilter().filter(s);
+                return false;
+            }
+        });
+        binding.rvGuest.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL , false));
+        binding.rvGuest.setHasFixedSize(true);
+        binding.rvGuest.setAdapter(adapterGuest);
+        binding.svGuest.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean b) {
+                if(b){
+                    binding.rvGuest.setVisibility(View.VISIBLE);
+                } else {
+                    binding.rvGuest.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+        //add chip for guest already add
+        for(int i = 0; i< guestListOld.size() ; i++){
+            User user = guestListOld.get(i);
+            //create chip
+            Chip chip = new Chip(this);
+            chip.setText(user.getFullName());
+            chip.setCloseIconVisible(true);
+            chip.setTextAppearance(R.style.ChipTextAppearance);
+            chip.setOnCloseIconClickListener(it -> {
+                guestListNew.remove(user); binding.cgGuests.removeView(chip);});
+            //add chip to group
+            binding.cgGuests.addView(chip);
+        }
         //room
         //get array list for room
         List<String> tempRooms = new ArrayList<>();
@@ -240,9 +307,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                         // get data to add into firebase
                         String title = binding.edtTitle.getText().toString();
                         String summary = binding.edtSummary.getText().toString();
-                        String guest = binding.edtGuest.getText().toString();
-                        //TODO count number_participant
-                        String department = binding.actvDepartment.getText().toString();
+                        int numberParticipant = guestListNew.size() + 1; //because host is a participant
                         int room_id = MData.arrRoom.get(index_room_choice - 1).getId();
                         Date dateStart = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvStartTime.getText().toString() + " " + binding.tvDate.getText()));
                         Date dateEnd = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvEndTime.getText().toString() + " " + binding.tvDate.getText()));
@@ -256,7 +321,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                         tempEvent.setDateStart(mConvertTime.convertDateToMili(dateStart));
                         tempEvent.setDateEnd(mConvertTime.convertDateToMili(dateEnd));
                         tempEvent.setRoom_id(room_id);
-                        tempEvent.setNumberParticipant(1);  // TODO change number participant
+                        tempEvent.setNumberParticipant(numberParticipant);
                         tempEvent.setStatus(0);
                         fc.checkEditEvent(tempEvent);
                     } else {
@@ -316,22 +381,60 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
 
     @Override
     public void editEventSuccess(Event event) {
-        //TODO need to edit detail participant too
-        //show notification success add and update UI to the main home
-        dialogEditSuccess = mDialog.showDialogSuccess(this, "Edit Success", "Edit Event Success");
-        dialogEditSuccess.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //go back month fragment
-                Intent intent = new Intent();
-                Bundle bundle = new Bundle();
-                bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , event);
-                intent.putExtras(bundle);
-                setResult(Activity.RESULT_OK, intent);
-                dialogEditSuccess.dismiss();
-                finish();
-            }
-        });
-        dialogEditSuccess.show();
+        this.event = event; // set the event return to activity is the event new update
+        // check to update detail participant
+        List<User> keepGuest = new ArrayList<>(guestListOld);
+        keepGuest.retainAll(guestListNew);
+        List<User> addGuest = new ArrayList<>(guestListNew);
+        addGuest.removeAll(keepGuest);
+        List<User> removeGuest = new ArrayList<>(guestListOld);
+        removeGuest.removeAll(keepGuest);
+        if(addGuest.equals(removeGuest)){
+            callbackAddDetailParticipant(true);
+        } else {
+            fc.editEventDetailParticipant(event.getId() , addGuest, removeGuest);
+        }
+    }
+
+    @Override
+    public void callbackAddDetailParticipant(boolean b) {
+        if(b) {
+            //show notification success add and update UI to the main home
+            dialogEditSuccess = mDialog.showDialogSuccess(this, "Edit Success", "Edit Event Success");
+            dialogEditSuccess.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    //go back month fragment
+                    Intent intent = new Intent();
+                    Bundle bundle = new Bundle();
+                    bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , event);
+                    bundle.putParcelableArrayList(KEY_GUESTS_EDIT_ACTIVITY, (ArrayList<? extends Parcelable>) guestListNew);
+                    intent.putExtras(bundle);
+                    setResult(Activity.RESULT_OK, intent);
+                    dialogEditSuccess.dismiss();
+                    finish();
+                }
+            });
+            dialogEditSuccess.show();
+        } else {
+            mDialog.showFillData(this, "Some error when edit event");
+        }
+    }
+
+    @Override
+    public void OnItemGuestCLickListener(User user) {
+        //check user was added
+        if(!guestListNew.contains(user)){
+            guestListNew.add(user);
+            //create chip
+            Chip chip = new Chip(this);
+            chip.setText(user.getFullName());
+            chip.setCloseIconVisible(true);
+            chip.setTextAppearance(R.style.ChipTextAppearance);
+            chip.setOnCloseIconClickListener(it -> {
+                guestListNew.remove(user); binding.cgGuests.removeView(chip);});
+            //add chip to group
+            binding.cgGuests.addView(chip);
+        }
     }
 }
