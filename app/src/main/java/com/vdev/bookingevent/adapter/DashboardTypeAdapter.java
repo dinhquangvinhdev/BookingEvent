@@ -34,18 +34,18 @@ public class DashboardTypeAdapter extends FragmentStateAdapter {
                 fragmentMonth.setArguments(args);
                 return fragmentMonth;
             }
-            case MConst.FRAGMENT_DASHBOARD_WEEK: {
-                Bundle args = new Bundle();
-                //add something to bundle
-                fragmentWeek.setArguments(args);
-                return fragmentWeek;
-            }
-            case MConst.FRAGMENT_DASHBOARD_DAY: {
-                Bundle args = new Bundle();
-                //add something to bundle
-                fragmentDay.setArguments(args);
-                return fragmentDay;
-            }
+//            case MConst.FRAGMENT_DASHBOARD_WEEK: {
+//                Bundle args = new Bundle();
+//                //add something to bundle
+//                fragmentWeek.setArguments(args);
+//                return fragmentWeek;
+//            }
+//            case MConst.FRAGMENT_DASHBOARD_DAY: {
+//                Bundle args = new Bundle();
+//                //add something to bundle
+//                fragmentDay.setArguments(args);
+//                return fragmentDay;
+//            }
             default: {
                 return null;
             }
@@ -58,6 +58,6 @@ public class DashboardTypeAdapter extends FragmentStateAdapter {
 
     @Override
     public int getItemCount() {
-        return 3;
+        return 1;
     }
 }

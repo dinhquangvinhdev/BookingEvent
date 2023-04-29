@@ -270,20 +270,25 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                         Date dateEnd = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvEndTime.getText().toString() + " " + binding.tvDate.getText()));
                         Date dateCreated = mConvertTime.convertMiliToDate(System.currentTimeMillis());
                         Date dateUpdated = dateCreated;
-                        //create event
-                        Event tempEvent = new Event();
-                        tempEvent.setTitle(title);
-                        tempEvent.setSummery(summary);
-                        tempEvent.setDateCreated(mConvertTime.convertDateToMili(dateCreated));
-                        tempEvent.setDateUpdated(mConvertTime.convertDateToMili(dateUpdated));
-                        tempEvent.setDateStart(mConvertTime.convertDateToMili(dateStart));
-                        tempEvent.setDateEnd(mConvertTime.convertDateToMili(dateEnd));
-                        tempEvent.setRoom_id(room_id);
-                        tempEvent.setNumberParticipant(numberParticipant);
-                        tempEvent.setStatus(0);
-                        //set event to local variable to create a loop when show event overlap
-                        eventWantToAdd = tempEvent;
-                        fc.checkAddNewEvent(tempEvent);
+                        //check the number participant if it more than the max value of room's participant
+                        if(MData.arrRoom.get(index_room_choice - 1).getMaxNum() >= numberParticipant){
+                            //create event
+                            Event tempEvent = new Event();
+                            tempEvent.setTitle(title);
+                            tempEvent.setSummery(summary);
+                            tempEvent.setDateCreated(mConvertTime.convertDateToMili(dateCreated));
+                            tempEvent.setDateUpdated(mConvertTime.convertDateToMili(dateUpdated));
+                            tempEvent.setDateStart(mConvertTime.convertDateToMili(dateStart));
+                            tempEvent.setDateEnd(mConvertTime.convertDateToMili(dateEnd));
+                            tempEvent.setRoom_id(room_id);
+                            tempEvent.setNumberParticipant(numberParticipant);
+                            tempEvent.setStatus(0);
+                            //set event to local variable to create a loop when show event overlap
+                            eventWantToAdd = tempEvent;
+                            fc.checkAddNewEvent(eventWantToAdd);
+                        } else {
+                            mDialog.showErrorDialog(getContext(), "The number of participants exceeds the maximum number of people\n the meeting room can accommodate");
+                        }
                     } else {
                         mDialog.showTimeError(getContext());
                     }

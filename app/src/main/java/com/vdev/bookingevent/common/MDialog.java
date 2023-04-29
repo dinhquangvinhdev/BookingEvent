@@ -220,8 +220,31 @@ public class MDialog {
                 dialog.dismiss();
             }
         });
-
-        //TODO show all events and access to edit or delete
         return dialog;
+    }
+
+    public void showErrorDialog(Context context , String body) {
+        Dialog dialog = new Dialog(context);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setCancelable(true);
+        dialog.setContentView(R.layout.dialog_time_error);
+
+        TextView tv = dialog.findViewById(R.id.tv_body);
+        tv.setText(body);
+
+        dialog.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
     }
 }

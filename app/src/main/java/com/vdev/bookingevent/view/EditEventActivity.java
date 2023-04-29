@@ -328,19 +328,24 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                         int room_id = MData.arrRoom.get(index_room_choice - 1).getId();
                         Date dateStart = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvStartTime.getText().toString() + " " + binding.tvDate.getText()));
                         Date dateEnd = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvEndTime.getText().toString() + " " + binding.tvDate.getText()));
-                        //create event
-                        Event tempEvent = new Event();
-                        tempEvent.setId(eventWantToEdit.getId());
-                        tempEvent.setTitle(title);
-                        tempEvent.setSummery(summary);
-                        tempEvent.setDateCreated(eventWantToEdit.getDateCreated());
-                        tempEvent.setDateUpdated(System.currentTimeMillis());
-                        tempEvent.setDateStart(mConvertTime.convertDateToMili(dateStart));
-                        tempEvent.setDateEnd(mConvertTime.convertDateToMili(dateEnd));
-                        tempEvent.setRoom_id(room_id);
-                        tempEvent.setNumberParticipant(numberParticipant);
-                        tempEvent.setStatus(0);
-                        fc.checkEditEvent(tempEvent);
+                        //check the number participant if it more than the max value of room's participant
+                        if(MData.arrRoom.get(index_room_choice - 1).getMaxNum() >= numberParticipant) {
+                            //create event
+                            Event tempEvent = new Event();
+                            tempEvent.setId(eventWantToEdit.getId());
+                            tempEvent.setTitle(title);
+                            tempEvent.setSummery(summary);
+                            tempEvent.setDateCreated(eventWantToEdit.getDateCreated());
+                            tempEvent.setDateUpdated(System.currentTimeMillis());
+                            tempEvent.setDateStart(mConvertTime.convertDateToMili(dateStart));
+                            tempEvent.setDateEnd(mConvertTime.convertDateToMili(dateEnd));
+                            tempEvent.setRoom_id(room_id);
+                            tempEvent.setNumberParticipant(numberParticipant);
+                            tempEvent.setStatus(0);
+                            fc.checkEditEvent(tempEvent);
+                        } else {
+                            mDialog.showErrorDialog(this, "The number of participants exceeds the maximum number of people\n the meeting room can accommodate");
+                        }
                     } else {
                         mDialog.showTimeError(this);
                     }
