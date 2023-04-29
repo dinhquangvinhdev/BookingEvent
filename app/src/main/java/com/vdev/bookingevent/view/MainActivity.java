@@ -2,6 +2,7 @@ package com.vdev.bookingevent.view;
 
 import static android.content.ContentValues.TAG;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -36,6 +37,12 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     private MDialog mDialog;
     private Dialog dialogConfirmExit;
     private FirebaseController fc;
+    private Bundle searchBundle;
+    private SearchEventFragment searchEventFragment;
+    private AddEventFragment addEventFragment;
+    private AccountFragment accountFragment;
+    private DashboardFragment dashboardFragment;
+    private final String SAVE_BUNDLE_SEARCH_FRAGMENT = "SAVE_BUNDLE_SEARCH_FRAGMENT";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,30 +126,40 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     }
 
     private void replaceFlag(int i) {
-        Fragment fragment;
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        if(getSupportFragmentManager().findFragmentById(R.id.fcv_container) instanceof  SearchEventFragment){
+            if(searchEventFragment != null){
+                searchBundle = new Bundle();
+                searchEventFragment.onSaveInstanceState(searchBundle);
+            }
+        }
+
         switch (i) {
             case MConst.FRAGMENT_DASHBOARD: {
-                fragment = new DashboardFragment();
-                transaction.replace(R.id.fcv_container, fragment);
+                dashboardFragment = new DashboardFragment();
+                transaction.replace(R.id.fcv_container, dashboardFragment);
                 transaction.commit();
                 break;
             }
             case MConst.FRAGMENT_ADD_EVENT: {
-                fragment = new AddEventFragment(this);
-                transaction.replace(R.id.fcv_container, fragment);
+                addEventFragment = new AddEventFragment(this);
+                transaction.replace(R.id.fcv_container, addEventFragment);
                 transaction.commit();
                 break;
             }
             case MConst.FRAGMENT_SEARCH_EVENT: {
-                fragment = new SearchEventFragment();
-                transaction.replace(R.id.fcv_container, fragment);
+                searchEventFragment = new SearchEventFragment();
+                if(searchBundle != null){
+                    searchEventFragment.setArguments(searchBundle);
+                }
+                transaction.replace(R.id.fcv_container, searchEventFragment);
                 transaction.commit();
                 break;
             }
             case MConst.FRAGMENT_ACCOUNT: {
-                fragment = new AccountFragment();
-                transaction.replace(R.id.fcv_container, fragment);
+                accountFragment = new AccountFragment();
+                transaction.replace(R.id.fcv_container, accountFragment);
                 transaction.commit();
                 break;
             }
