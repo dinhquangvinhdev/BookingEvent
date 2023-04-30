@@ -124,6 +124,7 @@ public class DashboardMonthFragment extends Fragment
         initRVEvents();
 
         updateTitleTime(today);
+        updateEvent(MData.arrEvent); // this is called to update the adapter when you change fragment <not good>
     }
 
     private void initMDialog() {

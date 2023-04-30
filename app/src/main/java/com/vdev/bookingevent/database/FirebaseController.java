@@ -412,8 +412,8 @@ public final class FirebaseController {
                     Event event = snapshot.getValue(Event.class);
                     if (event != null && !MData.arrEvent.contains(event) && event.getStatus() == 0) {
                         MData.arrEvent.add(event);
+                        callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
                     }
-                    callbackUpdateEventDisplay.updateEvent(MData.arrEvent);
                 }
             }
 
