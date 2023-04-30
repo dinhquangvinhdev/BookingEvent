@@ -4,7 +4,6 @@ import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -14,8 +13,8 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Parcelable;
 import android.text.InputType;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,6 +51,14 @@ import java.util.Date;
 import java.util.List;
 
 public class AddEventFragment extends Fragment implements CallbackAddEvent , CallbackUpdateEventDisplay, OnItemGuestClickListener{
+
+    private final String KEY_ADD_TITLE = "KEY_ADD_TITLE";
+    private final String KEY_ADD_SUMMARY = "KEY_ADD_SUMMARY";
+    private final String KEY_ADD_LIST_GUEST = "KEY_ADD_LIST_GUEST";
+    private final String KEY_ADD_INDEX_ROOM_CHOICE = "KEY_ADD_INDEX_ROOM";
+    private final String KEY_ADD_START_TIME = "KEY_ADD_START_TIME";
+    private final String KEY_ADD_END_TIME = "KEY_ADD_END_TIME";
+    private final String KEY_ADD_DATE= "KEY_ADD_DATE";
 
     private FragmentAddEventBinding binding;
     final int year_now = Calendar.getInstance().get(Calendar.YEAR);
@@ -100,10 +107,59 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
         initMDialog();
         //init FirebaseController
         initFC();
-        //init TimePicker and DatePicker
-        initTimeAndDatePicker();
         //init view
         initView();
+        //init for time and date picker
+        initTimePickerStart(0,0);
+        initTimePickerEnd(0,0);
+        initDatePicker(day_now, month_now , year_now);
+
+        Bundle bundle = getArguments();
+        if(bundle != null){
+            String title = bundle.getString(KEY_ADD_TITLE);
+            String summary = bundle.getString(KEY_ADD_SUMMARY);
+            guests = bundle.getParcelableArrayList(KEY_ADD_LIST_GUEST);
+            index_room_choice = bundle.getInt(KEY_ADD_INDEX_ROOM_CHOICE);
+            String startTime = bundle.getString(KEY_ADD_START_TIME);
+            String endTime = bundle.getString(KEY_ADD_END_TIME);
+            String date = bundle.getString(KEY_ADD_DATE);
+
+            //update data in UI
+            //title
+            binding.edtTitle.setText(title);
+            //summary
+            binding.edtSummary.setText(summary);
+            // guest
+            for(User user : guests){
+                //create chip
+                Chip chip = new Chip(getContext());
+                chip.setText(user.getFullName());
+                chip.setCloseIconVisible(true);
+                chip.setTextAppearance(R.style.ChipTextAppearance);
+                chip.setOnCloseIconClickListener(it -> {guests.remove(user); binding.cgGuests.removeView(chip);});
+                //add chip to group
+                binding.cgGuests.addView(chip);
+            }
+            // room
+            ArrayAdapter<String> tempAdapter = (ArrayAdapter<String>) binding.actvRoom.getAdapter();
+            binding.actvRoom.setText(tempAdapter.getItem(index_room_choice), false);
+            // startTime + endTime + date
+            if(!startTime.isEmpty()){
+                binding.tvStartTime.setText(startTime);
+                Calendar calendarStart = mConvertTime.convertMiliToCalendar(mConvertTime.convertString1ToMili(startTime));
+                initTimePickerStart(calendarStart.get(Calendar.HOUR_OF_DAY), calendarStart.get(Calendar.MINUTE));
+            }
+            if(!endTime.isEmpty()){
+                binding.tvEndTime.setText(endTime);
+                Calendar calendarEnd = mConvertTime.convertMiliToCalendar(mConvertTime.convertString1ToMili(endTime));
+                initTimePickerEnd(calendarEnd.get(Calendar.HOUR_OF_DAY), calendarEnd.get(Calendar.MINUTE));
+            }
+            if(!date.isEmpty()){
+                binding.tvDate.setText(date);
+                Calendar calendarDate = mConvertTime.convertMiliToCalendar(mConvertTime.convertString4ToMili(date));
+                initDatePicker(calendarDate.get(Calendar.DAY_OF_MONTH), calendarDate.get(Calendar.MONTH), calendarDate.get(Calendar.YEAR));
+            }
+        }
     }
 
     private void initMDialog() {
@@ -119,7 +175,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
         }
     }
 
-    private void initTimeAndDatePicker() {
+    private void initTimePickerStart(int hour, int minute){
         //TimePickerDialog startTime
         tpd_start = new TimePickerDialog(getContext(), android.R.style.Theme_Holo_Dialog_MinWidth
                 ,new TimePickerDialog.OnTimeSetListener() {
@@ -128,7 +184,10 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                 String start_time = String.format(MConst.FORMAT_TIME, hour , minute);
                 binding.tvStartTime.setText(start_time);
             }
-        },0,0,true);
+        },hour,minute,true);
+    }
+
+    private void initTimePickerEnd(int hour, int minute) {
         //TimePickerDialog end Time
         tpd_end = new TimePickerDialog(getContext(), android.R.style.Theme_Holo_Dialog_MinWidth
                 ,new TimePickerDialog.OnTimeSetListener() {
@@ -137,7 +196,10 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                 String end_time = String.format(MConst.FORMAT_TIME, hour , minute);
                 binding.tvEndTime.setText(end_time);
             }
-        },0,0,true);
+        },hour,minute,true);
+    }
+
+    private void initDatePicker(int day , int month, int year){
         //DatePickerDialog datePickerDialog
         dpd = new DatePickerDialog(getContext(), new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -147,8 +209,9 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                 String date = mConvertTime.convertDateToString3(mCalendar.getTime());
                 binding.tvDate.setText(date);
             }
-        }, year_now, month_now, day_now);
+        }, year, month, day);
     }
+
     private ArrayAdapter<String> getNameUserAdapter(Context context) {
         String[] userNames = new String[MData.arrUser.size()];
         for (int i = 0; i < MData.arrUser.size(); i++) {
@@ -352,6 +415,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
             dialogAddSuccess.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
+                    //clearDataForm();
                     dialogAddSuccess.dismiss();
                     callbackFragmentManager.goToFragmentDashboard();
                 }
@@ -464,5 +528,16 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
             binding.svGuest.clearFocus();
             binding.rvGuest.setVisibility(View.INVISIBLE);
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        outState.putString(KEY_ADD_TITLE, binding.edtTitle.getText().toString());
+        outState.putString(KEY_ADD_SUMMARY, binding.edtSummary.getText().toString());
+        outState.putParcelableArrayList(KEY_ADD_LIST_GUEST, (ArrayList<? extends Parcelable>) guests);
+        outState.putInt(KEY_ADD_INDEX_ROOM_CHOICE, index_room_choice);
+        outState.putString(KEY_ADD_START_TIME, binding.tvStartTime.getText().toString());
+        outState.putString(KEY_ADD_END_TIME, binding.tvEndTime.getText().toString());
+        outState.putString(KEY_ADD_DATE, binding.tvDate.getText().toString());
     }
 }

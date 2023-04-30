@@ -38,11 +38,11 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     private Dialog dialogConfirmExit;
     private FirebaseController fc;
     private Bundle searchBundle;
+    private Bundle addBundle;
     private SearchEventFragment searchEventFragment;
     private AddEventFragment addEventFragment;
     private AccountFragment accountFragment;
     private DashboardFragment dashboardFragment;
-    private final String SAVE_BUNDLE_SEARCH_FRAGMENT = "SAVE_BUNDLE_SEARCH_FRAGMENT";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,12 +128,8 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     private void replaceFlag(int i) {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
-        if(getSupportFragmentManager().findFragmentById(R.id.fcv_container) instanceof  SearchEventFragment){
-            if(searchEventFragment != null){
-                searchBundle = new Bundle();
-                searchEventFragment.onSaveInstanceState(searchBundle);
-            }
-        }
+        //check to get saveInstanceState
+        checkSaveInstanceState();
 
         switch (i) {
             case MConst.FRAGMENT_DASHBOARD: {
@@ -144,6 +140,10 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             }
             case MConst.FRAGMENT_ADD_EVENT: {
                 addEventFragment = new AddEventFragment(this);
+                if(addBundle != null){
+                    addEventFragment.setArguments(addBundle);
+                    addBundle = null;
+                }
                 transaction.replace(R.id.fcv_container, addEventFragment);
                 transaction.commit();
                 break;
@@ -169,6 +169,23 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             }
         }
 
+    }
+
+    private void checkSaveInstanceState() {
+        //check for Search Fragment
+        if(getSupportFragmentManager().findFragmentById(R.id.fcv_container) instanceof  SearchEventFragment){
+            if(searchEventFragment != null){
+                searchBundle = new Bundle();
+                searchEventFragment.onSaveInstanceState(searchBundle);
+            }
+        }
+        // check for Add Fragment
+        if(getSupportFragmentManager().findFragmentById(R.id.fcv_container) instanceof AddEventFragment){
+            if(addEventFragment != null){
+                addBundle = new Bundle();
+                addEventFragment.onSaveInstanceState(addBundle);
+            }
+        }
     }
 
     /**
