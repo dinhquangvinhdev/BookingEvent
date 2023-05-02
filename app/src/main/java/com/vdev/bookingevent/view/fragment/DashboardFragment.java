@@ -84,10 +84,14 @@ public class DashboardFragment extends Fragment {
         adapterFilter = new RoomFilterAdapter(MData.filterChoicedRoom);
         bindingPopupView.rvRooms.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL , false));
         bindingPopupView.rvRooms.setAdapter(adapterFilter);
+        bindingPopupView.tvTitleFilterRoom.setText("Filter with room");
         bindingPopupView.btnSave.setOnClickListener(view -> {
             // save information in the filter
+            //user
+            MData.filterUser = bindingPopupView.cbUserFilter.isChecked();
+            //room
             MData.filterChoicedRoom = new ArrayList<>(adapterFilter.getChoiced());
-            if(MData.filterChoicedRoom.contains(true)){
+            if(MData.filterChoicedRoom.contains(true) || MData.filterUser){
                 binding.imgFilter.setImageResource(R.drawable.ic_filter_on);
             } else {
                 binding.imgFilter.setImageResource(R.drawable.ic_filter_off);
@@ -95,13 +99,25 @@ public class DashboardFragment extends Fragment {
             dashboardTypeAdapter.updateDataDisplayInMonth();
             dialog.dismiss();
         });
-        bindingPopupView.btnCancel.setOnClickListener(view -> {dialog.dismiss();});
-        bindingPopupView.btnClearAllFilter.setOnClickListener(view -> {adapterFilter.clearAllChoiced();});
+        bindingPopupView.btnCancel.setOnClickListener(view -> {
+            dialog.dismiss();
+
+        });
+        bindingPopupView.btnClearAllFilter.setOnClickListener(view -> {
+            //clear room choices
+            adapterFilter.clearAllChoiced();
+            //clear filter mine choice
+            MData.filterUser = false;
+            bindingPopupView.cbUserFilter.setChecked(false);
+        });
 
         dialogBuilder.setView(bindingPopupView.getRoot());
-        dialogBuilder.setTitle("Filter with room");
         dialogBuilder.setOnDismissListener(dialogInterface -> {
-            adapterFilter.setChoiced(MData.filterChoicedRoom);});
+            //user
+            bindingPopupView.cbUserFilter.setChecked(MData.filterUser);
+            //room
+            adapterFilter.setChoiced(MData.filterChoicedRoom);
+        });
         dialog = dialogBuilder.create();
     }
 

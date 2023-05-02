@@ -8,9 +8,8 @@ import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.Room;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DashboardMonthPresenter implements DashboardMonthContract.Presenter {
     private DashboardMonthContract.View view;
@@ -55,10 +54,23 @@ public class DashboardMonthPresenter implements DashboardMonthContract.Presenter
     }
 
     @Override
-    public void filterEvents(long startTime, long endTime) {
+    public void filterEvents(List<Event> events, long startTime, long endTime) {
+        if(events != null){         // this is will execute when call back receive the event filter with user
+            updateUIWithFilterEvent(events,startTime, endTime);
+        } else {
+            //check filter with user
+            if(MData.filterUser){
+                fc.getEventsOfHost(MData.userLogin.getId());
+            } else {
+                updateUIWithFilterEvent(MData.arrEvent, startTime ,endTime);
+            }
+        }
+    }
+
+    private void updateUIWithFilterEvent(List<Event> arrEvent, long startTime, long endTime) {
         MData.arrFilterEvent.clear();
-        for (int i = 0; i < MData.arrEvent.size(); i++) {
-            Event event = MData.arrEvent.get(i);
+        for (int i = 0; i < arrEvent.size(); i++) {
+            Event event = arrEvent.get(i);
             //the event have status is 0 is deleted (hide)
             if(event.getStatus() == 0){
                 //filter time
@@ -83,10 +95,16 @@ public class DashboardMonthPresenter implements DashboardMonthContract.Presenter
         }
     }
 
+    private List<Event> getEventsOfHost(int id) {
+        List<Event> events = new ArrayList<>();
+
+        return null;
+    }
+
     @Override
-    public void updateFilterEvent(LocalDate selectedDay) {
+    public void updateFilterEvent(LocalDate selectedDay, List<Event> events) {
         long startTime = mConvertTime.getMiliStartDayFromLocalDate(selectedDay);
         long endTime = mConvertTime.getMiliLastDayFromLocalDate(selectedDay);
-        filterEvents(startTime , endTime);
+        filterEvents(events, startTime , endTime);
     }
 }

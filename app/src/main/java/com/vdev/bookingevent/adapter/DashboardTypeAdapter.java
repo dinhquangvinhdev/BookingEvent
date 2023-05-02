@@ -53,7 +53,7 @@ public class DashboardTypeAdapter extends FragmentStateAdapter {
     }
 
     public void updateDataDisplayInMonth(){
-        fragmentMonth.updateDisplayData();
+        fragmentMonth.updateDisplayData(null);
     }
 
     @Override

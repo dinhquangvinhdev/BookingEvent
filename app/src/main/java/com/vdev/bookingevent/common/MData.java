@@ -26,6 +26,8 @@ public class MData {
     public static List<Boolean> filterChoicedRoom;
     public static int id_event = -1;                //save the last id event in database
     public static User userLogin;                  //save the id user login
+    public static boolean filterUser = false;
+
     public static long getStartMonth(int month) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());

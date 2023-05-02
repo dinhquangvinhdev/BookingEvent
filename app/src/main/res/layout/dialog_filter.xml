@@ -4,6 +4,42 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <LinearLayout
+        android:id="@+id/ll_filter_my_events"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/tv_title_filter_user"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:text="Filter my events"
+            android:paddingStart="10dp"
+            style="@style/TextAppearance.Material3.TitleMedium"/>
+
+        <CheckBox
+            android:id="@+id/cb_user_filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_title_filter_room"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ll_filter_my_events"
+        android:paddingStart="10dp"
+        style="@style/TextAppearance.Material3.TitleMedium"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_rooms"
         android:layout_width="match_parent"
@@ -11,6 +47,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/ll_btn"
+        app:layout_constraintTop_toBottomOf="@id/tv_title_filter_room"
         android:scrollbars="vertical"/>
 
     <LinearLayout

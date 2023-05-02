@@ -68,7 +68,7 @@ public final class FirebaseController {
                 if (task.isSuccessful()) {
                     for (DataSnapshot snapshot : task.getResult().getChildren()) {
                         Event event1 = snapshot.getValue(Event.class);
-                        if(event1 == null){
+                        if (event1 == null) {
                             MData.id_event = 0;
                         } else {
                             MData.id_event = event1.getId();
@@ -116,7 +116,7 @@ public final class FirebaseController {
         }
 
         //add guest
-        for(int i=0 ; i<dpGuest.size() ; i++){
+        for (int i = 0; i < dpGuest.size(); i++) {
             mDatabase.child("Detail_participant").push().setValue(dpGuest.get(i));
         }
         //add detail participant host
@@ -132,7 +132,7 @@ public final class FirebaseController {
         });
     }
 
-    public void editEventDetailParticipant(int event_id , List<User> addGuests, List<User> removeGuests){
+    public void editEventDetailParticipant(int event_id, List<User> addGuests, List<User> removeGuests) {
         //TODO check internet when call this function
         //create list add guest
         List<Detail_participant> dpAddGuest = new ArrayList<>();
@@ -144,9 +144,9 @@ public final class FirebaseController {
             dpAddGuest.add(dp);
         }
 
-        if(!addGuests.isEmpty() && removeGuests.isEmpty()){                     //case add guest not empty but removeGuest is empty
+        if (!addGuests.isEmpty() && removeGuests.isEmpty()) {                     //case add guest not empty but removeGuest is empty
             //add guest
-            for(int i=0 ; i<dpAddGuest.size() ; i++) {
+            for (int i = 0; i < dpAddGuest.size(); i++) {
                 if (i == dpAddGuest.size() - 1) {
                     mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i)).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
@@ -163,15 +163,15 @@ public final class FirebaseController {
                 }
             }
 
-        } else if(addGuests.isEmpty() && !removeGuests.isEmpty()){              //case add guest is empty but removeGuest is not empty
+        } else if (addGuests.isEmpty() && !removeGuests.isEmpty()) {              //case add guest is empty but removeGuest is not empty
             mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DataSnapshot> task) {
                     if (task.isSuccessful()) {
-                        for(DataSnapshot dataSnapshot : task.getResult().getChildren()){
+                        for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
                             Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
-                            for(int i=0 ; i<removeGuests.size() ; i++){
-                                if(detailParticipant.getUser_id() == removeGuests.get(i).getId()){
+                            for (int i = 0; i < removeGuests.size(); i++) {
+                                if (detailParticipant.getUser_id() == removeGuests.get(i).getId()) {
                                     mDatabase.child("Detail_participant").child(dataSnapshot.getKey()).removeValue();
                                     break;
                                 }
@@ -191,10 +191,10 @@ public final class FirebaseController {
                 @Override
                 public void onComplete(@NonNull Task<DataSnapshot> task) {
                     if (task.isSuccessful()) {
-                        for(DataSnapshot dataSnapshot : task.getResult().getChildren()){
+                        for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
                             Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
-                            for(int i=0 ; i<removeGuests.size() ; i++){
-                                if(detailParticipant.getUser_id() == removeGuests.get(i).getId()){
+                            for (int i = 0; i < removeGuests.size(); i++) {
+                                if (detailParticipant.getUser_id() == removeGuests.get(i).getId()) {
                                     mDatabase.child("Detail_participant").child(dataSnapshot.getKey()).removeValue();
                                     break;
                                 }
@@ -204,7 +204,7 @@ public final class FirebaseController {
                 }
             });
             //add guest
-            for(int i=0 ; i<dpAddGuest.size() ; i++) {
+            for (int i = 0; i < dpAddGuest.size(); i++) {
                 if (i == dpAddGuest.size() - 1) {
                     mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i)).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
@@ -838,7 +838,7 @@ public final class FirebaseController {
                             if (eventsOverlap.isEmpty()) {
                                 callbackEditEvent.callbackEditEvent(tempEvent, eventsOverlap);
                             } else {
-                                callbackEditEvent.callbackEditEvent(null , eventsOverlap);
+                                callbackEditEvent.callbackEditEvent(null, eventsOverlap);
                             }
                         } else {
                             Log.d("bibibla", "onComplete: " + task.getException());
@@ -896,6 +896,31 @@ public final class FirebaseController {
         });
     }
 
+    public void getEventsOfHost(int hostId) {
+        List<Event> result = new ArrayList<>();
+
+        mDatabase.child("Detail_participant").orderByChild("user_id").equalTo(hostId).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (DataSnapshot dataSnapshot : task.getResult().getChildren()){
+                        Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
+                        //check event is deleted
+                        for(int i=0 ; i<MData.arrEvent.size() ; i++){
+                            Event event = MData.arrEvent.get(i);
+                            if(detailParticipant.getEvent_id() == event.getId() && event.getStatus() >=0){
+                                result.add(event);
+                            }
+                        }
+                    }
+                    callbackUpdateEventDisplay.updateEvent(result);
+                } else {
+                    Log.d("bibibla", "onComplete: " + task.getException());
+                }
+            }
+        });
+    }
+
     public void getArrHostOfArrEvent(List<Event> events) {
         List<User> arrHost = Arrays.asList(new User[events.size()]);
 
@@ -919,9 +944,9 @@ public final class FirebaseController {
                             }
                         }
                     }
-                    if(callbackAddEvent != null) {
+                    if (callbackAddEvent != null) {
                         callbackAddEvent.callbackGetHostEventOverlap(events, arrHost);
-                    } else if(callbackEditEvent != null){
+                    } else if (callbackEditEvent != null) {
                         callbackEditEvent.callbackGetHostEventOverlap(events, arrHost);
                     }
 
@@ -1017,4 +1042,5 @@ public final class FirebaseController {
             return 1;
         }
     }
+
 }

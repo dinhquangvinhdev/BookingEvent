@@ -87,9 +87,9 @@ public class DashboardMonthFragment extends Fragment
         // Required empty public constructor
     }
 
-    public void updateDisplayData() {
+    public void updateDisplayData(List<Event> events) {
         //update event filter
-        presenter.updateFilterEvent(selectedDay);
+        presenter.updateFilterEvent(selectedDay , events);
         //update adapter
         adapter.setEvents(MData.arrFilterEvent);
         adapter.notifyDataSetChanged();
@@ -341,13 +341,13 @@ public class DashboardMonthFragment extends Fragment
             binding.exOneCalendar.notifyDateChanged(oldDate);
         }
         //update event filter
-        updateDisplayData();
+        updateDisplayData(null);
     }
 
     @Override
     public void updateEvent(List<Event> events) {
         //update event filter
-        updateDisplayData();
+        updateDisplayData(events);
 
         //update adapter event
         adapter.setEvents(MData.arrFilterEvent);

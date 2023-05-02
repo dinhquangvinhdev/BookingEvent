@@ -14,9 +14,9 @@ public interface DashboardMonthContract {
 
         String getNameRoom(int room_id);
 
-        void filterEvents(long startTime , long endTime);
+        void filterEvents( List<Event> events, long startTime , long endTime);
 
-        void updateFilterEvent(LocalDate selectedDay);
+        void updateFilterEvent(LocalDate selectedDay, List<Event> events);
     }
     interface View{}
 }
