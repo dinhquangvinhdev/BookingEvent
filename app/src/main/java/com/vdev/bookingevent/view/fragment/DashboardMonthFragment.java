@@ -321,7 +321,7 @@ public class DashboardMonthFragment extends Fragment
 
     @Override
     public void openSlidingPanel(int idEvent, String roomColor) {
-        fc.getParticipantOfEvent(idEvent);
+        fc.getParticipantOfEvent(getContext(),idEvent);
     }
 
     @Override
@@ -462,7 +462,7 @@ public class DashboardMonthFragment extends Fragment
                         @Override
                         public void onClick(View view) {
                             if (mDialog.checkConnection(getContext())) {
-                                fc.deleteEvent(event);
+                                fc.deleteEvent(getContext(), event);
                                 confirmDeleteEvent.dismiss();
                             } else {
                                 confirmDeleteEvent.dismiss();

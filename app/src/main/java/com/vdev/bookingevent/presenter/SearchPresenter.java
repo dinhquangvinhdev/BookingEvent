@@ -47,13 +47,13 @@ public class SearchPresenter implements SearchEventContract.Presenter{
     @Override
     public void searchEvents(String title, int roomId, String startDate, String endDate) {
         if(roomId != -1){
-            fc.getEventWithRoomId(title , roomId , startDate , endDate);
+            fc.getEventWithRoomId(view.getContext(), title , roomId , startDate , endDate);
         } else if(startDate != ""){
-            fc.getEventWithStartDate(title , startDate , endDate);
+            fc.getEventWithStartDate(view.getContext(), title , startDate , endDate);
         } else if(endDate != ""){
-            fc.getEventWithEndDate(title , endDate);
+            fc.getEventWithEndDate(view.getContext(), title , endDate);
         } else {
-            fc.getEventWithTitle(title);
+            fc.getEventWithTitle(view.getContext(), title);
         }
     }
 

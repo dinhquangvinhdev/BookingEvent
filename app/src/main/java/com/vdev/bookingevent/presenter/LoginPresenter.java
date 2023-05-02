@@ -78,7 +78,6 @@ public class LoginPresenter implements LoginContract.Presenter {
 
     @Override
     public void executeIntentLoginGG(Intent data) {
-        Log.d(TAG, "executeIntentLoginGG: Google Signin intent result");
         Task<GoogleSignInAccount> accountTask = GoogleSignIn.getSignedInAccountFromIntent(data);
         Exception exception = accountTask.getException();
         if(accountTask.isSuccessful()){
@@ -88,10 +87,12 @@ public class LoginPresenter implements LoginContract.Presenter {
                 firebaseAuthWithGoogleAccount(account);
             }catch (Exception e){
                 //failed google sign in
+                mDialog.showErrorDialog(view.getContext(), "Please check your internet");
                 Log.d(TAG, "executeIntentLoginGG: " + e.getMessage());
                 view.turnOffProgressBar();
             }
         } else {
+            mDialog.showErrorDialog(view.getContext(), "Please check your internet");
             Log.d(TAG, "executeIntentLoginGG: " + exception.getMessage());
             view.turnOffProgressBar();
         }
@@ -116,6 +117,7 @@ public class LoginPresenter implements LoginContract.Presenter {
                             fc.checkUserAccount(view , view.getContext(),mDialog, uid , email);
                         }
                         else{
+                            mDialog.showErrorDialog(view.getContext(), "Please check your internet");
                             Log.d(TAG, "onFailure: Loggin failed " + task.getException().getMessage());
                             view.turnOffProgressBar();
                         }

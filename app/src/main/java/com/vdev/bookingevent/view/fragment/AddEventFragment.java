@@ -348,7 +348,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                             tempEvent.setStatus(0);
                             //set event to local variable to create a loop when show event overlap
                             eventWantToAdd = tempEvent;
-                            fc.checkAddNewEvent(eventWantToAdd);
+                            fc.checkAddNewEvent(getContext(), eventWantToAdd);
                         } else {
                             mDialog.showErrorDialog(getContext(), "The number of participants exceeds the maximum number of people\n the meeting room can accommodate");
                         }
@@ -430,9 +430,9 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     @Override
     public void callbackCanAddNewEvent(Event event , List<Event> eventsDuplicate) {
         if(event != null) {
-            fc.addEvent(event);
+            fc.addEvent(getContext(), event);
         } else {
-            fc.getArrHostOfArrEvent(eventsDuplicate);
+            fc.getArrHostOfArrEvent(getContext(),eventsDuplicate);
         }
     }
 
@@ -462,7 +462,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     public void callbackAddEventSuccess(boolean b) {
         if(b){
             //add detail participant
-            fc.addEventDetailParticipant(MData.id_event, guests);
+            fc.addEventDetailParticipant(getContext(), MData.id_event, guests);
         } else {
             //notification can not add event
             mDialog.showFillData(getContext(), "Some error when add new Event");
@@ -473,7 +473,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
         dialogConfirmDeleteEvent.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                fc.deleteEvent(event);
+                fc.deleteEvent(getContext(), event);
             }
         });
         dialogConfirmDeleteEvent.show();
@@ -500,7 +500,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
             @Override
             public void onClick(View view) {
                 //update adapter of dialog event overlap by a loop
-                fc.checkAddNewEvent(eventWantToAdd);
+                fc.checkAddNewEvent(getContext(), eventWantToAdd);
                 dialogDeleteEvent.dismiss();
             }
         });

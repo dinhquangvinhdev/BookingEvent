@@ -1,5 +1,7 @@
 package com.vdev.bookingevent.presenter;
 
+import android.content.Context;
+
 import com.vdev.bookingevent.model.Event;
 import com.vdev.bookingevent.model.User;
 
@@ -18,5 +20,7 @@ public interface DashboardMonthContract {
 
         void updateFilterEvent(LocalDate selectedDay, List<Event> events);
     }
-    interface View{}
+    interface View{
+        Context getContext();
+    }
 }

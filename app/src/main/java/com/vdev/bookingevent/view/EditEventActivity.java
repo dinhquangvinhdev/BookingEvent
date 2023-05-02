@@ -342,7 +342,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                             tempEvent.setRoom_id(room_id);
                             tempEvent.setNumberParticipant(numberParticipant);
                             tempEvent.setStatus(0);
-                            fc.checkEditEvent(tempEvent);
+                            fc.checkEditEvent(getApplicationContext(), tempEvent);
                         } else {
                             mDialog.showErrorDialog(this, "The number of participants exceeds the maximum number of people\n the meeting room can accommodate");
                         }
@@ -394,9 +394,9 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
     @Override
     public void callbackEditEvent(Event event, List<Event> eventsOverlap) {
         if(event != null) {
-            fc.editEvent(event);
+            fc.editEvent(this, event);
         } else {
-            fc.getArrHostOfArrEvent(eventsOverlap);
+            fc.getArrHostOfArrEvent(this, eventsOverlap);
         }
     }
 
@@ -413,7 +413,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
         if(addGuest.equals(removeGuest)){
             callbackAddDetailParticipant(true);
         } else {
-            fc.editEventDetailParticipant(event.getId() , addGuest, removeGuest);
+            fc.editEventDetailParticipant(this, event.getId() , addGuest, removeGuest);
         }
     }
 
@@ -468,7 +468,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
         dialogConfirmDeleteEvent.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                fc.deleteEvent(event);
+                fc.deleteEvent(getApplicationContext(),event);
             }
         });
         dialogConfirmDeleteEvent.show();
@@ -512,7 +512,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
             @Override
             public void onClick(View view) {
                 //update adapter of dialog event overlap by a loop
-                fc.checkEditEvent(eventWantToEdit);
+                fc.checkEditEvent(getApplicationContext(), eventWantToEdit);
                 dialogDeleteEvent.dismiss();
             }
         });

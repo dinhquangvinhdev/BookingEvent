@@ -48,6 +48,7 @@ public final class FirebaseController {
     private CallbackAddEvent callbackAddEvent;
     private CallbackEditEvent callbackEditEvent;
     private CallbackDetailEvent callbackDetailEvent;
+    private MDialog mDialog;
 
     public FirebaseController(CallbackUpdateEventDisplay callbackUpdateEventDisplay, CallbackAddEvent callbackAddEvent,
                               CallbackEditEvent callbackEditEvent, CallbackDetailEvent callbackDetailEvent) {
@@ -57,167 +58,172 @@ public final class FirebaseController {
         this.callbackAddEvent = callbackAddEvent;
         this.callbackEditEvent = callbackEditEvent;
         this.callbackDetailEvent = callbackDetailEvent;
+        mDialog = new MDialog();
     }
 
-    public void addEvent(Event event) {
-        //TODO check internet when call this function
-        //get the last item and the id event newest
-        mDatabase.child("Event").orderByKey().limitToLast(1).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (task.isSuccessful()) {
-                    for (DataSnapshot snapshot : task.getResult().getChildren()) {
-                        Event event1 = snapshot.getValue(Event.class);
-                        if (event1 == null) {
-                            MData.id_event = 0;
-                        } else {
-                            MData.id_event = event1.getId();
+    public void addEvent(Context context, Event event) {
+        if(mDialog.checkConnection(context)) {
+            //get the last item and the id event newest
+            mDatabase.child("Event").orderByKey().limitToLast(1).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        for (DataSnapshot snapshot : task.getResult().getChildren()) {
+                            Event event1 = snapshot.getValue(Event.class);
+                            if (event1 == null) {
+                                MData.id_event = 0;
+                            } else {
+                                MData.id_event = event1.getId();
+                            }
+                            //add event
+                            if (MData.id_event != -1) {
+                                MData.id_event += 1;
+                                event.setId(MData.id_event);
+                                mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful()) {
+                                            callbackAddEvent.callbackAddEventSuccess(true);
+                                        } else {
+                                            callbackAddEvent.callbackAddEventSuccess(false);
+                                        }
+                                    }
+                                });
+                            } else {
+                                callbackAddEvent.callbackAddEventSuccess(false);
+                            }
+                            break;
                         }
-                        //add event
-                        if (MData.id_event != -1) {
-                            MData.id_event += 1;
-                            event.setId(MData.id_event);
-                            mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        callbackAddEvent.callbackAddEventSuccess(true);
-                                    } else {
-                                        callbackAddEvent.callbackAddEventSuccess(false);
+                    } else {
+                        callbackAddEvent.callbackAddEventSuccess(false);
+                    }
+                }
+            });
+        }
+    }
+
+    public void addEventDetailParticipant(Context context, int event_id, List<User> guests) {
+        if (mDialog.checkConnection(context)) {
+            Detail_participant detailParticipantHost = new Detail_participant();
+            detailParticipantHost.setEvent_id(event_id);
+            detailParticipantHost.setUser_id(MData.userLogin.getId());
+            detailParticipantHost.setRole(MConst.ROLE_HOST);
+
+            List<Detail_participant> dpGuest = new ArrayList<>();
+            for (int i = 0; i < guests.size(); i++) {
+                Detail_participant dp = new Detail_participant();
+                dp.setEvent_id(event_id);
+                dp.setUser_id(guests.get(i).getId());
+                dp.setRole(MConst.ROLE_GUEST);
+                dpGuest.add(dp);
+            }
+
+            //add guest
+            for (int i = 0; i < dpGuest.size(); i++) {
+                mDatabase.child("Detail_participant").push().setValue(dpGuest.get(i));
+            }
+            //add detail participant host
+            mDatabase.child("Detail_participant").push().setValue(detailParticipantHost).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        callbackAddEvent.callbackAddDetailParticipant(true);
+                    } else {
+                        callbackAddEvent.callbackAddDetailParticipant(false);
+                    }
+                }
+            });
+        }
+
+    }
+
+    public void editEventDetailParticipant(Context context , int event_id, List<User> addGuests, List<User> removeGuests) {
+        if(mDialog.checkConnection(context)){
+            //create list add guest
+            List<Detail_participant> dpAddGuest = new ArrayList<>();
+            for (int i = 0; i < addGuests.size(); i++) {
+                Detail_participant dp = new Detail_participant();
+                dp.setEvent_id(event_id);
+                dp.setUser_id(addGuests.get(i).getId());
+                dp.setRole(MConst.ROLE_GUEST);
+                dpAddGuest.add(dp);
+            }
+
+            if (!addGuests.isEmpty() && removeGuests.isEmpty()) {                     //case add guest not empty but removeGuest is empty
+                //add guest
+                for (int i = 0; i < dpAddGuest.size(); i++) {
+                    if (i == dpAddGuest.size() - 1) {
+                        mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i)).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    callbackEditEvent.callbackAddDetailParticipant(true);
+                                } else {
+                                    callbackEditEvent.callbackAddDetailParticipant(false);
+                                }
+                            }
+                        });
+                    } else {
+                        mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i));
+                    }
+                }
+
+            } else if (addGuests.isEmpty() && !removeGuests.isEmpty()) {              //case add guest is empty but removeGuest is not empty
+                mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
+                                Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
+                                for (int i = 0; i < removeGuests.size(); i++) {
+                                    if (detailParticipant.getUser_id() == removeGuests.get(i).getId()) {
+                                        mDatabase.child("Detail_participant").child(dataSnapshot.getKey()).removeValue();
+                                        break;
                                     }
                                 }
-                            });
+                            }
+                            callbackEditEvent.callbackAddDetailParticipant(true);
                         } else {
-                            callbackAddEvent.callbackAddEventSuccess(false);
+                            callbackEditEvent.callbackAddDetailParticipant(false);
                         }
-                        break;
                     }
-                } else {
-                    callbackAddEvent.callbackAddEventSuccess(false);
-                }
-            }
-        });
-    }
+                });
 
-    public void addEventDetailParticipant(int event_id, List<User> guests) {
-        //TODO check internet when call this function
-        Detail_participant detailParticipantHost = new Detail_participant();
-        detailParticipantHost.setEvent_id(event_id);
-        detailParticipantHost.setUser_id(MData.userLogin.getId());
-        detailParticipantHost.setRole(MConst.ROLE_HOST);
-
-        List<Detail_participant> dpGuest = new ArrayList<>();
-        for (int i = 0; i < guests.size(); i++) {
-            Detail_participant dp = new Detail_participant();
-            dp.setEvent_id(event_id);
-            dp.setUser_id(guests.get(i).getId());
-            dp.setRole(MConst.ROLE_GUEST);
-            dpGuest.add(dp);
-        }
-
-        //add guest
-        for (int i = 0; i < dpGuest.size(); i++) {
-            mDatabase.child("Detail_participant").push().setValue(dpGuest.get(i));
-        }
-        //add detail participant host
-        mDatabase.child("Detail_participant").push().setValue(detailParticipantHost).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    callbackAddEvent.callbackAddDetailParticipant(true);
-                } else {
-                    callbackAddEvent.callbackAddDetailParticipant(false);
-                }
-            }
-        });
-    }
-
-    public void editEventDetailParticipant(int event_id, List<User> addGuests, List<User> removeGuests) {
-        //TODO check internet when call this function
-        //create list add guest
-        List<Detail_participant> dpAddGuest = new ArrayList<>();
-        for (int i = 0; i < addGuests.size(); i++) {
-            Detail_participant dp = new Detail_participant();
-            dp.setEvent_id(event_id);
-            dp.setUser_id(addGuests.get(i).getId());
-            dp.setRole(MConst.ROLE_GUEST);
-            dpAddGuest.add(dp);
-        }
-
-        if (!addGuests.isEmpty() && removeGuests.isEmpty()) {                     //case add guest not empty but removeGuest is empty
-            //add guest
-            for (int i = 0; i < dpAddGuest.size(); i++) {
-                if (i == dpAddGuest.size() - 1) {
-                    mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i)).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                callbackEditEvent.callbackAddDetailParticipant(true);
-                            } else {
-                                callbackEditEvent.callbackAddDetailParticipant(false);
-                            }
-                        }
-                    });
-                } else {
-                    mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i));
-                }
-            }
-
-        } else if (addGuests.isEmpty() && !removeGuests.isEmpty()) {              //case add guest is empty but removeGuest is not empty
-            mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DataSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
-                            Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
-                            for (int i = 0; i < removeGuests.size(); i++) {
-                                if (detailParticipant.getUser_id() == removeGuests.get(i).getId()) {
-                                    mDatabase.child("Detail_participant").child(dataSnapshot.getKey()).removeValue();
-                                    break;
+            } else {                                                                //case both add guest and removeGuest are not empty
+                //remove guest
+                //remove guest
+                mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DataSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
+                                Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
+                                for (int i = 0; i < removeGuests.size(); i++) {
+                                    if (detailParticipant.getUser_id() == removeGuests.get(i).getId()) {
+                                        mDatabase.child("Detail_participant").child(dataSnapshot.getKey()).removeValue();
+                                        break;
+                                    }
                                 }
                             }
                         }
-                        callbackEditEvent.callbackAddDetailParticipant(true);
+                    }
+                });
+                //add guest
+                for (int i = 0; i < dpAddGuest.size(); i++) {
+                    if (i == dpAddGuest.size() - 1) {
+                        mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i)).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    callbackEditEvent.callbackAddDetailParticipant(true);
+                                } else {
+                                    callbackEditEvent.callbackAddDetailParticipant(false);
+                                }
+                            }
+                        });
                     } else {
-                        callbackEditEvent.callbackAddDetailParticipant(false);
+                        mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i));
                     }
-                }
-            });
-
-        } else {                                                                //case both add guest and removeGuest are not empty
-            //remove guest
-            //remove guest
-            mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DataSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
-                            Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
-                            for (int i = 0; i < removeGuests.size(); i++) {
-                                if (detailParticipant.getUser_id() == removeGuests.get(i).getId()) {
-                                    mDatabase.child("Detail_participant").child(dataSnapshot.getKey()).removeValue();
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-            //add guest
-            for (int i = 0; i < dpAddGuest.size(); i++) {
-                if (i == dpAddGuest.size() - 1) {
-                    mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i)).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                callbackEditEvent.callbackAddDetailParticipant(true);
-                            } else {
-                                callbackEditEvent.callbackAddDetailParticipant(false);
-                            }
-                        }
-                    });
-                } else {
-                    mDatabase.child("Detail_participant").push().setValue(dpAddGuest.get(i));
                 }
             }
         }
@@ -502,226 +508,231 @@ public final class FirebaseController {
                 });
     }
 
-    public void getEventWithRoomId(String title, int roomId, String startDate, String endDate) {
-        //TODO check internet when call this function
-        //convert time
-        long startDateMili = -1, endDateMili = -1;
-        if (!startDate.equals("")) {
-            startDateMili = mConvertTime.convertStringToMili(startDate);
-        }
-        if (!endDate.equals("")) {
-            endDateMili = mConvertTime.convertStringToMili(endDate);
-        }
+    public void getEventWithRoomId(Context context , String title, int roomId, String startDate, String endDate) {
+        if(mDialog.checkConnection(context)){
+            //convert time
+            long startDateMili = -1, endDateMili = -1;
+            if (!startDate.equals("")) {
+                startDateMili = mConvertTime.convertStringToMili(startDate);
+            }
+            if (!endDate.equals("")) {
+                endDateMili = mConvertTime.convertStringToMili(endDate);
+            }
 
-        //query from database
-        long finalStartDateMili = startDateMili;
-        long finalEndDateMili = endDateMili;
-        mDatabase.child("Event")
-                .orderByChild("room_id")
-                .equalTo(roomId)
-                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            List<Event> arrEventResult = new ArrayList<>();
-                            DataSnapshot result = task.getResult();
-                            for (DataSnapshot dataSnapshot : result.getChildren()) {
-                                Event tempEvent = dataSnapshot.getValue(Event.class);
-                                //check event is deleted
-                                if (tempEvent == null || tempEvent.getStatus() == -1) {
-                                    continue;
-                                }
-                                //check filter
-                                if (!title.equals("")) {
-                                    if (!tempEvent.getTitle().contains(title)) {
+            //query from database
+            long finalStartDateMili = startDateMili;
+            long finalEndDateMili = endDateMili;
+            mDatabase.child("Event")
+                    .orderByChild("room_id")
+                    .equalTo(roomId)
+                    .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DataSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                List<Event> arrEventResult = new ArrayList<>();
+                                DataSnapshot result = task.getResult();
+                                for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                    Event tempEvent = dataSnapshot.getValue(Event.class);
+                                    //check event is deleted
+                                    if (tempEvent == null || tempEvent.getStatus() == -1) {
                                         continue;
                                     }
-                                }
-                                if (finalStartDateMili >= 0) {
-                                    if (tempEvent.getDateStart() < finalStartDateMili) {
-                                        continue;
+                                    //check filter
+                                    if (!title.equals("")) {
+                                        if (!tempEvent.getTitle().contains(title)) {
+                                            continue;
+                                        }
                                     }
-                                }
-                                if (finalEndDateMili >= 0) {
-                                    if (tempEvent.getDateEnd() > finalEndDateMili) {
-                                        continue;
+                                    if (finalStartDateMili >= 0) {
+                                        if (tempEvent.getDateStart() < finalStartDateMili) {
+                                            continue;
+                                        }
                                     }
-                                }
-                                //add event
-                                arrEventResult.add(tempEvent);
-                            }
-                            //call back
-                            callbackUpdateEventDisplay.updateEvent(arrEventResult);
-                        } else {
-                            Log.d("bibibla", "onComplete: " + task.getException());
-                        }
-                    }
-                });
-    }
-
-    public void getEventWithTitle(String title) {
-        //TODO check internet when call this function
-        mDatabase.child("Event")
-                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            List<Event> arrEventResult = new ArrayList<>();
-                            DataSnapshot result = task.getResult();
-                            for (DataSnapshot dataSnapshot : result.getChildren()) {
-                                Event tempEvent = dataSnapshot.getValue(Event.class);
-                                //check event is deleted
-                                if (tempEvent == null || tempEvent.getStatus() == -1) {
-                                    continue;
-                                }
-                                //filter
-                                if (tempEvent.getTitle().contains(title)) {
+                                    if (finalEndDateMili >= 0) {
+                                        if (tempEvent.getDateEnd() > finalEndDateMili) {
+                                            continue;
+                                        }
+                                    }
+                                    //add event
                                     arrEventResult.add(tempEvent);
                                 }
+                                //call back
+                                callbackUpdateEventDisplay.updateEvent(arrEventResult);
+                            } else {
+                                Log.d("bibibla", "onComplete: " + task.getException());
                             }
-                            //call back
-                            callbackUpdateEventDisplay.updateEvent(arrEventResult);
-                        } else {
-                            Log.d("bibibla", "onComplete: " + task.getException());
                         }
-                    }
-                });
+                    });
+        }
     }
 
-    public void getEventWithStartDate(String title, String startDate, String endDate) {
-        //TODO check internet when call this function
-        long startDateMili = -1, endDateMili = -1;
-        if (!startDate.equals("")) {
-            startDateMili = mConvertTime.convertStringToMili(startDate);
-        }
-        if (!endDate.equals("")) {
-            endDateMili = mConvertTime.convertStringToMili(endDate);
-        }
-
-        //query from database
-        long finalStartDateMili = startDateMili;
-        long finalEndDateMili = endDateMili;
-        mDatabase.child("Event")
-                .orderByChild("dateStart")
-                .startAt(startDateMili)
-                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            List<Event> arrEventResult = new ArrayList<>();
-                            DataSnapshot result = task.getResult();
-                            for (DataSnapshot dataSnapshot : result.getChildren()) {
-                                Event tempEvent = dataSnapshot.getValue(Event.class);
-                                //check event is deleted
-                                if (tempEvent == null || tempEvent.getStatus() == -1) {
-                                    continue;
-                                }
-                                //filter
-                                if (!title.equals("")) {
-                                    if (!tempEvent.getTitle().contains(title)) {
+    public void getEventWithTitle(Context context, String title) {
+        if(mDialog.checkConnection(context)) {
+            mDatabase.child("Event")
+                    .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DataSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                List<Event> arrEventResult = new ArrayList<>();
+                                DataSnapshot result = task.getResult();
+                                for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                    Event tempEvent = dataSnapshot.getValue(Event.class);
+                                    //check event is deleted
+                                    if (tempEvent == null || tempEvent.getStatus() == -1) {
                                         continue;
                                     }
-                                }
-                                if (finalEndDateMili >= 0) {
-                                    if (tempEvent.getDateEnd() > finalEndDateMili) {
-                                        continue;
+                                    //filter
+                                    if (tempEvent.getTitle().contains(title)) {
+                                        arrEventResult.add(tempEvent);
                                     }
                                 }
-                                //add event
-                                arrEventResult.add(tempEvent);
+                                //call back
+                                callbackUpdateEventDisplay.updateEvent(arrEventResult);
+                            } else {
+                                Log.d("bibibla", "onComplete: " + task.getException());
                             }
-                            //call back
-                            callbackUpdateEventDisplay.updateEvent(arrEventResult);
-                        } else {
-                            Log.d("bibibla", "onComplete: " + task.getException());
                         }
-                    }
-                });
+                    });
+        }
     }
 
-    public void getEventWithEndDate(String title, String endDate) {
-        //TODO check internet when call this function
-        long startDateMili = -1, endDateMili = -1;
-        if (!endDate.equals("")) {
-            endDateMili = mConvertTime.convertStringToMili(endDate);
-        }
-        //query
-        mDatabase.child("Event")
-                .orderByChild("dateEnd")
-                .endAt(endDateMili)
-                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            List<Event> arrEventResult = new ArrayList<>();
-                            DataSnapshot result = task.getResult();
-                            for (DataSnapshot dataSnapshot : result.getChildren()) {
-                                Event tempEvent = dataSnapshot.getValue(Event.class);
-                                //check event is deleted
-                                if (tempEvent == null || tempEvent.getStatus() == -1) {
-                                    continue;
-                                }
-                                //filter
-                                if (!title.equals("")) {
-                                    if (!tempEvent.getTitle().contains(title)) {
+    public void getEventWithStartDate(Context context, String title, String startDate, String endDate) {
+        if(mDialog.checkConnection(context)){
+            long startDateMili = -1, endDateMili = -1;
+            if (!startDate.equals("")) {
+                startDateMili = mConvertTime.convertStringToMili(startDate);
+            }
+            if (!endDate.equals("")) {
+                endDateMili = mConvertTime.convertStringToMili(endDate);
+            }
+
+            //query from database
+            long finalStartDateMili = startDateMili;
+            long finalEndDateMili = endDateMili;
+            mDatabase.child("Event")
+                    .orderByChild("dateStart")
+                    .startAt(startDateMili)
+                    .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DataSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                List<Event> arrEventResult = new ArrayList<>();
+                                DataSnapshot result = task.getResult();
+                                for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                    Event tempEvent = dataSnapshot.getValue(Event.class);
+                                    //check event is deleted
+                                    if (tempEvent == null || tempEvent.getStatus() == -1) {
                                         continue;
                                     }
+                                    //filter
+                                    if (!title.equals("")) {
+                                        if (!tempEvent.getTitle().contains(title)) {
+                                            continue;
+                                        }
+                                    }
+                                    if (finalEndDateMili >= 0) {
+                                        if (tempEvent.getDateEnd() > finalEndDateMili) {
+                                            continue;
+                                        }
+                                    }
+                                    //add event
+                                    arrEventResult.add(tempEvent);
                                 }
-                                //add event
-                                arrEventResult.add(tempEvent);
+                                //call back
+                                callbackUpdateEventDisplay.updateEvent(arrEventResult);
+                            } else {
+                                Log.d("bibibla", "onComplete: " + task.getException());
                             }
-                            //call back
-                            callbackUpdateEventDisplay.updateEvent(arrEventResult);
-                        } else {
-                            Log.d("bibibla", "onComplete: " + task.getException());
                         }
-                    }
-                });
+                    });
+        }
     }
 
-    public void checkAddNewEvent(Event tempEvent) {
-        //get all event of the day want to add
-        LocalDate tempLC = mConvertTime.convertMiliToLocalDate(tempEvent.getDateStart());
-        long timeStart = mConvertTime.getMiliStartDayFromLocalDate(tempLC);
-        long timeEnd = mConvertTime.getMiliLastDayFromLocalDate(tempLC);
-        mDatabase.child("Event")
-                .orderByChild("dateStart")
-                .startAt(timeStart)
-                .endAt(timeEnd)
-                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DataSnapshot result = task.getResult();
-                            List<Event> eventsOverlap = new ArrayList<>();
-                            //check duplicate event
-                            for (DataSnapshot dataSnapshot : result.getChildren()) {
-                                Event event1 = dataSnapshot.getValue(Event.class);
-                                if (event1.getStatus() == 0 && event1.getRoom_id() == tempEvent.getRoom_id()) {
-                                    if ((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() <= event1.getDateStart())
-                                            || (tempEvent.getDateStart() >= event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd())) {
+    public void getEventWithEndDate(Context context, String title, String endDate) {
+        if(mDialog.checkConnection(context)){
+            long startDateMili = -1, endDateMili = -1;
+            if (!endDate.equals("")) {
+                endDateMili = mConvertTime.convertStringToMili(endDate);
+            }
+            //query
+            mDatabase.child("Event")
+                    .orderByChild("dateEnd")
+                    .endAt(endDateMili)
+                    .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DataSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                List<Event> arrEventResult = new ArrayList<>();
+                                DataSnapshot result = task.getResult();
+                                for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                    Event tempEvent = dataSnapshot.getValue(Event.class);
+                                    //check event is deleted
+                                    if (tempEvent == null || tempEvent.getStatus() == -1) {
+                                        continue;
+                                    }
+                                    //filter
+                                    if (!title.equals("")) {
+                                        if (!tempEvent.getTitle().contains(title)) {
+                                            continue;
+                                        }
+                                    }
+                                    //add event
+                                    arrEventResult.add(tempEvent);
+                                }
+                                //call back
+                                callbackUpdateEventDisplay.updateEvent(arrEventResult);
+                            } else {
+                                Log.d("bibibla", "onComplete: " + task.getException());
+                            }
+                        }
+                    });
+        }
+    }
+
+    public void checkAddNewEvent(Context context , Event tempEvent) {
+        if(mDialog.checkConnection(context)){
+            //get all event of the day want to add
+            LocalDate tempLC = mConvertTime.convertMiliToLocalDate(tempEvent.getDateStart());
+            long timeStart = mConvertTime.getMiliStartDayFromLocalDate(tempLC);
+            long timeEnd = mConvertTime.getMiliLastDayFromLocalDate(tempLC);
+            mDatabase.child("Event")
+                    .orderByChild("dateStart")
+                    .startAt(timeStart)
+                    .endAt(timeEnd)
+                    .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DataSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DataSnapshot result = task.getResult();
+                                List<Event> eventsOverlap = new ArrayList<>();
+                                //check duplicate event
+                                for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                    Event event1 = dataSnapshot.getValue(Event.class);
+                                    if (event1.getStatus() == 0 && event1.getRoom_id() == tempEvent.getRoom_id()) {
+                                        if ((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() <= event1.getDateStart())
+                                                || (tempEvent.getDateStart() >= event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd())) {
+                                            //can add the event
+                                            continue;
+                                        } else {
+                                            eventsOverlap.add(event1);
+                                        }
+                                    } else {
                                         //can add the event
                                         continue;
-                                    } else {
-                                        eventsOverlap.add(event1);
                                     }
-                                } else {
-                                    //can add the event
-                                    continue;
                                 }
-                            }
-                            //check can add
-                            if (eventsOverlap.isEmpty()) {
-                                callbackAddEvent.callbackCanAddNewEvent(tempEvent, eventsOverlap);
+                                //check can add
+                                if (eventsOverlap.isEmpty()) {
+                                    callbackAddEvent.callbackCanAddNewEvent(tempEvent, eventsOverlap);
+                                } else {
+                                    callbackAddEvent.callbackCanAddNewEvent(null, eventsOverlap);
+                                }
                             } else {
-                                callbackAddEvent.callbackCanAddNewEvent(null, eventsOverlap);
+                                Log.d("bibibla", "onComplete: " + task.getException());
                             }
-                        } else {
-                            Log.d("bibibla", "onComplete: " + task.getException());
                         }
-                    }
-                });
-
+                    });
+        }
     }
 
     public void checkUserAccount(LoginContract.View view, Context context, MDialog mDialog, String uid, String email) {
@@ -748,7 +759,7 @@ public final class FirebaseController {
                         logoutAccount(context);
                         view.turnOffProgressBar();
                     } else {
-                        getUserLogin(uid);
+                        getUserLogin(context, uid);
                         view.startActivity(MainActivity.class);
                     }
                 } else {
@@ -759,203 +770,219 @@ public final class FirebaseController {
         });
     }
 
-    private void getUserLogin(String email_id) {
-        mDatabase.child("User").orderByChild("email_id").equalTo(email_id).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    MData.userLogin = dataSnapshot.getValue(User.class);
-                    Log.d("bibibla", "user name : " + MData.userLogin.getFullName());
+    private void getUserLogin(Context context, String email_id) {
+        if(mDialog.checkConnection(context)){
+            mDatabase.child("User").orderByChild("email_id").equalTo(email_id).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                        MData.userLogin = dataSnapshot.getValue(User.class);
+                        Log.d("bibibla", "user name : " + MData.userLogin.getFullName());
+                    }
                 }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.w("bibibla", "loadEvent:onCancelled", error.toException());
-            }
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Log.w("bibibla", "loadEvent:onCancelled", error.toException());
+                }
+            });
+        }
     }
 
     private void logoutAccount(Context context) {
-        FirebaseAuth.getInstance().signOut();
-        GoogleSignInOptions gsio = new GoogleSignInOptions
-                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail().build();
+        if(mDialog.checkConnection(context)){
+            FirebaseAuth.getInstance().signOut();
+            GoogleSignInOptions gsio = new GoogleSignInOptions
+                    .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestEmail().build();
 
-        GoogleSignInClient gsic = GoogleSignIn.getClient(context, gsio);
-        gsic.signOut();
+            GoogleSignInClient gsic = GoogleSignIn.getClient(context, gsio);
+            gsic.signOut();
+        }
     }
 
-    public void deleteEvent(Event event) {
-        //set event status to -1 to delete it
-        event.setStatus(-1);
-        mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    //notification if delete success
-                    callbackUpdateEventDisplay.deleteEventSuccess(event);
-                } else {
-                    Log.d("bibibla", "onComplete: " + task.getException());
+    public void deleteEvent(Context context, Event event) {
+        if(mDialog.checkConnection(context)){
+            //set event status to -1 to delete it
+            event.setStatus(-1);
+            mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        //notification if delete success
+                        callbackUpdateEventDisplay.deleteEventSuccess(event);
+                    } else {
+                        Log.d("bibibla", "onComplete: " + task.getException());
+                    }
+
                 }
-
-            }
-        });
+            });
+        }
     }
 
-    public void checkEditEvent(Event tempEvent) {
-        //get all event of the day want to update
-        LocalDate tempLC = mConvertTime.convertMiliToLocalDate(tempEvent.getDateStart());
-        long timeStart = mConvertTime.getMiliStartDayFromLocalDate(tempLC);
-        long timeEnd = mConvertTime.getMiliLastDayFromLocalDate(tempLC);
-        mDatabase.child("Event")
-                .orderByChild("dateStart")
-                .startAt(timeStart)
-                .endAt(timeEnd)
-                .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DataSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DataSnapshot result = task.getResult();
-                            List<Event> eventsOverlap = new ArrayList<>();
-                            //check overlap event
-                            for (DataSnapshot dataSnapshot : result.getChildren()) {
-                                Event event1 = dataSnapshot.getValue(Event.class);
-                                if (event1.getStatus() == 0 && event1.getId() != tempEvent.getId() && event1.getRoom_id() == tempEvent.getRoom_id()) {
-                                    if ((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() <= event1.getDateStart())
-                                            || (tempEvent.getDateStart() >= event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd())) {
+    public void checkEditEvent(Context context, Event tempEvent) {
+        if (mDialog.checkConnection(context)) {
+            //get all event of the day want to update
+            LocalDate tempLC = mConvertTime.convertMiliToLocalDate(tempEvent.getDateStart());
+            long timeStart = mConvertTime.getMiliStartDayFromLocalDate(tempLC);
+            long timeEnd = mConvertTime.getMiliLastDayFromLocalDate(tempLC);
+            mDatabase.child("Event")
+                    .orderByChild("dateStart")
+                    .startAt(timeStart)
+                    .endAt(timeEnd)
+                    .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DataSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DataSnapshot result = task.getResult();
+                                List<Event> eventsOverlap = new ArrayList<>();
+                                //check overlap event
+                                for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                    Event event1 = dataSnapshot.getValue(Event.class);
+                                    if (event1.getStatus() == 0 && event1.getId() != tempEvent.getId() && event1.getRoom_id() == tempEvent.getRoom_id()) {
+                                        if ((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() <= event1.getDateStart())
+                                                || (tempEvent.getDateStart() >= event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd())) {
+                                            //can edit the event
+                                            continue;
+                                        } else {
+                                            eventsOverlap.add(event1);
+                                        }
+                                    } else {
                                         //can edit the event
                                         continue;
-                                    } else {
-                                        eventsOverlap.add(event1);
                                     }
+                                }
+                                //check can edit
+                                if (eventsOverlap.isEmpty()) {
+                                    callbackEditEvent.callbackEditEvent(tempEvent, eventsOverlap);
                                 } else {
-                                    //can edit the event
-                                    continue;
+                                    callbackEditEvent.callbackEditEvent(null, eventsOverlap);
                                 }
-                            }
-                            //check can edit
-                            if (eventsOverlap.isEmpty()) {
-                                callbackEditEvent.callbackEditEvent(tempEvent, eventsOverlap);
                             } else {
-                                callbackEditEvent.callbackEditEvent(null, eventsOverlap);
+                                Log.d("bibibla", "onComplete: " + task.getException());
                             }
-                        } else {
-                            Log.d("bibibla", "onComplete: " + task.getException());
                         }
+                    });
+        }
+    }
+
+    public void editEvent(Context context, Event event) {
+        if(mDialog.checkConnection(context)){
+            mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        callbackEditEvent.editEventSuccess(event);
+                    } else {
+                        Log.d("bibibla", "onComplete: " + task.getException());
                     }
-                });
-    }
 
-    public void editEvent(Event event) {
-        mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    callbackEditEvent.editEventSuccess(event);
-                } else {
-                    Log.d("bibibla", "onComplete: " + task.getException());
                 }
-
-            }
-        });
+            });
+        }
     }
 
-    public void getParticipantOfEvent(int eventId) {
-
-        mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(eventId).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (task.isSuccessful()) {
-                    User host = new User();
-                    List<User> guests = new ArrayList<>();
-                    for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
-                        Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
-                        if (detailParticipant.getRole().compareTo(MConst.ROLE_HOST) == 0) {
-                            for (int i = 0; i < MData.arrUser.size(); i++) {
-                                User user = MData.arrUser.get(i);
-                                if (user.getId() == detailParticipant.getUser_id()) {
-                                    host = user;
+    public void getParticipantOfEvent(Context context, int eventId) {
+        if(mDialog.checkConnection(context)){
+            mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(eventId).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        User host = new User();
+                        List<User> guests = new ArrayList<>();
+                        for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
+                            Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
+                            if (detailParticipant.getRole().compareTo(MConst.ROLE_HOST) == 0) {
+                                for (int i = 0; i < MData.arrUser.size(); i++) {
+                                    User user = MData.arrUser.get(i);
+                                    if (user.getId() == detailParticipant.getUser_id()) {
+                                        host = user;
+                                    }
+                                }
+                            } else {
+                                for (int i = 0; i < MData.arrUser.size(); i++) {
+                                    User user = MData.arrUser.get(i);
+                                    if (user.getId() == detailParticipant.getUser_id()) {
+                                        guests.add(user);
+                                    }
                                 }
                             }
-                        } else {
-                            for (int i = 0; i < MData.arrUser.size(); i++) {
-                                User user = MData.arrUser.get(i);
-                                if (user.getId() == detailParticipant.getUser_id()) {
-                                    guests.add(user);
+                        }
+
+                        callbackDetailEvent.callbackShowSlidingPanel(host, guests, eventId);
+                    } else {
+                        Log.d("bibibla", "onComplete: " + task.getException());
+                    }
+                }
+            });
+        }
+    }
+
+    public void getEventsOfHost(Context context , int hostId) {
+        if(mDialog.checkConnection(context)){
+            List<Event> result = new ArrayList<>();
+
+            mDatabase.child("Detail_participant").orderByChild("user_id").equalTo(hostId).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
+                            Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
+                            //check event is deleted
+                            for (int i = 0; i < MData.arrEvent.size(); i++) {
+                                Event event = MData.arrEvent.get(i);
+                                if (detailParticipant.getEvent_id() == event.getId() && event.getStatus() >= 0) {
+                                    result.add(event);
                                 }
                             }
                         }
+                        callbackUpdateEventDisplay.updateEvent(result);
+                    } else {
+                        Log.d("bibibla", "onComplete: " + task.getException());
                     }
-
-                    callbackDetailEvent.callbackShowSlidingPanel(host, guests, eventId);
-                } else {
-                    Log.d("bibibla", "onComplete: " + task.getException());
                 }
-            }
-        });
+            });
+        }
+
     }
 
-    public void getEventsOfHost(int hostId) {
-        List<Event> result = new ArrayList<>();
+    public void getArrHostOfArrEvent(Context context, List<Event> events) {
+        if(mDialog.checkConnection(context)){
+            List<User> arrHost = Arrays.asList(new User[events.size()]);
 
-        mDatabase.child("Detail_participant").orderByChild("user_id").equalTo(hostId).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (task.isSuccessful()) {
-                    for (DataSnapshot dataSnapshot : task.getResult().getChildren()){
-                        Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
-                        //check event is deleted
-                        for(int i=0 ; i<MData.arrEvent.size() ; i++){
-                            Event event = MData.arrEvent.get(i);
-                            if(detailParticipant.getEvent_id() == event.getId() && event.getStatus() >=0){
-                                result.add(event);
-                            }
-                        }
-                    }
-                    callbackUpdateEventDisplay.updateEvent(result);
-                } else {
-                    Log.d("bibibla", "onComplete: " + task.getException());
-                }
-            }
-        });
-    }
-
-    public void getArrHostOfArrEvent(List<Event> events) {
-        List<User> arrHost = Arrays.asList(new User[events.size()]);
-
-        mDatabase.child("Detail_participant").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DataSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DataSnapshot result = task.getResult();
-                    for (DataSnapshot dataSnapshot : result.getChildren()) {
-                        Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
-                        if (detailParticipant.getRole().compareTo(MConst.ROLE_HOST) == 0) {
-                            for (int i = 0; i < events.size(); i++) {
-                                if (events.get(i).getId() == detailParticipant.getEvent_id()) {
-                                    for (User user : MData.arrUser) {
-                                        if (user.getId() == detailParticipant.getUser_id()) {
-                                            //set with the index of event
-                                            arrHost.set(i, user);
+            mDatabase.child("Detail_participant").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        DataSnapshot result = task.getResult();
+                        for (DataSnapshot dataSnapshot : result.getChildren()) {
+                            Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
+                            if (detailParticipant.getRole().compareTo(MConst.ROLE_HOST) == 0) {
+                                for (int i = 0; i < events.size(); i++) {
+                                    if (events.get(i).getId() == detailParticipant.getEvent_id()) {
+                                        for (User user : MData.arrUser) {
+                                            if (user.getId() == detailParticipant.getUser_id()) {
+                                                //set with the index of event
+                                                arrHost.set(i, user);
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
-                    if (callbackAddEvent != null) {
-                        callbackAddEvent.callbackGetHostEventOverlap(events, arrHost);
-                    } else if (callbackEditEvent != null) {
-                        callbackEditEvent.callbackGetHostEventOverlap(events, arrHost);
+                        if (callbackAddEvent != null) {
+                            callbackAddEvent.callbackGetHostEventOverlap(events, arrHost);
+                        } else if (callbackEditEvent != null) {
+                            callbackEditEvent.callbackGetHostEventOverlap(events, arrHost);
+                        }
+
+                    } else {
+                        Log.d("bibibla", "onComplete: " + task.getException());
                     }
 
-                } else {
-                    Log.d("bibibla", "onComplete: " + task.getException());
                 }
-
-            }
-        });
+            });
+        }
     }
 
     /**

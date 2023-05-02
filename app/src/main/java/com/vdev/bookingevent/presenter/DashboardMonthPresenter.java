@@ -60,7 +60,7 @@ public class DashboardMonthPresenter implements DashboardMonthContract.Presenter
         } else {
             //check filter with user
             if(MData.filterUser){
-                fc.getEventsOfHost(MData.userLogin.getId());
+                fc.getEventsOfHost(view.getContext(), MData.userLogin.getId());
             } else {
                 updateUIWithFilterEvent(MData.arrEvent, startTime ,endTime);
             }

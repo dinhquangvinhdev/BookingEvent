@@ -43,7 +43,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         binding.btnSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mDialog.checkConnection(getApplicationContext())){
+                if(mDialog.checkConnection(getContext())){
                     //show progress bar and fade window
                     turnOnProgressBar();
                     //start intent to user choice account google
