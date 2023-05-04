@@ -3,8 +3,11 @@ package com.vdev.bookingevent.common;
 import android.util.Log;
 
 import com.vdev.bookingevent.model.Department;
+import com.vdev.bookingevent.model.Email;
 import com.vdev.bookingevent.model.Event;
+import com.vdev.bookingevent.model.Role;
 import com.vdev.bookingevent.model.Room;
+import com.vdev.bookingevent.model.User;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,11 +20,14 @@ public class MData {
     public static List<Room> arrRoom = new ArrayList<>();
     public static List<Event> arrFilterEvent = new ArrayList<>();
     public static List<Department> arrDepartment = new ArrayList<>();
+    public static List<User> arrUser = new ArrayList<>();
+    public static List<Email> arrEmail = new ArrayList<>();
+    public static List<Role> arrRole = new ArrayList<>();
     public static List<Boolean> filterChoicedRoom;
-    public static int id_detail_participant = -1;   //save the last id detail participant in database
     public static int id_event = -1;                //save the last id event in database
-    //TODO get the id_user when login
-    public static int id_user = 0;                  //save the id user login
+    public static User userLogin;                  //save the id user login
+    public static boolean filterUser = false;
+
     public static long getStartMonth(int month) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());

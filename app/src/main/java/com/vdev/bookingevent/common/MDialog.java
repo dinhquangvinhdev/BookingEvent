@@ -8,9 +8,10 @@ import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
 
-import androidx.core.content.ContextCompat;
-
 import com.vdev.bookingevent.R;
+import com.vdev.bookingevent.model.Event;
+
+import java.util.List;
 
 public class MDialog {
 
@@ -36,18 +37,24 @@ public class MDialog {
 
     /**
      * It return a dialog confirm.
-     * This method will return Dialog for custom function with button ok
-     * Default button ok do not thing for this Dialog
+     * This method will return Dialog for custom function with button yes and button no
+     * Default button yes do not thing for this Dialog
      * @param context The context of the activity that is calling the dialog.
      * @return A Dialog object.
      */
-    public Dialog confirmLogout(Context context){
+    public Dialog confirmDialog(Context context, String title , String body){
         Dialog dialogConfirm = new Dialog(context);
         dialogConfirm.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogConfirm.setCancelable(true);
-        dialogConfirm.setContentView(R.layout.dialog_confirm_logout);
+        dialogConfirm.setContentView(R.layout.dialog_confirm);
 
-        dialogConfirm.findViewById(R.id.btn_cancel).setOnClickListener(new View.OnClickListener() {
+        //set text
+        TextView tvTitle = dialogConfirm.findViewById(R.id.tv_title);
+        tvTitle.setText(title);
+        TextView tvBody = dialogConfirm.findViewById(R.id.tv_body);
+        tvBody.setText(body);
+
+        dialogConfirm.findViewById(R.id.btn_no).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 dialogConfirm.dismiss();
@@ -115,11 +122,16 @@ public class MDialog {
         dialogNeedFillData.show();
     }
 
-    public void showAddEventSuccess(Context context){
+    public Dialog showDialogSuccess(Context context, String title , String body){
         Dialog dialogSuccess = new Dialog(context);
         dialogSuccess.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogSuccess.setCancelable(false);
-        dialogSuccess.setContentView(R.layout.dialog_add_success);
+        dialogSuccess.setContentView(R.layout.dialog_success);
+
+        TextView tvTitle = dialogSuccess.findViewById(R.id.tv_title_title);
+        TextView tvBody = dialogSuccess.findViewById(R.id.tv_body);
+        tvTitle.setText(title);
+        tvBody.setText(body);
 
         dialogSuccess.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -135,7 +147,7 @@ public class MDialog {
             }
         });
 
-        dialogSuccess.show();
+        return dialogSuccess;
     }
 
     public void showTimeError(Context context){
@@ -159,5 +171,80 @@ public class MDialog {
         });
 
         dialogTimeError.show();
+    }
+
+    public Dialog dialogDeleteSuccess(Context context , Event event) {
+        Dialog dialogSuccess = new Dialog(context);
+        dialogSuccess.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogSuccess.setCancelable(false);
+        dialogSuccess.setContentView(R.layout.dialog_success);
+
+        TextView tvTitle = dialogSuccess.findViewById(R.id.tv_title_title);
+        TextView tvBody = dialogSuccess.findViewById(R.id.tv_body);
+        tvTitle.setText("Delete Success");
+        tvBody.setText(event.getTitle() + " is deleted");
+
+        dialogSuccess.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogSuccess.dismiss();
+            }
+        });
+
+        dialogSuccess.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogSuccess.dismiss();
+            }
+        });
+
+        return dialogSuccess;
+    }
+
+    public Dialog showEventsDuplicate(Context context , List<Event> eventsDuplicate){
+        Dialog dialog = new Dialog(context);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setCancelable(true);
+        dialog.setContentView(R.layout.dialog_confirm_events_duplicate);
+
+        dialog.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+        return dialog;
+    }
+
+    public void showErrorDialog(Context context , String body) {
+        Dialog dialog = new Dialog(context);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setCancelable(true);
+        dialog.setContentView(R.layout.dialog_time_error);
+
+        TextView tv = dialog.findViewById(R.id.tv_body);
+        tv.setText(body);
+
+        dialog.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
     }
 }

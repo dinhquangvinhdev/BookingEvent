@@ -1,6 +1,6 @@
 package com.vdev.bookingevent.model;
 
-public class DetailMember {
+public class Detail_member {
     int department_id;
     int user_id;
     String role;

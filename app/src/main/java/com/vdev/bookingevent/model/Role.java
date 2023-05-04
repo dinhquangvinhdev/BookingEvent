@@ -1,8 +1,12 @@
 package com.vdev.bookingevent.model;
 
-public class RoleEmail {
+public class Role {
     int id;
     String role_name;
+    int priority;
+
+    public Role() {
+    }
 
     public int getId() {
         return id;
@@ -10,6 +14,14 @@ public class RoleEmail {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
     }
 
     public String getRole_name() {

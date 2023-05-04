@@ -13,17 +13,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.vdev.bookingevent.R;
-import com.vdev.bookingevent.adapter.OnItemOpAccClickListener;
+import com.vdev.bookingevent.callback.OnItemOpAccClickListener;
 import com.vdev.bookingevent.adapter.OptionAccountAdapter;
-import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.databinding.FragmentAccountBinding;
 import com.vdev.bookingevent.presenter.AccountContract;
 import com.vdev.bookingevent.presenter.AccountPresenter;
 import com.vdev.bookingevent.view.DetailAccountActivity;
+import com.vdev.bookingevent.view.LoginActivity;
 
 public class AccountFragment extends Fragment implements AccountContract.View , OnItemOpAccClickListener {
 
@@ -55,14 +54,17 @@ public class AccountFragment extends Fragment implements AccountContract.View , 
 
     private void initDialog() {
         mDialog = new MDialog();
-        dialogLogout = mDialog.confirmLogout(getContext());
+        dialogLogout = mDialog.confirmDialog(getContext() , "CONFIRM LOGOUT" , "Are you sure you want to log out?");
 
-        dialogLogout.findViewById(R.id.btn_ok).setOnClickListener(new View.OnClickListener() {
+        dialogLogout.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(mDialog.checkConnection(getContext())){
                     presenter.logout(getContext());
-                    getActivity().finish();
+                    Intent newIntent = new Intent(getActivity(), LoginActivity.class);
+                    newIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    newIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(newIntent);
                 } else {
                     dialogLogout.dismiss();
                 }

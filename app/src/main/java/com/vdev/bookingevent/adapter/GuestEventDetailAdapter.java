@@ -1,5 +1,6 @@
 package com.vdev.bookingevent.adapter;
 
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -7,9 +8,11 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.squareup.picasso.Picasso;
 import com.vdev.bookingevent.databinding.ItemGuestEventDetailBinding;
 import com.vdev.bookingevent.model.User;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GuestEventDetailAdapter extends RecyclerView.Adapter<GuestEventDetailAdapter.ViewHolder>{
@@ -17,7 +20,7 @@ public class GuestEventDetailAdapter extends RecyclerView.Adapter<GuestEventDeta
     private User host;
 
     public GuestEventDetailAdapter(List<User> guestData, User host) {
-        this.participantData = guestData;
+        this.participantData = new ArrayList<>(guestData);
         this.host = host;
         this.participantData.add(0, this.host);
     }
@@ -57,11 +60,11 @@ public class GuestEventDetailAdapter extends RecyclerView.Adapter<GuestEventDeta
         public void bindGuest(User guest){
             binding.tvNameGuest.setText(guest.getFullName());
             //TODO get url to image of guest
-//            if(guest.getAvatar() != null){
-//                Picasso.get().load(guest.getAvatar()).into(binding.imageAvatarGuest);
-//            } else {
-//                binding.imageAvatarGuest.setBackgroundColor(Color.parseColor("#000000"));
-//            }
+            if(guest.getAvatar() != null && !guest.getAvatar().isEmpty()){
+                Picasso.get().load(guest.getAvatar()).into(binding.imgAvatarGuest);
+            } else {
+                binding.imgAvatarGuest.setBackgroundColor(Color.parseColor("#000000"));
+            }
 
         }
 
@@ -69,7 +72,19 @@ public class GuestEventDetailAdapter extends RecyclerView.Adapter<GuestEventDeta
             binding.tvNameGuest.setText(host.getFullName() + "\n" + "Organizer");
             binding.tvNameGuest.setTypeface(binding.tvNameGuest.getTypeface(), Typeface.BOLD);
             //TODO get url to image of host
-//            Picasso.get().load(host.get).into(binding.imgAvatarGuest);
+            if(host.getAvatar() != null && !host.getAvatar().isEmpty()){
+                Picasso.get().load(host.getAvatar()).into(binding.imgAvatarGuest);
+            } else {
+                binding.imgAvatarGuest.setBackgroundColor(Color.parseColor("#000000"));
+            }
+
         }
+    }
+
+    public void updateDataGuest(List<User> guests){
+        this.participantData.clear();
+        this.participantData = new ArrayList<>(guests);
+        this.participantData.add(0, this.host);
+        notifyDataSetChanged();
     }
 }

@@ -6,8 +6,8 @@
     <string name="body_dialog_error_connection">Your network is disconnect!\nPlease try again.</string>
     <string name="body_dialog_confirm_logout">Are you sure you want to log out?</string>
     <string name="btn_dialog_error_connection">Try Again</string>
-    <string name="btn_dialog_confirm_cancel">Cancel</string>
-    <string name="btn_dialog_confirm_ok">OK</string>
+    <string name="btn_dialog_confirm_cancel">No</string>
+    <string name="btn_dialog_confirm_ok">Yes</string>
     <string name="bnv_dashboard">home</string>
     <string name="bnv_account">account</string>
     <string name="bnv_search">"search "</string>

@@ -1,6 +1,8 @@
 package com.vdev.bookingevent.presenter;
 
+import android.content.Context;
 import android.net.Uri;
+import android.view.View;
 
 public interface MainContract {
     interface View{
@@ -8,6 +10,6 @@ public interface MainContract {
     }
 
     interface Presenter{
-
+        void logout(Context context);
     }
 }

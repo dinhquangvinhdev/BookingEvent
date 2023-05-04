@@ -47,6 +47,34 @@ public class MConvertTime {
         }
     }
 
+    /**
+     * convert string HH:mm
+     * @param date
+     * @return
+     */
+    public long convertString1ToMili(String date){
+        try {
+            Date tempDate = sdf1.parse(date);
+            return convertDateToMili(tempDate);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * convert string dd:MM:yyyy
+     * @param date
+     * @return
+     */
+    public long convertString4ToMili(String date){
+        try {
+            Date tempDate = sdf4.parse(date);
+            return convertDateToMili(tempDate);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public long getMiliStartDayFromLocalDate(LocalDate localDate){
         LocalDateTime startLDT = localDate.atTime(0, 0, 0, 0);
         ZonedDateTime startZDT = ZonedDateTime.of(startLDT, ZoneId.systemDefault());

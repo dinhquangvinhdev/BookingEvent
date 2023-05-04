@@ -2,12 +2,17 @@ package com.vdev.bookingevent.view;
 
 import static android.content.ContentValues.TAG;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.View;
 
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.callback.CallbackFragmentManager;
@@ -26,10 +31,18 @@ import java.util.Date;
 
 import me.ibrahimsn.lib.OnItemSelectedListener;
 
-public class MainActivity extends AppCompatActivity implements MainContract.View , CallbackFragmentManager {
+public class MainActivity extends AppCompatActivity implements MainContract.View, CallbackFragmentManager {
     private ActivityMainBinding binding;
     private MainPresenter presenter;
     private MDialog mDialog;
+    private Dialog dialogConfirmExit;
+    private FirebaseController fc;
+    private Bundle searchBundle;
+    private Bundle addBundle;
+    private SearchEventFragment searchEventFragment;
+    private AddEventFragment addEventFragment;
+    private AccountFragment accountFragment;
+    private DashboardFragment dashboardFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,14 +50,34 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        initFirebaseController();
         initDialog();
         initPresenter();
         initView();
     }
 
+    private void initFirebaseController() {
+        if(fc == null){
+            fc = new FirebaseController(null, null , null,null);
+            fc.getEmail();
+            fc.getUser();
+            fc.getRole();
+            fc.getRoom();
+            fc.getDepartment();
+        }
+    }
+
     private void initDialog() {
         if (mDialog == null) {
             mDialog = new MDialog();
+
+            dialogConfirmExit = mDialog.confirmDialog(this , "Confirm Exit App" , "Are you sure you want to exit app?");
+            dialogConfirmExit.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    finish();
+                }
+            });
         }
     }
 
@@ -93,30 +126,40 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
     }
 
     private void replaceFlag(int i) {
-        Fragment fragment;
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        //check to get saveInstanceState
+        checkSaveInstanceState();
+
         switch (i) {
             case MConst.FRAGMENT_DASHBOARD: {
-                fragment = new DashboardFragment();
-                transaction.replace(R.id.fcv_container, fragment);
+                dashboardFragment = new DashboardFragment();
+                transaction.replace(R.id.fcv_container, dashboardFragment);
                 transaction.commit();
                 break;
             }
-            case MConst.FRAGMENT_ADD_EVENT:{
-                fragment = new AddEventFragment(this);
-                transaction.replace(R.id.fcv_container, fragment);
+            case MConst.FRAGMENT_ADD_EVENT: {
+                addEventFragment = new AddEventFragment(this);
+                if(addBundle != null){
+                    addEventFragment.setArguments(addBundle);
+                    addBundle = null;
+                }
+                transaction.replace(R.id.fcv_container, addEventFragment);
                 transaction.commit();
                 break;
             }
             case MConst.FRAGMENT_SEARCH_EVENT: {
-                fragment = new SearchEventFragment();
-                transaction.replace(R.id.fcv_container, fragment);
+                searchEventFragment = new SearchEventFragment();
+                if(searchBundle != null){
+                    searchEventFragment.setArguments(searchBundle);
+                }
+                transaction.replace(R.id.fcv_container, searchEventFragment);
                 transaction.commit();
                 break;
             }
             case MConst.FRAGMENT_ACCOUNT: {
-                fragment = new AccountFragment();
-                transaction.replace(R.id.fcv_container, fragment);
+                accountFragment = new AccountFragment();
+                transaction.replace(R.id.fcv_container, accountFragment);
                 transaction.commit();
                 break;
             }
@@ -126,6 +169,23 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             }
         }
 
+    }
+
+    private void checkSaveInstanceState() {
+        //check for Search Fragment
+        if(getSupportFragmentManager().findFragmentById(R.id.fcv_container) instanceof  SearchEventFragment){
+            if(searchEventFragment != null){
+                searchBundle = new Bundle();
+                searchEventFragment.onSaveInstanceState(searchBundle);
+            }
+        }
+        // check for Add Fragment
+        if(getSupportFragmentManager().findFragmentById(R.id.fcv_container) instanceof AddEventFragment){
+            if(addEventFragment != null){
+                addBundle = new Bundle();
+                addEventFragment.onSaveInstanceState(addBundle);
+            }
+        }
     }
 
     /**
@@ -140,7 +200,21 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     @Override
     protected void onDestroy() {
+        presenter.logout(getApplicationContext());
+        if (dialogConfirmExit.isShowing()) {
+            dialogConfirmExit.dismiss();
+        }
         super.onDestroy();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Fragment f = getSupportFragmentManager().findFragmentById(R.id.fcv_container);
+        if(f instanceof AddEventFragment){
+            ((AddEventFragment) f).closeRVGuest();
+        } else {
+            dialogConfirmExit.show();
+        }
     }
 
     @Override
