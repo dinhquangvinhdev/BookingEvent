@@ -68,13 +68,23 @@ public final class FirebaseController {
                 @Override
                 public void onComplete(@NonNull Task<DataSnapshot> task) {
                     if (task.isSuccessful()) {
+                        if(task.getResult().getChildrenCount() == 0){
+                            MData.id_event = 0;
+                            event.setId(MData.id_event);
+                            mDatabase.child("Event").child(String.valueOf(event.getId())).setValue(event).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        callbackAddEvent.callbackAddEventSuccess(true);
+                                    } else {
+                                        callbackAddEvent.callbackAddEventSuccess(false);
+                                    }
+                                }
+                            });
+                        }
                         for (DataSnapshot snapshot : task.getResult().getChildren()) {
                             Event event1 = snapshot.getValue(Event.class);
-                            if (event1 == null) {
-                                MData.id_event = 0;
-                            } else {
-                                MData.id_event = event1.getId();
-                            }
+                            MData.id_event = event1.getId();
                             //add event
                             if (MData.id_event != -1) {
                                 MData.id_event += 1;
@@ -708,6 +718,9 @@ public final class FirebaseController {
                                 //check duplicate event
                                 for (DataSnapshot dataSnapshot : result.getChildren()) {
                                     Event event1 = dataSnapshot.getValue(Event.class);
+                                    if(event1 == null){
+                                        break;
+                                    }
                                     if (event1.getStatus() == 0 && event1.getRoom_id() == tempEvent.getRoom_id()) {
                                         if ((tempEvent.getDateStart() < event1.getDateStart() && tempEvent.getDateEnd() <= event1.getDateStart())
                                                 || (tempEvent.getDateStart() >= event1.getDateEnd() && tempEvent.getDateEnd() > event1.getDateEnd())) {
