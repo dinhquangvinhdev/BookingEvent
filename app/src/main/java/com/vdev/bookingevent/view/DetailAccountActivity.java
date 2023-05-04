@@ -7,6 +7,7 @@ import android.view.View;
 
 import com.squareup.picasso.Picasso;
 import com.vdev.bookingevent.R;
+import com.vdev.bookingevent.common.MData;
 import com.vdev.bookingevent.common.MDialog;
 import com.vdev.bookingevent.databinding.ActivityDetailAccountBinding;
 import com.vdev.bookingevent.presenter.DetailAccountContract;
@@ -34,7 +35,7 @@ public class DetailAccountActivity extends AppCompatActivity implements DetailAc
         if(mDialog.checkConnection(this)){
             //load avatar
             Picasso.get()
-                    .load(presenter.getAccountAvatar())
+                    .load(MData.userLogin.getAvatar())
                     .placeholder(R.drawable.animation_loading)
                     .fit()
                     .into(binding.imgAvatar);
