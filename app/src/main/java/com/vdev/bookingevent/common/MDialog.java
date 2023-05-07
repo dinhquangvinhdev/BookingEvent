@@ -150,6 +150,34 @@ public class MDialog {
         return dialogSuccess;
     }
 
+    public Dialog dialogError(Context context , String title , String body){
+        Dialog dialogError = new Dialog(context);
+        dialogError.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogError.setCancelable(false);
+        dialogError.setContentView(R.layout.dialog_time_error);
+
+        TextView tvTitle = dialogError.findViewById(R.id.tv_title_title);
+        TextView tvBody = dialogError.findViewById(R.id.tv_body);
+        tvTitle.setText(title);
+        tvBody.setText(body);
+
+        dialogError.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogError.dismiss();
+            }
+        });
+
+        dialogError.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogError.dismiss();
+            }
+        });
+
+        return dialogError;
+    }
+
     public void showTimeError(Context context){
         Dialog dialogTimeError = new Dialog(context);
         dialogTimeError.requestWindowFeature(Window.FEATURE_NO_TITLE);

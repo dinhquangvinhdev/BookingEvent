@@ -79,6 +79,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     private Dialog dialogEditEvent;
     private Dialog dialogEventOverlap;
     private Dialog dialogAddSuccess;
+    private Dialog dialogErrorEdit;
     private Event eventWantToAdd = new Event();
     private List<User> guests = new ArrayList<>();
 
@@ -407,6 +408,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
         if(dialogEventOverlap != null && dialogEventOverlap.isShowing()){
             dialogEventOverlap.dismiss();
         }
+        if(dialogErrorEdit != null && dialogErrorEdit.isShowing()){dialogErrorEdit.dismiss();}
     }
 
     @Override
@@ -414,7 +416,13 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
         if(event != null){
             fc.editEvent(getContext(),event);
         } else {
-            mDialog.showErrorDialog(getContext(), "the time is overlap");
+            dialogErrorEdit = mDialog.dialogError(getContext(), "ERROR", "The time is overlap");
+            dialogErrorEdit.setOnDismissListener(it -> {
+                if(dialogEventOverlap != null && dialogEventOverlap.isShowing()){
+                    dialogEventOverlap.dismiss();
+                    fc.checkAddNewEvent(getContext(), eventWantToAdd);
+                }});
+            dialogErrorEdit.show();
         }
     }
 

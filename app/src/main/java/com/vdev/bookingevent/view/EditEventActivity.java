@@ -461,6 +461,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
             @Override
             public void OnItemEditCLickListener(Event editEvent) {
                 //TODO edit
+                fc.checkEditEvent(getApplicationContext(), editEvent);
             }
         });
         rv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL , false));
