@@ -454,8 +454,13 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
 
         EventsOverlapAdapter adapter = new EventsOverlapAdapter(this, eventsOverlap, arrHost, new OnItemEventOverlap() {
             @Override
-            public void OnItemCLickListener(int position) {
+            public void OnItemDeleteCLickListener(int position) {
                 showDialogDeleteEvent(eventsOverlap.get(position));
+            }
+
+            @Override
+            public void OnItemEditCLickListener(Event editEvent) {
+                //TODO edit
             }
         });
         rv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL , false));

@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.vdev.bookingevent.common.MData;
 
 public class DetailAccountPresenter implements DetailAccountContract.Presenter{
     private DetailAccountContract.View view;
@@ -17,7 +18,8 @@ public class DetailAccountPresenter implements DetailAccountContract.Presenter{
 
     @Override
     public Uri getAccountAvatar() {
-        return firebaseUser.getPhotoUrl();
+        String uri_avatar = MData.userLogin.getAvatar();
+        return uri_avatar.isEmpty() ? firebaseUser.getPhotoUrl() : Uri.parse(uri_avatar);
     }
 
     @Override

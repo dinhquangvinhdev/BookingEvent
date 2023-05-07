@@ -35,7 +35,7 @@ public class DetailAccountActivity extends AppCompatActivity implements DetailAc
         if(mDialog.checkConnection(this)){
             //load avatar
             Picasso.get()
-                    .load(MData.userLogin.getAvatar())
+                    .load(presenter.getAccountAvatar())
                     .placeholder(R.drawable.animation_loading)
                     .fit()
                     .into(binding.imgAvatar);

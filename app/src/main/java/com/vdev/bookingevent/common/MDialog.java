@@ -201,6 +201,34 @@ public class MDialog {
         return dialogSuccess;
     }
 
+    public Dialog dialogEditSuccess(Context context , Event event) {
+        Dialog dialogSuccess = new Dialog(context);
+        dialogSuccess.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogSuccess.setCancelable(false);
+        dialogSuccess.setContentView(R.layout.dialog_success);
+
+        TextView tvTitle = dialogSuccess.findViewById(R.id.tv_title_title);
+        TextView tvBody = dialogSuccess.findViewById(R.id.tv_body);
+        tvTitle.setText("Edit Success");
+        tvBody.setText(event.getTitle() + " is edited");
+
+        dialogSuccess.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogSuccess.dismiss();
+            }
+        });
+
+        dialogSuccess.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogSuccess.dismiss();
+            }
+        });
+
+        return dialogSuccess;
+    }
+
     public Dialog showEventsDuplicate(Context context , List<Event> eventsDuplicate){
         Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
