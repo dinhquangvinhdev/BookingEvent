@@ -440,12 +440,19 @@ public class DashboardMonthFragment extends Fragment
             bindingDetailEvent.tvEventSummary.setText(event.getSummery());
             bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
             int checkPriority = fc.comparePriorityUser(host.getId());
-            if( checkPriority != 0){
+            if( checkPriority == 1){
                 bindingDetailEvent.imgEditEvent.setVisibility(View.INVISIBLE);
                 bindingDetailEvent.imgDeleteEvent.setVisibility(View.INVISIBLE);
-            } else if(checkPriority == 0){
+            } else if(checkPriority == 0 ){
+                bindingDetailEvent.imgEditEvent.setVisibility(View.VISIBLE);
+                bindingDetailEvent.imgDeleteEvent.setVisibility(View.INVISIBLE);
+            } else if(checkPriority == 2 || checkPriority == 3){
                 bindingDetailEvent.imgEditEvent.setVisibility(View.VISIBLE);
                 bindingDetailEvent.imgDeleteEvent.setVisibility(View.VISIBLE);
+            } else {
+                //something bad when compare event
+                bindingDetailEvent.imgEditEvent.setVisibility(View.INVISIBLE);
+                bindingDetailEvent.imgDeleteEvent.setVisibility(View.INVISIBLE);
             }
             for(int i=0 ; i<MData.arrRoom.size() ; i++){
                 Room room = MData.arrRoom.get(i);

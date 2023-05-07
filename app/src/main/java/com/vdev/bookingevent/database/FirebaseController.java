@@ -1059,19 +1059,19 @@ public final class FirebaseController {
     }
 
     /**
-     * This method will return 3 case
-     * -1 : something bad happen when compare
-     * 0 : the login have higher than the host
-     * 1 : the host have higher or equal than the login
+     * This method will return 5 case
+     * <p>-1 : something bad happen when compare </p>
+     * <p>0 : the login have higher than the host </p>
+     * <p>1 : the host have higher or equal than the login </p>
+     * <p>2 : the host is admin </p>
+     * <p>3 : the login is the host </p>
      *
      * @param userId
      * @return
      */
     public int comparePriorityUser(int userId) {
-
-        //compare id if the login is the host so they can edit any thing to their event
-        if (userId == MData.userLogin.getId()) {
-            return 0;
+        if (userId == MData.userLogin.getId()) { //compare id if the login is the host so they can edit any thing to their event
+            return 3;
         }
 
         int role_id_user_login = -1, role_id_host = -1;
@@ -1136,6 +1136,9 @@ public final class FirebaseController {
         }
 
         //compare priority
+        if(priority_login == 9999){      // priority of admin
+            return 2;
+        }
         if (priority_login > priority_host) {
             return 0;
         } else {
