@@ -147,7 +147,7 @@ public class DashboardMonthFragment extends Fragment
 
     private void initFirebaseController() {
         if (fc == null) {
-            fc = new FirebaseController(this, null, null,this);
+            fc = new FirebaseController(this, null, null,this,null);
             //get event in the first time
             int monthNow = Calendar.getInstance().get(Calendar.MONTH);
             fc.getAllEvent();

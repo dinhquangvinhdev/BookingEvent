@@ -39,7 +39,7 @@ public class LoginPresenter implements LoginContract.Presenter {
         mDialog = new MDialog();
 
         //create Firebase Controller
-        fc = new FirebaseController(null, null,null,null);
+        fc = new FirebaseController(null, null,null,null,null);
 
         //configure the Google SignIn
         GoogleSignInOptions gsio = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)

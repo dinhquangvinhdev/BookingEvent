@@ -47,7 +47,7 @@ public class EventsOverlapAdapter extends RecyclerView.Adapter<EventsOverlapAdap
         this.callback = callback;
         this.hosts = hosts;
         mConvertTime = new MConvertTime();
-        fc = new FirebaseController(null,null,null, null);
+        fc = new FirebaseController(null,null,null, null, null);
     }
 
     @NonNull

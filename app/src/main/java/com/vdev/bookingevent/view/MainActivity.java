@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
 
     private void initFirebaseController() {
         if(fc == null){
-            fc = new FirebaseController(null, null , null,null);
+            fc = new FirebaseController(null, null , null,null,null);
             fc.getEmail();
             fc.getUser();
             fc.getRole();

@@ -21,6 +21,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.vdev.bookingevent.callback.CallbackAddEvent;
 import com.vdev.bookingevent.callback.CallbackDetailEvent;
 import com.vdev.bookingevent.callback.CallbackEditEvent;
+import com.vdev.bookingevent.callback.CallbackEditEventOverlap;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MConvertTime;
@@ -48,16 +49,19 @@ public final class FirebaseController {
     private CallbackAddEvent callbackAddEvent;
     private CallbackEditEvent callbackEditEvent;
     private CallbackDetailEvent callbackDetailEvent;
+    private CallbackEditEventOverlap callbackEditEventOverlap;
     private MDialog mDialog;
 
     public FirebaseController(CallbackUpdateEventDisplay callbackUpdateEventDisplay, CallbackAddEvent callbackAddEvent,
-                              CallbackEditEvent callbackEditEvent, CallbackDetailEvent callbackDetailEvent) {
+                              CallbackEditEvent callbackEditEvent, CallbackDetailEvent callbackDetailEvent,
+                              CallbackEditEventOverlap callbackEditEventOverlap) {
         this.mDatabase = FirebaseDatabase.getInstance().getReference();
         mConvertTime = new MConvertTime();
         this.callbackUpdateEventDisplay = callbackUpdateEventDisplay;
         this.callbackAddEvent = callbackAddEvent;
         this.callbackEditEvent = callbackEditEvent;
         this.callbackDetailEvent = callbackDetailEvent;
+        this.callbackEditEventOverlap = callbackEditEventOverlap;
         mDialog = new MDialog();
     }
 
@@ -878,6 +882,47 @@ public final class FirebaseController {
                     });
         }
     }
+    public void checkEditEventOverlap(Context context, Event eventOverlap) {
+        if (mDialog.checkConnection(context)) {
+            //get all event of the day want to update
+            LocalDate tempLC = mConvertTime.convertMiliToLocalDate(eventOverlap.getDateStart());
+            long timeStart = mConvertTime.getMiliStartDayFromLocalDate(tempLC);
+            long timeEnd = mConvertTime.getMiliLastDayFromLocalDate(tempLC);
+            mDatabase.child("Event")
+                    .orderByChild("dateStart")
+                    .startAt(timeStart)
+                    .endAt(timeEnd)
+                    .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DataSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DataSnapshot result = task.getResult();
+                                List<Event> eventsOverlap = new ArrayList<>();
+                                //check overlap event
+                                for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                    Event event1 = dataSnapshot.getValue(Event.class);
+                                    if (event1.getStatus() == 0 && event1.getId() != eventOverlap.getId() && event1.getRoom_id() == eventOverlap.getRoom_id()) {
+                                        if ((eventOverlap.getDateStart() < event1.getDateStart() && eventOverlap.getDateEnd() <= event1.getDateStart())
+                                                || (eventOverlap.getDateStart() >= event1.getDateEnd() && eventOverlap.getDateEnd() > event1.getDateEnd())) {
+                                            //can edit the event
+                                            continue;
+                                        } else {
+                                            eventsOverlap.add(event1);
+                                        }
+                                    } else {
+                                        //can edit the event
+                                        continue;
+                                    }
+                                }
+                                //check can edit
+                                callbackEditEventOverlap.callbackEditEventOverlap(eventOverlap, eventsOverlap);
+                            } else {
+                                Log.d("bibibla", "onComplete: " + task.getException());
+                            }
+                        }
+                    });
+        }
+    }
 
     public void editEvent(Context context, Event event) {
         if(mDialog.checkConnection(context)){
@@ -886,6 +931,21 @@ public final class FirebaseController {
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful()) {
                         callbackEditEvent.editEventSuccess(event);
+                    } else {
+                        Log.d("bibibla", "onComplete: " + task.getException());
+                    }
+
+                }
+            });
+        }
+    }
+    public void editEventOverlap(Context context, Event eventOverlap) {
+        if(mDialog.checkConnection(context)){
+            mDatabase.child("Event").child(String.valueOf(eventOverlap.getId())).setValue(eventOverlap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        callbackEditEventOverlap.editEventSuccessOverlap(eventOverlap);
                     } else {
                         Log.d("bibibla", "onComplete: " + task.getException());
                     }

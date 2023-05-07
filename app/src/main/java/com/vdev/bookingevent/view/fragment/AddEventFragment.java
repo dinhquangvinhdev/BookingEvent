@@ -31,6 +31,7 @@ import com.vdev.bookingevent.adapter.EventsOverlapAdapter;
 import com.vdev.bookingevent.adapter.GuestAdapter;
 import com.vdev.bookingevent.callback.CallbackAddEvent;
 import com.vdev.bookingevent.callback.CallbackEditEvent;
+import com.vdev.bookingevent.callback.CallbackEditEventOverlap;
 import com.vdev.bookingevent.callback.CallbackFragmentManager;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.callback.OnItemEventOverlap;
@@ -51,7 +52,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class AddEventFragment extends Fragment implements CallbackAddEvent , CallbackUpdateEventDisplay, OnItemGuestClickListener, CallbackEditEvent {
+public class AddEventFragment extends Fragment implements CallbackAddEvent , CallbackUpdateEventDisplay, OnItemGuestClickListener, CallbackEditEventOverlap {
 
     private final String KEY_ADD_TITLE = "KEY_ADD_TITLE";
     private final String KEY_ADD_SUMMARY = "KEY_ADD_SUMMARY";
@@ -174,7 +175,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
 
     private void initFC(){
         if(fc == null){
-            fc = new FirebaseController(this, this, this,null);
+            fc = new FirebaseController(this, this, null,null, this);
         }
     }
 
@@ -412,41 +413,6 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     }
 
     @Override
-    public void callbackEditEvent(Event event, List<Event> eventsOverlap) {
-        if(event != null){
-            fc.editEvent(getContext(),event);
-        } else {
-            dialogErrorEdit = mDialog.dialogError(getContext(), "ERROR", "The time is overlap");
-            dialogErrorEdit.setOnDismissListener(it -> {
-                if(dialogEventOverlap != null && dialogEventOverlap.isShowing()){
-                    dialogEventOverlap.dismiss();
-                    fc.checkAddNewEvent(getContext(), eventWantToAdd);
-                }});
-            dialogErrorEdit.show();
-        }
-    }
-
-    @Override
-    public void editEventSuccess(Event event) {
-        //dismiss dialog
-        if(dialogEventOverlap.isShowing()){
-            dialogEventOverlap.dismiss();
-        }
-        //TODO DOING
-        //show edit event success
-        dialogEditEvent = mDialog.dialogEditSuccess(getContext() , event);
-        dialogEditEvent.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //update adapter of dialog event overlap by a loop
-                fc.checkAddNewEvent(getContext(), eventWantToAdd);
-                dialogEditEvent.dismiss();
-            }
-        });
-        dialogEditEvent.show();
-    }
-
-    @Override
     public void callbackAddDetailParticipant(boolean b) {
         if(b){
             //show notification success add and update UI to the main home
@@ -493,7 +459,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
 
             @Override
             public void OnItemEditCLickListener(Event editEvent) {
-                fc.checkEditEvent(getContext(), editEvent);
+                fc.checkEditEventOverlap(getContext(), editEvent);
             }
         });
         rv.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL , false));
@@ -583,5 +549,40 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
         outState.putString(KEY_ADD_START_TIME, binding.tvStartTime.getText().toString());
         outState.putString(KEY_ADD_END_TIME, binding.tvEndTime.getText().toString());
         outState.putString(KEY_ADD_DATE, binding.tvDate.getText().toString());
+    }
+
+    @Override
+    public void callbackEditEventOverlap(Event event, List<Event> eventsOverlap) {
+        if(eventsOverlap.isEmpty()){
+            fc.editEventOverlap(getContext(),event);
+        } else {
+            dialogErrorEdit = mDialog.dialogError(getContext(), "ERROR", "The time is overlap");
+            dialogErrorEdit.setOnDismissListener(it -> {
+                if(dialogEventOverlap != null && dialogEventOverlap.isShowing()){
+                    dialogEventOverlap.dismiss();
+                    fc.checkAddNewEvent(getContext(), eventWantToAdd);
+                }});
+            dialogErrorEdit.show();
+        }
+    }
+
+    @Override
+    public void editEventSuccessOverlap(Event event) {
+        //dismiss dialog
+        if(dialogEventOverlap.isShowing()){
+            dialogEventOverlap.dismiss();
+        }
+        //TODO DOING
+        //show edit event success
+        dialogEditEvent = mDialog.dialogEditSuccess(getContext() , event);
+        dialogEditEvent.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //update adapter of dialog event overlap by a loop
+                fc.checkAddNewEvent(getContext(), eventWantToAdd);
+                dialogEditEvent.dismiss();
+            }
+        });
+        dialogEditEvent.show();
     }
 }

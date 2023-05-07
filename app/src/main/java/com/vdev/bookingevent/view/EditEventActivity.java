@@ -9,6 +9,7 @@ import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.EventsOverlapAdapter;
 import com.vdev.bookingevent.adapter.GuestAdapter;
 import com.vdev.bookingevent.callback.CallbackEditEvent;
+import com.vdev.bookingevent.callback.CallbackEditEventOverlap;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.callback.OnItemEventOverlap;
 import com.vdev.bookingevent.callback.OnItemGuestClickListener;
@@ -46,7 +48,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class EditEventActivity extends AppCompatActivity implements EditEventContract.View, CallbackEditEvent, OnItemGuestClickListener, CallbackUpdateEventDisplay {
+public class EditEventActivity extends AppCompatActivity implements EditEventContract.View, CallbackEditEvent, OnItemGuestClickListener,
+        CallbackUpdateEventDisplay, CallbackEditEventOverlap {
 
     private final String KEY_GUESTS_EDIT_ACTIVITY = "KEY_GUESTS_EDIT_ACTIVITY";
     private final String KEY_EVENT_EDIT_ACTIVITY = "KEY_EVENT_EDIT_ACTIVITY";
@@ -62,10 +65,12 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
     private MDialog mDialog;
     private Dialog dialogEditSuccess;
     private Dialog dialogEventOverlap;
+    private Dialog dialogEditEventSuccessOverlap;
     private Dialog dialogConfirmDeleteEvent;
     private Dialog dialogDeleteEvent;
     private List<User> guestListOld;
     private List<User> guestListNew;
+    private Dialog dialogErrorEdit;
 
 
     @Override
@@ -120,6 +125,8 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
         if(dialogDeleteEvent != null && dialogDeleteEvent.isShowing()){
             dialogDeleteEvent.dismiss();
         }
+        if(dialogErrorEdit != null && dialogErrorEdit.isShowing()){dialogErrorEdit.dismiss();}
+        if(dialogEditEventSuccessOverlap != null && dialogEditEventSuccessOverlap.isShowing()){dialogEditEventSuccessOverlap.dismiss();}
     }
 
     @Override
@@ -342,7 +349,8 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                             tempEvent.setRoom_id(room_id);
                             tempEvent.setNumberParticipant(numberParticipant);
                             tempEvent.setStatus(0);
-                            fc.checkEditEvent(getApplicationContext(), tempEvent);
+                            eventWantToEdit = tempEvent;
+                            fc.checkEditEvent(this, tempEvent);
                         } else {
                             mDialog.showErrorDialog(this, "The number of participants exceeds the maximum number of people\n the meeting room can accommodate");
                         }
@@ -374,7 +382,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
 
     private void initFirebaseController() {
         if(fc == null){
-            fc = new FirebaseController(null , null, this, null);
+            fc = new FirebaseController(null , null, this, null, this);
         }
     }
 
@@ -389,7 +397,6 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
             presenter = new EditEventPresenter(this);
         }
     }
-
 
     @Override
     public void callbackEditEvent(Event event, List<Event> eventsOverlap) {
@@ -461,7 +468,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
             @Override
             public void OnItemEditCLickListener(Event editEvent) {
                 //TODO edit
-                fc.checkEditEvent(getApplicationContext(), editEvent);
+                fc.checkEditEventOverlap(getApplicationContext(), editEvent);
             }
         });
         rv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL , false));
@@ -523,5 +530,54 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
             }
         });
         dialogDeleteEvent.show();
+    }
+
+    @Override
+    public void callbackEditEventOverlap(Event event, List<Event> eventsOverlap) {
+        if(eventsOverlap.isEmpty()) {
+            fc.editEventOverlap(this,event);
+        } else {
+            // check event overlap != event want to edit
+            if(eventsOverlap.contains(eventWantToEdit)){
+                eventsOverlap.remove(eventWantToEdit);
+            }
+            if(eventsOverlap.isEmpty()){
+                fc.editEventOverlap(this, event);
+            } else {
+                dialogErrorEdit = mDialog.dialogError(this, "ERROR", "The time is overlap");
+                dialogErrorEdit.setOnDismissListener(it -> {
+                    if(dialogEventOverlap != null && dialogEventOverlap.isShowing()){
+                        dialogEventOverlap.dismiss();
+                        fc.checkEditEvent(this, eventWantToEdit);
+                    }});
+                dialogErrorEdit.show();
+            }
+        }
+    }
+
+    @Override
+    public void editEventSuccessOverlap(Event event) {
+        //TODO DOING
+        //dismiss dialog
+        if(dialogEventOverlap.isShowing()){
+            dialogEventOverlap.dismiss();
+        }
+        //TODO DOING
+        //show edit event success
+        dialogEditEventSuccessOverlap = mDialog.dialogEditSuccess(this , event);
+        dialogEditEventSuccessOverlap.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogEditEventSuccessOverlap.dismiss();
+            }
+        });
+        dialogEditEventSuccessOverlap.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialogInterface) {
+                //update adapter of dialog event overlap by a loop
+                fc.checkEditEvent(getApplicationContext(), eventWantToEdit);
+            }
+        });
+        dialogEditEventSuccessOverlap.show();
     }
 }

@@ -166,7 +166,7 @@ public class SearchEventFragment extends Fragment implements CallbackItemCalDash
 
     private void initFirebaseController() {
         if (fc == null) {
-            fc = new FirebaseController(this, null, null, this);
+            fc = new FirebaseController(this, null, null, this,null);
         }
     }
 
