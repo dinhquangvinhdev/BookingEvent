@@ -118,11 +118,18 @@ public final class FirebaseController {
 
     public void addEventDetailParticipant(Context context, int event_id, List<User> guests, User host) {
         if (mDialog.checkConnection(context)) {
+            //host
             Detail_participant detailParticipantHost = new Detail_participant();
             detailParticipantHost.setEvent_id(event_id);
-            detailParticipantHost.setUser_id(host.getId());
             detailParticipantHost.setRole(MConst.ROLE_HOST);
+            if (userLoginIsAdmin()) {
+                detailParticipantHost.setUser_id(host.getId());
+            } else {
+                detailParticipantHost.setUser_id(MData.userLogin.getId());
+            }
 
+
+            //guest
             List<Detail_participant> dpGuest = new ArrayList<>();
             for (int i = 0; i < guests.size(); i++) {
                 Detail_participant dp = new Detail_participant();
@@ -151,8 +158,28 @@ public final class FirebaseController {
 
     }
 
-    public void editEventDetailParticipant(Context context , int event_id, List<User> addGuests, List<User> removeGuests) {
+    public void editEventDetailParticipant(Context context , int event_id, List<User> addGuests, List<User> removeGuests, User host) {
         if(mDialog.checkConnection(context)){
+            //update Host
+            Detail_participant detailParticipantHost = new Detail_participant();
+            detailParticipantHost.setEvent_id(event_id);
+            detailParticipantHost.setUser_id(host.getId());
+            detailParticipantHost.setRole(MConst.ROLE_HOST);
+            mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
+                            Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
+                            if(detailParticipant.getRole().equals(MConst.ROLE_HOST)){
+                                mDatabase.child("Detail_participant").child(dataSnapshot.getKey()).setValue(detailParticipantHost);
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+
             //create list add guest
             List<Detail_participant> dpAddGuest = new ArrayList<>();
             for (int i = 0; i < addGuests.size(); i++) {
@@ -183,6 +210,7 @@ public final class FirebaseController {
                 }
 
             } else if (addGuests.isEmpty() && !removeGuests.isEmpty()) {              //case add guest is empty but removeGuest is not empty
+                //remove guest
                 mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
@@ -204,7 +232,6 @@ public final class FirebaseController {
                 });
 
             } else {                                                                //case both add guest and removeGuest are not empty
-                //remove guest
                 //remove guest
                 mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override

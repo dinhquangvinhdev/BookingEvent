@@ -55,6 +55,7 @@ import java.util.List;
 
 public class AddEventFragment extends Fragment implements CallbackAddEvent , CallbackUpdateEventDisplay, OnItemUserClickListener, CallbackEditEventOverlap {
 
+    private final String KEY_ADD_HOST = "KEY_ADD_HOST";
     private final String KEY_ADD_TITLE = "KEY_ADD_TITLE";
     private final String KEY_ADD_SUMMARY = "KEY_ADD_SUMMARY";
     private final String KEY_ADD_LIST_GUEST = "KEY_ADD_LIST_GUEST";
@@ -126,6 +127,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
             String title = bundle.getString(KEY_ADD_TITLE);
             String summary = bundle.getString(KEY_ADD_SUMMARY);
             guests = bundle.getParcelableArrayList(KEY_ADD_LIST_GUEST);
+            host = bundle.getParcelable(KEY_ADD_HOST);
             index_room_choice = bundle.getInt(KEY_ADD_INDEX_ROOM_CHOICE);
             String startTime = bundle.getString(KEY_ADD_START_TIME);
             String endTime = bundle.getString(KEY_ADD_END_TIME);
@@ -136,6 +138,16 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
             binding.edtTitle.setText(title);
             //summary
             binding.edtSummary.setText(summary);
+            if(fc.userLoginIsAdmin()){
+                //host
+                Chip chipHost = new Chip(getContext());
+                chipHost.setText(host.getFullName());
+                chipHost.setCloseIconVisible(true);
+                chipHost.setTextAppearance(R.style.ChipTextAppearance);
+                chipHost.setOnCloseIconClickListener(it -> {host = null; binding.cgHost.removeView(chipHost);});
+                //add chip to group
+                binding.cgHost.addView(chipHost);
+            }
             // guest
             for(User user : guests){
                 //create chip
@@ -229,7 +241,6 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     private void initView() {
         //host
         if(fc.userLoginIsAdmin()){
-            //TODO access edit for host
             binding.tvTitleHost.setVisibility(View.VISIBLE);
             binding.svHost.setVisibility(View.VISIBLE);
             ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) binding.tvTitleGuest.getLayoutParams();
@@ -627,7 +638,6 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                 binding.cgGuests.addView(chip);
             }
         } else if(type == MConst.USER_ADAPTER_TYPE_HOST){
-            //TODO
             host = user;
             if(binding.cgHost.getChildCount() == 0){
                 //create chip
@@ -655,6 +665,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
         outState.putString(KEY_ADD_TITLE, binding.edtTitle.getText().toString());
         outState.putString(KEY_ADD_SUMMARY, binding.edtSummary.getText().toString());
         outState.putParcelableArrayList(KEY_ADD_LIST_GUEST, (ArrayList<? extends Parcelable>) guests);
+        outState.putParcelable(KEY_ADD_HOST, host);
         outState.putInt(KEY_ADD_INDEX_ROOM_CHOICE, index_room_choice);
         outState.putString(KEY_ADD_START_TIME, binding.tvStartTime.getText().toString());
         outState.putString(KEY_ADD_END_TIME, binding.tvEndTime.getText().toString());
