@@ -138,7 +138,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
             binding.edtTitle.setText(title);
             //summary
             binding.edtSummary.setText(summary);
-            if(fc.userLoginIsAdmin()){
+            if(fc.userLoginIsAdmin() && host != null){
                 //host
                 Chip chipHost = new Chip(getContext());
                 chipHost.setText(host.getFullName());
