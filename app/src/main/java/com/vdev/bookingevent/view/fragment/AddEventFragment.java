@@ -402,6 +402,18 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                         binding.tilRoom.setErrorEnabled(false);
                     }
                 }
+                if(binding.edtTitle.getText().toString().isEmpty()){
+                    check = true;
+                    binding.edtTitle.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_red));
+                } else {
+                    binding.edtTitle.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_black));
+                }
+                if (binding.edtSummary.getText().toString().isEmpty()){
+                    check = true;
+                    binding.edtSummary.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_red));
+                } else {
+                    binding.edtSummary.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_black));
+                }
                 if (binding.tvStartTime.getText().toString().isEmpty()){
                     check = true;
                     binding.tvStartTime.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_red));
@@ -425,12 +437,6 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                         check = true;
                         mDialog.showErrorDialog(getContext(), "Please choice host");
                     }
-                }
-                if(binding.edtTitle.getText().toString().isEmpty()){
-                    check = true;
-                    binding.edtTitle.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_red));
-                } else {
-                    binding.edtTitle.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_black));
                 }
                 if(check){
                     mDialog.showFillData(getContext(), null);

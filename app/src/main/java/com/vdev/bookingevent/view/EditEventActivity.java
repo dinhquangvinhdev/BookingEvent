@@ -422,6 +422,18 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                         binding.tilRoom.setErrorEnabled(false);
                     }
                 }
+                if(binding.edtTitle.getText().toString().isEmpty()){
+                    check = true;
+                    binding.edtTitle.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_red));
+                } else {
+                    binding.edtTitle.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_black));
+                }
+                if (binding.edtSummary.getText().toString().isEmpty()){
+                    check = true;
+                    binding.edtSummary.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_red));
+                } else {
+                    binding.edtSummary.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_black));
+                }
                 if (binding.tvStartTime.getText().toString().isEmpty()) {
                     check = true;
                     binding.tvStartTime.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_red));
@@ -439,12 +451,6 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                     binding.tvDate.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_red));
                 } else {
                     binding.tvDate.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_black));
-                }
-                if (binding.edtTitle.getText().toString().isEmpty()){
-                    check = true;
-                    binding.edtTitle.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_red));
-                } else {
-                    binding.edtTitle.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_black));
                 }
                 if(fc.userLoginIsAdmin()){
                     if(host == null){
