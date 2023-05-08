@@ -212,6 +212,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
         Fragment f = getSupportFragmentManager().findFragmentById(R.id.fcv_container);
         if(f instanceof AddEventFragment){
             ((AddEventFragment) f).closeRVGuest();
+            ((AddEventFragment) f).closeRVHost();
         } else {
             dialogConfirmExit.show();
         }

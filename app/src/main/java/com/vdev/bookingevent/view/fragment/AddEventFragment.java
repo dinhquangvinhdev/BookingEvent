@@ -8,6 +8,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Parcelable;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,14 +30,13 @@ import android.widget.TimePicker;
 import com.google.android.material.chip.Chip;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.EventsOverlapAdapter;
-import com.vdev.bookingevent.adapter.GuestAdapter;
+import com.vdev.bookingevent.adapter.UserAdapter;
 import com.vdev.bookingevent.callback.CallbackAddEvent;
-import com.vdev.bookingevent.callback.CallbackEditEvent;
 import com.vdev.bookingevent.callback.CallbackEditEventOverlap;
 import com.vdev.bookingevent.callback.CallbackFragmentManager;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.callback.OnItemEventOverlap;
-import com.vdev.bookingevent.callback.OnItemGuestClickListener;
+import com.vdev.bookingevent.callback.OnItemUserClickListener;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MData;
@@ -52,7 +53,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class AddEventFragment extends Fragment implements CallbackAddEvent , CallbackUpdateEventDisplay, OnItemGuestClickListener, CallbackEditEventOverlap {
+public class AddEventFragment extends Fragment implements CallbackAddEvent , CallbackUpdateEventDisplay, OnItemUserClickListener, CallbackEditEventOverlap {
 
     private final String KEY_ADD_TITLE = "KEY_ADD_TITLE";
     private final String KEY_ADD_SUMMARY = "KEY_ADD_SUMMARY";
@@ -83,6 +84,8 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     private Dialog dialogErrorEdit;
     private Event eventWantToAdd = new Event();
     private List<User> guests = new ArrayList<>();
+    private User host;
+    private UserAdapter adapterHost;
 
     public AddEventFragment(CallbackFragmentManager callbackFragmentManager) {
         // Required public constructor
@@ -224,51 +227,133 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
         return new ArrayAdapter<String>(context, android.R.layout.simple_dropdown_item_1line, userNames);
     }
     private void initView() {
-        // guests
-        List<User> mListGuest = new ArrayList<>(MData.arrUser);
-        mListGuest.remove(MData.userLogin);
-        GuestAdapter adapterGuest = new GuestAdapter(mListGuest , this);
-        binding.svGuest.setOnCloseListener(new SearchView.OnCloseListener() {
-            @Override
-            public boolean onClose() {
-                binding.svGuest.clearFocus();
-                return false;
-            }
-        });
-        binding.svGuest.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String s) {
-                return false;
-            }
+        //host
+        if(fc.userLoginIsAdmin()){
+            //TODO access edit for host
+            binding.tvTitleHost.setVisibility(View.VISIBLE);
+            binding.svHost.setVisibility(View.VISIBLE);
+            ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) binding.tvTitleGuest.getLayoutParams();
+            layoutParams.topToBottom = binding.svHost.getId();
+            binding.clFormAddEvent.updateViewLayout(binding.tvTitleGuest, layoutParams);
 
-            @Override
-            public boolean onQueryTextChange(String s) {
-                adapterGuest.getFilter().filter(s);
-                return false;
-            }
-        });
-        binding.rvGuest.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL , false));
-        binding.rvGuest.setHasFixedSize(true);
-        binding.rvGuest.setAdapter(adapterGuest);
-        binding.svGuest.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean b) {
-                if(b){
-                    binding.rvGuest.setVisibility(View.VISIBLE);
-                } else {
-                    binding.rvGuest.setVisibility(View.INVISIBLE);
+            // host
+            List<User> mListHost = new ArrayList<>(MData.arrUser);
+            adapterHost = new UserAdapter(mListHost , this, MConst.USER_ADAPTER_TYPE_HOST);
+            binding.svHost.setOnCloseListener(new SearchView.OnCloseListener() {
+                @Override
+                public boolean onClose() {
+                    binding.svHost.clearFocus();
+                    return false;
                 }
-            }
-        });
+            });
+            binding.svHost.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String s) {
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String s) {
+                    adapterHost.getFilter().filter(s);
+                    return false;
+                }
+            });
+            binding.rvHost.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL , false));
+            binding.rvHost.setHasFixedSize(true);
+            binding.rvHost.setAdapter(adapterHost);
+            binding.svHost.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View view, boolean b) {
+                    if(b){
+                        binding.rvHost.setVisibility(View.VISIBLE);
+                    } else {
+                        binding.rvHost.setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
+
+            // guests
+            List<User> mListGuest = new ArrayList<>(MData.arrUser);
+            UserAdapter adapterGuest = new UserAdapter(mListGuest , this, MConst.USER_ADAPTER_TYPE_GUEST);
+            binding.svGuest.setOnCloseListener(new SearchView.OnCloseListener() {
+                @Override
+                public boolean onClose() {
+                    binding.svGuest.clearFocus();
+                    return false;
+                }
+            });
+            binding.svGuest.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String s) {
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String s) {
+                    adapterGuest.getFilter().filter(s);
+                    return false;
+                }
+            });
+            binding.rvGuest.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL , false));
+            binding.rvGuest.setHasFixedSize(true);
+            binding.rvGuest.setAdapter(adapterGuest);
+            binding.svGuest.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View view, boolean b) {
+                    if(b){
+                        binding.rvGuest.setVisibility(View.VISIBLE);
+                    } else {
+                        binding.rvGuest.setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
+        } else {
+            // guests
+            List<User> mListGuest = new ArrayList<>(MData.arrUser);
+            mListGuest.remove(MData.userLogin);
+            UserAdapter adapterGuest = new UserAdapter(mListGuest , this, MConst.USER_ADAPTER_TYPE_GUEST);
+            binding.svGuest.setOnCloseListener(new SearchView.OnCloseListener() {
+                @Override
+                public boolean onClose() {
+                    binding.svGuest.clearFocus();
+                    return false;
+                }
+            });
+            binding.svGuest.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String s) {
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String s) {
+                    adapterGuest.getFilter().filter(s);
+                    return false;
+                }
+            });
+            binding.rvGuest.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL , false));
+            binding.rvGuest.setHasFixedSize(true);
+            binding.rvGuest.setAdapter(adapterGuest);
+            binding.svGuest.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
+                @Override
+                public void onFocusChange(View view, boolean b) {
+                    if(b){
+                        binding.rvGuest.setVisibility(View.VISIBLE);
+                    } else {
+                        binding.rvGuest.setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
+        }
 
         //room
-        //TODO temp data
+            //set data room
         List<String> tempRooms = new ArrayList<>();
         tempRooms.add("None");
         for(int i=0 ; i<MData.arrRoom.size() ; i++){
             tempRooms.add(MData.arrRoom.get(i).getNickName());
         }
-        //TODO end temp
+            //set array for room
         ArrayAdapter<String> aaRoom = new ArrayAdapter<>(getContext() , androidx.appcompat.R.layout.support_simple_spinner_dropdown_item , tempRooms);
         binding.actvRoom.setAdapter(aaRoom);
         binding.actvRoom.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -306,23 +391,26 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                 if (binding.tvStartTime.getText().toString().isEmpty()){
                     check = true;
                     binding.tvStartTime.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_red));
-                }
-                else {
+                } else {
                     binding.tvStartTime.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_black));
                 }
                 if (binding.tvEndTime.getText().toString().isEmpty()){
                     check = true;
                     binding.tvEndTime.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_red));
-                }
-                else {
+                } else {
                     binding.tvEndTime.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_black));
                 }
                 if (binding.tvDate.getText().toString().isEmpty()){
                     check = true;
                     binding.tvDate.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_red));
-                }
-                else {
+                } else {
                     binding.tvDate.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_black));
+                }
+                if(fc.userLoginIsAdmin()){
+                    if(host == null){
+                        check = true;
+                        mDialog.showErrorDialog(getContext(), "Please choice host");
+                    }
                 }
                 if(check){
                     mDialog.showFillData(getContext(), null);
@@ -331,13 +419,19 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                         // get data to add into firebase
                         String title = binding.edtTitle.getText().toString();
                         String summary = binding.edtSummary.getText().toString();
+                        // remove host of guest <must fix it>
+                        if(fc.userLoginIsAdmin() && host != null){
+                            if(guests.contains(host)){
+                                guests.remove(host);
+                            }
+                        }
                         int numberParticipant = guests.size() + 1; //because host is a participant
                         int room_id = MData.arrRoom.get(index_room_choice - 1).getId();
                         Date dateStart = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvStartTime.getText().toString() + " " + binding.tvDate.getText()));
                         Date dateEnd = mConvertTime.convertMiliToDate(mConvertTime.convertStringToMili(binding.tvEndTime.getText().toString() + " " + binding.tvDate.getText()));
                         Date dateCreated = mConvertTime.convertMiliToDate(System.currentTimeMillis());
                         Date dateUpdated = dateCreated;
-                        //check the number participant if it more than the max value of room's participant
+                        //check the number participant if it smaller or equal than the max value of room's participant
                         if(MData.arrRoom.get(index_room_choice - 1).getMaxNum() >= numberParticipant){
                             //create event
                             Event tempEvent = new Event();
@@ -472,7 +566,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     public void callbackAddEventSuccess(boolean b) {
         if(b){
             //add detail participant
-            fc.addEventDetailParticipant(getContext(), MData.id_event, guests);
+            fc.addEventDetailParticipant(getContext(), MData.id_event, guests, host);
         } else {
             //notification can not add event
             mDialog.showFillData(getContext(), "Some error when add new Event");
@@ -518,26 +612,42 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
     }
 
     @Override
-    public void OnItemGuestCLickListener(User user) {
-        //check user was added
-        if(!guests.contains(user)){
-            guests.add(user);
-            //create chip
-            Chip chip = new Chip(getContext());
-            chip.setText(user.getFullName());
-            chip.setCloseIconVisible(true);
-            chip.setTextAppearance(R.style.ChipTextAppearance);
-            chip.setOnCloseIconClickListener(it -> {guests.remove(user); binding.cgGuests.removeView(chip);});
-            //add chip to group
-            binding.cgGuests.addView(chip);
+    public void OnItemUserCLickListener(User user, int type) {
+        if(type == MConst.USER_ADAPTER_TYPE_GUEST){
+            //check user was added
+            if(!guests.contains(user)){
+                guests.add(user);
+                //create chip
+                Chip chip = new Chip(getContext());
+                chip.setText(user.getFullName());
+                chip.setCloseIconVisible(true);
+                chip.setTextAppearance(R.style.ChipTextAppearance);
+                chip.setOnCloseIconClickListener(it -> {guests.remove(user); binding.cgGuests.removeView(chip);});
+                //add chip to group
+                binding.cgGuests.addView(chip);
+            }
+        } else if(type == MConst.USER_ADAPTER_TYPE_HOST){
+            //TODO
+            host = user;
+            if(binding.cgHost.getChildCount() == 0){
+                //create chip
+                Chip chip = new Chip(getContext());
+                chip.setText(user.getFullName());
+                chip.setCloseIconVisible(true);
+                chip.setTextAppearance(R.style.ChipTextAppearance);
+                chip.setOnCloseIconClickListener(it -> {host = null; binding.cgHost.removeView(chip);});
+                //add chip to group
+                binding.cgHost.addView(chip);
+            } else if(binding.cgHost.getChildCount() == 1){
+                for(int i=0 ; i<binding.cgHost.getChildCount() ; i++){
+                    Chip chip = (Chip) binding.cgHost.getChildAt(i);
+                    chip.setText(user.getFullName());
+                }
+            }
+            binding.svHost.setQuery(user.getFullName(), false);
+            binding.svHost.clearFocus();
         }
-    }
 
-    public void closeRVGuest(){
-        if(binding.rvGuest.getVisibility() == View.VISIBLE){
-            binding.svGuest.clearFocus();
-            binding.rvGuest.setVisibility(View.INVISIBLE);
-        }
     }
 
     @Override
@@ -584,5 +694,19 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
             }
         });
         dialogEditEvent.show();
+    }
+
+    public void closeRVGuest(){
+        if(binding.rvGuest.getVisibility() == View.VISIBLE){
+            binding.svGuest.clearFocus();
+            binding.rvGuest.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    public void closeRVHost() {
+        if(binding.rvHost.getVisibility() == View.VISIBLE){
+            binding.svHost.clearFocus();
+            binding.rvHost.setVisibility(View.INVISIBLE);
+        }
     }
 }

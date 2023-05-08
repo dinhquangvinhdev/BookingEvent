@@ -26,12 +26,12 @@ import android.widget.TimePicker;
 import com.google.android.material.chip.Chip;
 import com.vdev.bookingevent.R;
 import com.vdev.bookingevent.adapter.EventsOverlapAdapter;
-import com.vdev.bookingevent.adapter.GuestAdapter;
+import com.vdev.bookingevent.adapter.UserAdapter;
 import com.vdev.bookingevent.callback.CallbackEditEvent;
 import com.vdev.bookingevent.callback.CallbackEditEventOverlap;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.callback.OnItemEventOverlap;
-import com.vdev.bookingevent.callback.OnItemGuestClickListener;
+import com.vdev.bookingevent.callback.OnItemUserClickListener;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MConvertTime;
 import com.vdev.bookingevent.common.MData;
@@ -48,7 +48,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-public class EditEventActivity extends AppCompatActivity implements EditEventContract.View, CallbackEditEvent, OnItemGuestClickListener,
+public class EditEventActivity extends AppCompatActivity implements EditEventContract.View, CallbackEditEvent, OnItemUserClickListener,
         CallbackUpdateEventDisplay, CallbackEditEventOverlap {
 
     private final String KEY_GUESTS_EDIT_ACTIVITY = "KEY_GUESTS_EDIT_ACTIVITY";
@@ -215,7 +215,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
         // guests
         List<User> mListGuest = new ArrayList<>(MData.arrUser);
         mListGuest.remove(MData.userLogin);
-        GuestAdapter adapterGuest = new GuestAdapter(mListGuest , this);
+        UserAdapter adapterGuest = new UserAdapter(mListGuest , this, MConst.USER_ADAPTER_TYPE_GUEST);
         binding.svGuest.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
@@ -488,19 +488,25 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
     }
 
     @Override
-    public void OnItemGuestCLickListener(User user) {
-        //check user was added
-        if(!guestListNew.contains(user)){
-            guestListNew.add(user);
-            //create chip
-            Chip chip = new Chip(this);
-            chip.setText(user.getFullName());
-            chip.setCloseIconVisible(true);
-            chip.setTextAppearance(R.style.ChipTextAppearance);
-            chip.setOnCloseIconClickListener(it -> {
-                guestListNew.remove(user); binding.cgGuests.removeView(chip);});
-            //add chip to group
-            binding.cgGuests.addView(chip);
+    public void OnItemUserCLickListener(User user, int type) {
+        if(type == MConst.USER_ADAPTER_TYPE_GUEST) {
+            //check user was added
+            if (!guestListNew.contains(user)) {
+                guestListNew.add(user);
+                //create chip
+                Chip chip = new Chip(this);
+                chip.setText(user.getFullName());
+                chip.setCloseIconVisible(true);
+                chip.setTextAppearance(R.style.ChipTextAppearance);
+                chip.setOnCloseIconClickListener(it -> {
+                    guestListNew.remove(user);
+                    binding.cgGuests.removeView(chip);
+                });
+                //add chip to group
+                binding.cgGuests.addView(chip);
+            }
+        } else if(type == MConst.USER_ADAPTER_TYPE_HOST){
+            //TODO
         }
     }
 

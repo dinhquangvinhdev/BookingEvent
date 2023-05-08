@@ -116,11 +116,11 @@ public final class FirebaseController {
         }
     }
 
-    public void addEventDetailParticipant(Context context, int event_id, List<User> guests) {
+    public void addEventDetailParticipant(Context context, int event_id, List<User> guests, User host) {
         if (mDialog.checkConnection(context)) {
             Detail_participant detailParticipantHost = new Detail_participant();
             detailParticipantHost.setEvent_id(event_id);
-            detailParticipantHost.setUser_id(MData.userLogin.getId());
+            detailParticipantHost.setUser_id(host.getId());
             detailParticipantHost.setRole(MConst.ROLE_HOST);
 
             List<Detail_participant> dpGuest = new ArrayList<>();
@@ -1063,7 +1063,7 @@ public final class FirebaseController {
      * <p>-1 : something bad happen when compare </p>
      * <p>0 : the login have higher than the host </p>
      * <p>1 : the host have higher or equal than the login </p>
-     * <p>2 : the host is admin </p>
+     * <p>2 : the login is admin </p>
      * <p>3 : the login is the host </p>
      *
      * @param userId
@@ -1144,6 +1144,21 @@ public final class FirebaseController {
         } else {
             return 1;
         }
+    }
+
+    public boolean userLoginIsAdmin(){
+        String email_id_login = MData.userLogin.getEmail_id();
+        for (int i = 0; i < MData.arrEmail.size(); i++) {
+            Email email = MData.arrEmail.get(i);
+            if (email.getId().compareTo(email_id_login) == 0) {
+                if(email.getRole_id() == 9999) { // id admin
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 
 }

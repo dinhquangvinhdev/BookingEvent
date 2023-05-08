@@ -17,4 +17,6 @@ public class MConst {
     public static final List<String> titleOptionAccount = new ArrayList<>(Arrays.asList("Detail Account", "Logout"));
     public static final List<String> titleTabDashboard = new ArrayList<>(Arrays.asList("Dashboard Month"));
     public static final String FORMAT_TIME = "%02d:%02d";
+    public static final int USER_ADAPTER_TYPE_HOST = 0;
+    public static final int USER_ADAPTER_TYPE_GUEST = 1;
 }
