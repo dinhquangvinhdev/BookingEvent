@@ -282,6 +282,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                     }
                 }
             });
+            binding.imgStartHost.setVisibility(View.VISIBLE);
 
             // guests
             List<User> mListGuest = new ArrayList<>(MData.arrUser);
@@ -422,6 +423,12 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                         check = true;
                         mDialog.showErrorDialog(getContext(), "Please choice host");
                     }
+                }
+                if(binding.edtTitle.getText().toString().isEmpty()){
+                    check = true;
+                    binding.edtTitle.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_red));
+                } else {
+                    binding.edtTitle.setBackground(ContextCompat.getDrawable(getContext(), R.drawable.rounded_outline_black));
                 }
                 if(check){
                     mDialog.showFillData(getContext(), null);

@@ -27,13 +27,22 @@
             <!--Title-->
             <TextView
                 android:id="@+id/tv_title_title"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Title"
                 android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/img_star_title"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginTop="2dp"
+                android:src="@drawable/ic_star"
+                app:layout_constraintStart_toEndOf="@id/tv_title_title"
+                app:layout_constraintTop_toTopOf="@id/tv_title_title" />
 
             <EditText
                 android:id="@+id/edt_title"
@@ -73,13 +82,23 @@
             <!--Host-->
             <TextView
                 android:id="@+id/tv_title_host"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Host"
                 android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/edt_summary"
+                android:visibility="invisible"/>
+
+            <ImageView
+                android:id="@+id/img_start_host"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginTop="2dp"
+                android:src="@drawable/ic_star"
+                app:layout_constraintStart_toEndOf="@id/tv_title_host"
+                app:layout_constraintTop_toTopOf="@id/tv_title_host"
                 android:visibility="invisible"/>
 
             <com.google.android.material.chip.ChipGroup

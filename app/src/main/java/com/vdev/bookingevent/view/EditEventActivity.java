@@ -274,6 +274,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                     }
                 }
             });
+            binding.imgStartHost.setVisibility(View.VISIBLE);
 
             //add chip for host already add
             Chip chipHost = new Chip(this);
@@ -436,6 +437,12 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                     binding.tvDate.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_red));
                 } else {
                     binding.tvDate.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_black));
+                }
+                if (binding.edtTitle.getText().toString().isEmpty()){
+                    check = true;
+                    binding.edtTitle.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_red));
+                } else {
+                    binding.edtTitle.setBackground(ContextCompat.getDrawable(this, R.drawable.rounded_outline_black));
                 }
                 if(fc.userLoginIsAdmin()){
                     if(host == null){
