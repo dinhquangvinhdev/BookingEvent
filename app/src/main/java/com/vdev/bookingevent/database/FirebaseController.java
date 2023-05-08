@@ -21,6 +21,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.vdev.bookingevent.callback.CallbackAddEvent;
 import com.vdev.bookingevent.callback.CallbackDetailEvent;
 import com.vdev.bookingevent.callback.CallbackEditEvent;
+import com.vdev.bookingevent.callback.CallbackEditEventOverlap;
 import com.vdev.bookingevent.callback.CallbackUpdateEventDisplay;
 import com.vdev.bookingevent.common.MConst;
 import com.vdev.bookingevent.common.MConvertTime;
@@ -48,16 +49,19 @@ public final class FirebaseController {
     private CallbackAddEvent callbackAddEvent;
     private CallbackEditEvent callbackEditEvent;
     private CallbackDetailEvent callbackDetailEvent;
+    private CallbackEditEventOverlap callbackEditEventOverlap;
     private MDialog mDialog;
 
     public FirebaseController(CallbackUpdateEventDisplay callbackUpdateEventDisplay, CallbackAddEvent callbackAddEvent,
-                              CallbackEditEvent callbackEditEvent, CallbackDetailEvent callbackDetailEvent) {
+                              CallbackEditEvent callbackEditEvent, CallbackDetailEvent callbackDetailEvent,
+                              CallbackEditEventOverlap callbackEditEventOverlap) {
         this.mDatabase = FirebaseDatabase.getInstance().getReference();
         mConvertTime = new MConvertTime();
         this.callbackUpdateEventDisplay = callbackUpdateEventDisplay;
         this.callbackAddEvent = callbackAddEvent;
         this.callbackEditEvent = callbackEditEvent;
         this.callbackDetailEvent = callbackDetailEvent;
+        this.callbackEditEventOverlap = callbackEditEventOverlap;
         mDialog = new MDialog();
     }
 
@@ -112,13 +116,20 @@ public final class FirebaseController {
         }
     }
 
-    public void addEventDetailParticipant(Context context, int event_id, List<User> guests) {
+    public void addEventDetailParticipant(Context context, int event_id, List<User> guests, User host) {
         if (mDialog.checkConnection(context)) {
+            //host
             Detail_participant detailParticipantHost = new Detail_participant();
             detailParticipantHost.setEvent_id(event_id);
-            detailParticipantHost.setUser_id(MData.userLogin.getId());
             detailParticipantHost.setRole(MConst.ROLE_HOST);
+            if (userLoginIsAdmin()) {
+                detailParticipantHost.setUser_id(host.getId());
+            } else {
+                detailParticipantHost.setUser_id(MData.userLogin.getId());
+            }
 
+
+            //guest
             List<Detail_participant> dpGuest = new ArrayList<>();
             for (int i = 0; i < guests.size(); i++) {
                 Detail_participant dp = new Detail_participant();
@@ -147,8 +158,28 @@ public final class FirebaseController {
 
     }
 
-    public void editEventDetailParticipant(Context context , int event_id, List<User> addGuests, List<User> removeGuests) {
+    public void editEventDetailParticipant(Context context , int event_id, List<User> addGuests, List<User> removeGuests, User host) {
         if(mDialog.checkConnection(context)){
+            //update Host
+            Detail_participant detailParticipantHost = new Detail_participant();
+            detailParticipantHost.setEvent_id(event_id);
+            detailParticipantHost.setUser_id(host.getId());
+            detailParticipantHost.setRole(MConst.ROLE_HOST);
+            mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<DataSnapshot> task) {
+                    if (task.isSuccessful()) {
+                        for (DataSnapshot dataSnapshot : task.getResult().getChildren()) {
+                            Detail_participant detailParticipant = dataSnapshot.getValue(Detail_participant.class);
+                            if(detailParticipant.getRole().equals(MConst.ROLE_HOST)){
+                                mDatabase.child("Detail_participant").child(dataSnapshot.getKey()).setValue(detailParticipantHost);
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+
             //create list add guest
             List<Detail_participant> dpAddGuest = new ArrayList<>();
             for (int i = 0; i < addGuests.size(); i++) {
@@ -179,6 +210,7 @@ public final class FirebaseController {
                 }
 
             } else if (addGuests.isEmpty() && !removeGuests.isEmpty()) {              //case add guest is empty but removeGuest is not empty
+                //remove guest
                 mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DataSnapshot> task) {
@@ -200,7 +232,6 @@ public final class FirebaseController {
                 });
 
             } else {                                                                //case both add guest and removeGuest are not empty
-                //remove guest
                 //remove guest
                 mDatabase.child("Detail_participant").orderByChild("event_id").equalTo(event_id).get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
                     @Override
@@ -878,6 +909,47 @@ public final class FirebaseController {
                     });
         }
     }
+    public void checkEditEventOverlap(Context context, Event eventOverlap) {
+        if (mDialog.checkConnection(context)) {
+            //get all event of the day want to update
+            LocalDate tempLC = mConvertTime.convertMiliToLocalDate(eventOverlap.getDateStart());
+            long timeStart = mConvertTime.getMiliStartDayFromLocalDate(tempLC);
+            long timeEnd = mConvertTime.getMiliLastDayFromLocalDate(tempLC);
+            mDatabase.child("Event")
+                    .orderByChild("dateStart")
+                    .startAt(timeStart)
+                    .endAt(timeEnd)
+                    .get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DataSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DataSnapshot result = task.getResult();
+                                List<Event> eventsOverlap = new ArrayList<>();
+                                //check overlap event
+                                for (DataSnapshot dataSnapshot : result.getChildren()) {
+                                    Event event1 = dataSnapshot.getValue(Event.class);
+                                    if (event1.getStatus() == 0 && event1.getId() != eventOverlap.getId() && event1.getRoom_id() == eventOverlap.getRoom_id()) {
+                                        if ((eventOverlap.getDateStart() < event1.getDateStart() && eventOverlap.getDateEnd() <= event1.getDateStart())
+                                                || (eventOverlap.getDateStart() >= event1.getDateEnd() && eventOverlap.getDateEnd() > event1.getDateEnd())) {
+                                            //can edit the event
+                                            continue;
+                                        } else {
+                                            eventsOverlap.add(event1);
+                                        }
+                                    } else {
+                                        //can edit the event
+                                        continue;
+                                    }
+                                }
+                                //check can edit
+                                callbackEditEventOverlap.callbackEditEventOverlap(eventOverlap, eventsOverlap);
+                            } else {
+                                Log.d("bibibla", "onComplete: " + task.getException());
+                            }
+                        }
+                    });
+        }
+    }
 
     public void editEvent(Context context, Event event) {
         if(mDialog.checkConnection(context)){
@@ -886,6 +958,21 @@ public final class FirebaseController {
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful()) {
                         callbackEditEvent.editEventSuccess(event);
+                    } else {
+                        Log.d("bibibla", "onComplete: " + task.getException());
+                    }
+
+                }
+            });
+        }
+    }
+    public void editEventOverlap(Context context, Event eventOverlap) {
+        if(mDialog.checkConnection(context)){
+            mDatabase.child("Event").child(String.valueOf(eventOverlap.getId())).setValue(eventOverlap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        callbackEditEventOverlap.editEventSuccessOverlap(eventOverlap);
                     } else {
                         Log.d("bibibla", "onComplete: " + task.getException());
                     }
@@ -999,19 +1086,19 @@ public final class FirebaseController {
     }
 
     /**
-     * This method will return 3 case
-     * -1 : something bad happen when compare
-     * 0 : the login have higher than the host
-     * 1 : the host have higher or equal than the login
+     * This method will return 5 case
+     * <p>-1 : something bad happen when compare </p>
+     * <p>0 : the login have higher than the host </p>
+     * <p>1 : the host have higher or equal than the login </p>
+     * <p>2 : the login is admin </p>
+     * <p>3 : the login is the host </p>
      *
      * @param userId
      * @return
      */
     public int comparePriorityUser(int userId) {
-
-        //compare id if the login is the host so they can edit any thing to their event
-        if (userId == MData.userLogin.getId()) {
-            return 0;
+        if (userId == MData.userLogin.getId()) { //compare id if the login is the host so they can edit any thing to their event
+            return 3;
         }
 
         int role_id_user_login = -1, role_id_host = -1;
@@ -1076,11 +1163,29 @@ public final class FirebaseController {
         }
 
         //compare priority
+        if(priority_login == 9999){      // priority of admin
+            return 2;
+        }
         if (priority_login > priority_host) {
             return 0;
         } else {
             return 1;
         }
+    }
+
+    public boolean userLoginIsAdmin(){
+        String email_id_login = MData.userLogin.getEmail_id();
+        for (int i = 0; i < MData.arrEmail.size(); i++) {
+            Email email = MData.arrEmail.get(i);
+            if (email.getId().compareTo(email_id_login) == 0) {
+                if(email.getRole_id() == 9999) { // id admin
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 
 }

@@ -19,7 +19,7 @@ public class SearchPresenter implements SearchEventContract.Presenter{
 
     public SearchPresenter(SearchEventContract.View view , CallbackUpdateEventDisplay callbackUpdateEventDisplay) {
         this.view = view;
-        fc = new FirebaseController(callbackUpdateEventDisplay, null, null,null);
+        fc = new FirebaseController(callbackUpdateEventDisplay, null, null,null,null);
         //convert time
         mConvertTime = new MConvertTime();
         //event

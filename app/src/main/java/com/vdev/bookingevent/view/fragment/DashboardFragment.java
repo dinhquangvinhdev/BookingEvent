@@ -79,8 +79,18 @@ public class DashboardFragment extends Fragment {
     }
 
     private void initDialog() {
+        //check filter
+        if(MData.filterChoicedRoom != null && (MData.filterChoicedRoom.contains(true) || MData.filterUser)){
+            binding.imgFilter.setImageResource(R.drawable.ic_filter_on);
+        } else {
+            binding.imgFilter.setImageResource(R.drawable.ic_filter_off);
+        }
+        // create dialog builder
         dialogBuilder = new AlertDialog.Builder(getContext());
-        final DialogFilterBinding bindingPopupView = DialogFilterBinding.inflate(getLayoutInflater());
+        DialogFilterBinding bindingPopupView = DialogFilterBinding.inflate(getLayoutInflater());
+//        if(MData.filterUser){   // check is filter event of user
+//            bindingPopupView.cbUserFilter.setChecked(MData.filterUser);
+//        }
         adapterFilter = new RoomFilterAdapter(MData.filterChoicedRoom);
         bindingPopupView.rvRooms.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL , false));
         bindingPopupView.rvRooms.setAdapter(adapterFilter);
@@ -101,7 +111,6 @@ public class DashboardFragment extends Fragment {
         });
         bindingPopupView.btnCancel.setOnClickListener(view -> {
             dialog.dismiss();
-
         });
         bindingPopupView.btnClearAllFilter.setOnClickListener(view -> {
             //clear room choices

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.TextView;
 
@@ -150,6 +151,34 @@ public class MDialog {
         return dialogSuccess;
     }
 
+    public Dialog dialogError(Context context , String title , String body){
+        Dialog dialogError = new Dialog(context);
+        dialogError.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogError.setCancelable(false);
+        dialogError.setContentView(R.layout.dialog_time_error);
+
+        TextView tvTitle = dialogError.findViewById(R.id.tv_title_title);
+        TextView tvBody = dialogError.findViewById(R.id.tv_body);
+        tvTitle.setText(title);
+        tvBody.setText(body);
+
+        dialogError.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogError.dismiss();
+            }
+        });
+
+        dialogError.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogError.dismiss();
+            }
+        });
+
+        return dialogError;
+    }
+
     public void showTimeError(Context context){
         Dialog dialogTimeError = new Dialog(context);
         dialogTimeError.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -201,11 +230,40 @@ public class MDialog {
         return dialogSuccess;
     }
 
-    public Dialog showEventsDuplicate(Context context , List<Event> eventsDuplicate){
+    public Dialog dialogEditSuccess(Context context , Event event) {
+        Dialog dialogSuccess = new Dialog(context);
+        dialogSuccess.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialogSuccess.setCancelable(false);
+        dialogSuccess.setContentView(R.layout.dialog_success);
+
+        TextView tvTitle = dialogSuccess.findViewById(R.id.tv_title_title);
+        TextView tvBody = dialogSuccess.findViewById(R.id.tv_body);
+        tvTitle.setText("Edit Success");
+        tvBody.setText(event.getTitle() + " is edited");
+
+        dialogSuccess.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogSuccess.dismiss();
+            }
+        });
+
+        dialogSuccess.findViewById(R.id.img_close).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialogSuccess.dismiss();
+            }
+        });
+
+        return dialogSuccess;
+    }
+
+    public Dialog showEventsDuplicate(Context context){
         Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(true);
         dialog.setContentView(R.layout.dialog_confirm_events_duplicate);
+        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
         dialog.findViewById(R.id.btn_confirm).setOnClickListener(new View.OnClickListener() {
             @Override

@@ -59,7 +59,6 @@ public class GuestEventDetailAdapter extends RecyclerView.Adapter<GuestEventDeta
 
         public void bindGuest(User guest){
             binding.tvNameGuest.setText(guest.getFullName());
-            //TODO get url to image of guest
             if(guest.getAvatar() != null && !guest.getAvatar().isEmpty()){
                 Picasso.get().load(guest.getAvatar()).into(binding.imgAvatarGuest);
             } else {
@@ -71,7 +70,6 @@ public class GuestEventDetailAdapter extends RecyclerView.Adapter<GuestEventDeta
         public void bindHost(User host){
             binding.tvNameGuest.setText(host.getFullName() + "\n" + "Organizer");
             binding.tvNameGuest.setTypeface(binding.tvNameGuest.getTypeface(), Typeface.BOLD);
-            //TODO get url to image of host
             if(host.getAvatar() != null && !host.getAvatar().isEmpty()){
                 Picasso.get().load(host.getAvatar()).into(binding.imgAvatarGuest);
             } else {
@@ -81,9 +79,10 @@ public class GuestEventDetailAdapter extends RecyclerView.Adapter<GuestEventDeta
         }
     }
 
-    public void updateDataGuest(List<User> guests){
+    public void updateDataGuest(List<User> guests, User host){
         this.participantData.clear();
         this.participantData = new ArrayList<>(guests);
+        this.host = host;
         this.participantData.add(0, this.host);
         notifyDataSetChanged();
     }

@@ -68,6 +68,7 @@ public class DashboardMonthFragment extends Fragment
         implements DashboardMonthContract.View, CallbackItemCalDashMonth,
         CallbackItemDayCalMonth, CallbackUpdateEventDisplay , CallbackDetailEvent {
     private final String KEY_GUESTS_EDIT_ACTIVITY = "KEY_GUESTS_EDIT_ACTIVITY";
+    private final String KEY_HOST_EDIT_ACTIVITY = "KEY_HOST_EDIT_ACTIVITY";
     private final String KEY_EVENT_EDIT_ACTIVITY = "KEY_EVENT_EDIT_ACTIVITY";
     private final int REQUEST_CODE_EDIT_EVENT_ACTIVITY = 10;
     private FragmentDashboardMonthBinding binding;
@@ -124,7 +125,7 @@ public class DashboardMonthFragment extends Fragment
         initRVEvents();
 
         updateTitleTime(today);
-        updateEvent(MData.arrEvent); // this is called to update the adapter when you change fragment <not good>
+        updateEvent(MData.arrEvent); // this is called to update the adapter with filter room when you change fragment <not good>
     }
 
     private void initMDialog() {
@@ -147,7 +148,7 @@ public class DashboardMonthFragment extends Fragment
 
     private void initFirebaseController() {
         if (fc == null) {
-            fc = new FirebaseController(this, null, null,this);
+            fc = new FirebaseController(this, null, null,this,null);
             //get event in the first time
             int monthNow = Calendar.getInstance().get(Calendar.MONTH);
             fc.getAllEvent();
@@ -378,18 +379,22 @@ public class DashboardMonthFragment extends Fragment
                 Bundle bundle = data.getExtras();
                 Event updatedEvent;
                 List<User> guests = new ArrayList<>();
+                User host;
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                     updatedEvent = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY, Event.class);
+                    guests = bundle.getParcelableArrayList(KEY_GUESTS_EDIT_ACTIVITY);
+                    host = bundle.getParcelable(KEY_HOST_EDIT_ACTIVITY, User.class);
                 } else {
                     updatedEvent = bundle.getParcelable(KEY_EVENT_EDIT_ACTIVITY);
                     guests = bundle.getParcelableArrayList(KEY_GUESTS_EDIT_ACTIVITY);
+                    host = bundle.getParcelable(KEY_HOST_EDIT_ACTIVITY);
                 }
-                updatedEventInSlidingPanel(updatedEvent,guests);
+                updatedEventInSlidingPanel(updatedEvent,guests, host);
             }
         }
     }
 
-    private void updatedEventInSlidingPanel(Event updatedEvent, List<User> guests) {
+    private void updatedEventInSlidingPanel(Event updatedEvent, List<User> guests, User host) {
         if(bsb != null && bsb.getState() == BottomSheetBehavior.STATE_EXPANDED){
             if (updatedEvent != null) {
                 Log.d("bibibla", "openSlidingPanel: " + "found event");
@@ -414,6 +419,7 @@ public class DashboardMonthFragment extends Fragment
                         Bundle bundle = new Bundle();
                         bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , updatedEvent);
                         bundle.putParcelableArrayList(KEY_GUESTS_EDIT_ACTIVITY, (ArrayList<? extends Parcelable>) guests);
+                        bundle.putParcelable(KEY_HOST_EDIT_ACTIVITY, host);
                         intent.putExtras(bundle);
                         startActivityForResult(intent, REQUEST_CODE_EDIT_EVENT_ACTIVITY);
                     }
@@ -421,7 +427,7 @@ public class DashboardMonthFragment extends Fragment
                 bindingDetailEvent.tvEventDetailParticipant.setText((updatedEvent.getNumberParticipant() - 1) + " Guest");
                 //update adapter
                 GuestEventDetailAdapter adapterGuest = (GuestEventDetailAdapter) bindingDetailEvent.rvGuest.getAdapter();
-                adapterGuest.updateDataGuest(guests);
+                adapterGuest.updateDataGuest(guests, host);
             }
         }
     }
@@ -440,12 +446,19 @@ public class DashboardMonthFragment extends Fragment
             bindingDetailEvent.tvEventSummary.setText(event.getSummery());
             bindingDetailEvent.tvEventDetailNameRoom.setText(nameRoom);
             int checkPriority = fc.comparePriorityUser(host.getId());
-            if( checkPriority != 0){
+            if( checkPriority == 1){
                 bindingDetailEvent.imgEditEvent.setVisibility(View.INVISIBLE);
                 bindingDetailEvent.imgDeleteEvent.setVisibility(View.INVISIBLE);
-            } else if(checkPriority == 0){
+            } else if(checkPriority == 0 ){
+                bindingDetailEvent.imgEditEvent.setVisibility(View.VISIBLE);
+                bindingDetailEvent.imgDeleteEvent.setVisibility(View.INVISIBLE);
+            } else if(checkPriority == 2 || checkPriority == 3){
                 bindingDetailEvent.imgEditEvent.setVisibility(View.VISIBLE);
                 bindingDetailEvent.imgDeleteEvent.setVisibility(View.VISIBLE);
+            } else {
+                //something bad when compare event
+                bindingDetailEvent.imgEditEvent.setVisibility(View.INVISIBLE);
+                bindingDetailEvent.imgDeleteEvent.setVisibility(View.INVISIBLE);
             }
             for(int i=0 ; i<MData.arrRoom.size() ; i++){
                 Room room = MData.arrRoom.get(i);
@@ -479,6 +492,7 @@ public class DashboardMonthFragment extends Fragment
                     Bundle bundle = new Bundle();
                     bundle.putParcelable(KEY_EVENT_EDIT_ACTIVITY , event);
                     bundle.putParcelableArrayList(KEY_GUESTS_EDIT_ACTIVITY, (ArrayList<? extends Parcelable>) guests);
+                    bundle.putParcelable(KEY_HOST_EDIT_ACTIVITY, host);
                     intent.putExtras(bundle);
                     startActivityForResult(intent, REQUEST_CODE_EDIT_EVENT_ACTIVITY);
                 }
