@@ -154,6 +154,13 @@ public class EventsOverlapAdapter extends RecyclerView.Adapter<EventsOverlapAdap
                     }
                 }
             });
+
+            //set title for timePicker
+            if(type == TYPE_TIME_START_PICKER){
+                tpd.setTitle("Time Start Event");
+            } else if(type == TYPE_TIME_END_PICKER) {
+                tpd.setTitle("Time End Event");
+            }
             tpd.show();
         }
 

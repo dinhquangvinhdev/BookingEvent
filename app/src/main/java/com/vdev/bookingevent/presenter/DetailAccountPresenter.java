@@ -24,7 +24,7 @@ public class DetailAccountPresenter implements DetailAccountContract.Presenter{
 
     @Override
     public String getAccountName() {
-        return firebaseUser.getDisplayName();
+        return MData.userLogin.getFullName();
     }
 
     @Override

@@ -203,6 +203,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                 binding.tvStartTime.setText(start_time);
             }
         }, hStart, mStart, true);
+        tpd_start.setTitle("Time Start Event");
         //TimePickerDialog end Time
         tpd_end = new TimePickerDialog(this, android.R.style.Theme_Holo_Dialog_MinWidth
                 , new TimePickerDialog.OnTimeSetListener() {
@@ -212,6 +213,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
                 binding.tvEndTime.setText(end_time);
             }
         }, hEnd, mEnd, true);
+        tpd_end.setTitle("Time End Event");
         //DatePickerDialog datePickerDialog
         dpd = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -584,7 +586,7 @@ public class EditEventActivity extends AppCompatActivity implements EditEventCon
 
     @Override
     public void callbackGetHostEventOverlap(List<Event> eventsOverlap, List<User> arrHost) {
-        dialogEventOverlap = mDialog.showEventsDuplicate(this, eventsOverlap);
+        dialogEventOverlap = mDialog.showEventsDuplicate(this);
         //set title time
         TextView tv = dialogEventOverlap.findViewById(R.id.tv_date);
         Date date = mConvertTime.convertMiliToDate(eventsOverlap.get(0).getDateStart());

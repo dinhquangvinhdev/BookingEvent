@@ -204,6 +204,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                 binding.tvStartTime.setText(start_time);
             }
         },hour,minute,true);
+        tpd_start.setTitle("Time Start Event");
     }
 
     private void initTimePickerEnd(int hour, int minute) {
@@ -216,6 +217,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
                 binding.tvEndTime.setText(end_time);
             }
         },hour,minute,true);
+        tpd_end.setTitle("Time End Event");
     }
 
     private void initDatePicker(int day , int month, int year){
@@ -555,7 +557,7 @@ public class AddEventFragment extends Fragment implements CallbackAddEvent , Cal
 
     @Override
     public void callbackGetHostEventOverlap(List<Event> eventsOverlap, List<User> hosts) {
-        dialogEventOverlap = mDialog.showEventsDuplicate(getContext(), eventsOverlap);
+        dialogEventOverlap = mDialog.showEventsDuplicate(getContext());
         //set title time
         TextView tv = dialogEventOverlap.findViewById(R.id.tv_date);
         Date date = mConvertTime.convertMiliToDate(eventsOverlap.get(0).getDateStart());
