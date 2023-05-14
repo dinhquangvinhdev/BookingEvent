@@ -28,7 +28,7 @@
             android:layout_gravity="center_horizontal"
             android:paddingStart="10dp"
             android:paddingEnd="10dp"
-            android:text="Edit Event"
+            android:text="@string/title_layout_edit_event"
             android:background="@drawable/rounded_item_dash_month"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

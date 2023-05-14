@@ -39,6 +39,11 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        finishAffinity();
+    }
+
     private void initView() {
         binding.btnSignIn.setOnClickListener(new View.OnClickListener() {
             @Override

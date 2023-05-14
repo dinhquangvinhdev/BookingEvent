@@ -75,7 +75,9 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
             dialogConfirmExit.findViewById(R.id.btn_yes).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    finish();
+                    if(dialogConfirmExit.isShowing())
+                        dialogConfirmExit.dismiss();
+                    finishAffinity();
                 }
             });
         }

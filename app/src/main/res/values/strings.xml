@@ -25,4 +25,5 @@
     <string name="body_time_error">Please set the time end after the time start</string>
     <string name="title_dialog_success">Success</string>
     <string name="body_dialog_success">Add Event Success</string>
+    <string name="title_layout_edit_event">Edit Event</string>
 </resources>
