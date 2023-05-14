@@ -41,7 +41,7 @@ public class LoginActivity extends AppCompatActivity implements LoginContract.Vi
 
     @Override
     public void onBackPressed() {
-        finishAffinity();
+        finish();
     }
 
     private void initView() {

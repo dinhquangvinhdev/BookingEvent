@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements MainContract.View
                 public void onClick(View view) {
                     if(dialogConfirmExit.isShowing())
                         dialogConfirmExit.dismiss();
-                    finishAffinity();
+                    finish();
                 }
             });
         }

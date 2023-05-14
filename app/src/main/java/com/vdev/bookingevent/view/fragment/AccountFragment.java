@@ -62,8 +62,7 @@ public class AccountFragment extends Fragment implements AccountContract.View , 
                 if(mDialog.checkConnection(getContext())){
                     presenter.logout(getContext());
                     Intent newIntent = new Intent(getActivity(), LoginActivity.class);
-                    newIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    newIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    newIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(newIntent);
                 } else {
                     dialogLogout.dismiss();
